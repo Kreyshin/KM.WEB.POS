@@ -5,10 +5,19 @@
 /* =============================================================================
  * Punto de venta — sistema de diseño propio
  *
- * Identidad: JADE sobre carbón verdoso, con plata fría. Donde Hospedaje usa la
- * frialdad limpia de la habitación preparada y Restaurante el fuego del
- * servicio, el POS usa el verde de la operación confirmada: el color que
- * aparece cuando el cobro cierra y el cajón se abre.
+ * Identidad: BRONCE sobre carbón tabaco, con ceniza templada. Es un oro
+ * apagado, no un ámbar brillante: el latón del cajón y de la balanza, no un
+ * color de aviso. La saturación se mantiene baja a propósito, porque el POS es
+ * la pantalla que alguien mira ocho horas seguidas.
+ *
+ * Es además el tramo que la suite tenía libre: Hospedaje lleva el turquesa y
+ * el azul, Taller el azul marino y el carmín, Restaurante el naranja del
+ * fuego, y la plataforma el violeta. El verde queda reservado.
+ *
+ * El naranja de Restaurante y este bronce son vecinos de tono pero no se
+ * confunden: aquel es vivo y saturado (#f36b25), este es oscuro y terroso
+ * (#8a6628). Si alguna vez hay que separarlos más, se baja aún la saturación
+ * de este, nunca se sube la del otro.
  *
  * Tres rasgos separan esta vertical de sus hermanas sin romper la estructura
  * compartida (barra de módulos + menú de secciones + área de trabajo):
@@ -41,72 +50,75 @@
 
 :root {
   /*
-   * Jade — escala principal. Sostiene acción, foco y estado cobrado.
+   * Bronce — escala principal. Sostiene acción, foco y estado cobrado.
    *
-   * El 500 y el 400 son luminosos: NO sostienen texto blanco a 4.5:1 y no
-   * sirven como fondo de botón. Para texto se usa `--pv-jade-texto`, que baja
-   * al 700 en claro y sube al 400 en oscuro.
+   * El 600 y el 700 sostienen texto blanco (5.2:1 y 7.6:1). Del 500 hacia
+   * arriba NO: el 500 cae a 3.6:1, así que no sirve como fondo de botón ni
+   * como color de texto sobre blanco. Para texto se usa `--pv-bronce-texto`,
+   * que baja al 700 en claro y sube al 400 en oscuro.
    */
-  --pv-jade-900: #042f24;
-  --pv-jade-800: #06402f;
-  --pv-jade-700: #07604a;
-  --pv-jade-600: #0a7d5e;
-  --pv-jade-500: #10a37a;
-  --pv-jade-400: #34c99b;
-  --pv-jade-200: #a7ebd5;
-  --pv-jade-50: #e6f8f1;
+  --pv-bronce-900: #2b2010;
+  --pv-bronce-800: #413017;
+  --pv-bronce-700: #6b4f20;
+  --pv-bronce-600: #8a6628;
+  --pv-bronce-500: #a8802f;
+  --pv-bronce-400: #c9a257;
+  --pv-bronce-200: #e8d4a8;
+  --pv-bronce-50: #f8f1e2;
 
   /*
-   * Plata — neutro frío de la escala. Viste tablas, bordes y texto secundario
-   * sin arrastrar el verde al área de contenido.
+   * Ceniza — el neutro de la escala, templado con una pizca de tabaco para
+   * que conviva con la bronce. Viste tablas, bordes y texto secundario sin
+   * arrastrar el color de marca al área de contenido.
    */
-  --pv-plata-700: #333d39;
-  --pv-plata-600: #495650;
-  --pv-plata-500: #6f7d76;
-  --pv-plata-400: #a4b0aa;
-  --pv-plata-200: #d4dcd8;
-  --pv-plata-50: #f2f5f3;
+  --pv-plata-700: #3a3730;
+  --pv-plata-600: #524e45;
+  --pv-plata-500: #7a756a;
+  --pv-plata-400: #aca79b;
+  --pv-plata-200: #dcd8cd;
+  --pv-plata-50: #f4f2ed;
 
-  /* Estados complementarios, enfriados para convivir con el jade. */
+  /* Estados complementarios, enfriados para convivir con el bronce. */
   --pv-rojo: #c0392f;
   --pv-rojo-claro: #f2a49b;
-  --pv-ambar: #a86a06;
+  --pv-ambar: #8f6414;
   --pv-ambar-claro: #f1c26a;
   --pv-indigo: #3b5b9a;
   --pv-indigo-claro: #9db2dc;
 
-  /* ── Superficies: tema OSCURO, que es el de partida ───────────────────── */
-  --pv-bg: #090f0d;
-  --pv-surface: #111a17;
-  --pv-surface-2: #17221e;
-  --pv-text: #eef4f1;
-  --pv-muted: #9aaaa3;
-  --pv-border: #26332e;
-  --pv-selection: #0f2b22;
+  /* ── Superficies: tema OSCURO, que es el de partida. Carbón tabaco, nunca
+   *    gris neutro: el fondo lleva una pizca del color de la vertical. ───── */
+  --pv-bg: #100d08;
+  --pv-surface: #1a1610;
+  --pv-surface-2: #221d15;
+  --pv-text: #f4f0e7;
+  --pv-muted: #aaa294;
+  --pv-border: #332c20;
+  --pv-selection: #2b2210;
 
   /* Roles derivados */
-  --pv-primary: var(--pv-jade-400);
-  --pv-primary-strong: #6fdcb9;
-  --pv-jade-texto: var(--pv-jade-400);
+  --pv-primary: var(--pv-bronce-400);
+  --pv-primary-strong: #ddbc7c;
+  --pv-bronce-texto: var(--pv-bronce-400);
   --pv-plata-texto: var(--pv-plata-200);
 
   /*
    * Fondo de botón primario. Se separa de --pv-primary porque ese token también
    * pinta barras y gráficos, donde se aclara en oscuro; aquí no, porque debe
-   * sostener texto blanco a 4.5:1 en ambos temas. El 600 da 5.1:1 y el 700
-   * da 7.6:1, así que el hover oscurece en lugar de aclarar: en el 500 el
-   * texto blanco cae a 3.2:1 y dejaría de cumplir.
+   * sostener texto blanco a 4.5:1 en ambos temas. El hover oscurece en lugar
+   * de aclarar (600 -> 700, de 5.2:1 a 7.6:1): subir al 500 dejaría el blanco
+   * en 3.6:1 y dejaría de cumplir.
    */
-  --pv-accion: var(--pv-jade-600);
-  --pv-accion-hover: var(--pv-jade-700);
+  --pv-accion: var(--pv-bronce-600);
+  --pv-accion-hover: var(--pv-bronce-700);
 
   /*
-   * La barra de módulos es el carbón verdoso del isotipo en AMBOS temas. Es el
+   * La barra de módulos es el carbón tabaco del isotipo en AMBOS temas. Es el
    * rasgo que fija la identidad y no depende de la preferencia del usuario.
    */
-  --pv-rail: #050a09;
-  --pv-rail-text: #f1f6f3;
-  --pv-rail-muted: #85958e;
+  --pv-rail: #0d0a06;
+  --pv-rail-text: #f6f2e9;
+  --pv-rail-muted: #968e80;
 
   /* Geometría */
   --pv-radio-control: 10px;
@@ -114,7 +126,7 @@
   --pv-radio-overlay: 22px;
   --pv-sombra-panel: 0 1px 2px rgb(0 0 0 / 0.4), 0 9px 26px -12px rgb(0 0 0 / 0.6);
   --pv-sombra-flotante: 0 14px 42px -13px rgb(0 0 0 / 0.75);
-  --pv-foco: 0 0 0 3px color-mix(in srgb, var(--pv-jade-500) 42%, transparent);
+  --pv-foco: 0 0 0 3px color-mix(in srgb, var(--pv-bronce-500) 42%, transparent);
 
   /* Estructura del shell */
   --pv-rail-ancho: 92px;
@@ -129,35 +141,35 @@
  * roles que cambian de extremo de escala.
  */
 [data-theme='light'] {
-  --pv-bg: #f1f4f2;
+  --pv-bg: #f5f3ee;
   --pv-surface: #ffffff;
-  --pv-surface-2: #f7faf8;
-  --pv-text: #101a16;
-  --pv-muted: #5a6a63;
-  --pv-border: #dde4e0;
-  --pv-selection: var(--pv-jade-50);
+  --pv-surface-2: #faf8f3;
+  --pv-text: #16130d;
+  --pv-muted: #655f52;
+  --pv-border: #e4dfd4;
+  --pv-selection: var(--pv-bronce-50);
 
-  --pv-primary: var(--pv-jade-600);
-  --pv-primary-strong: var(--pv-jade-700);
-  --pv-jade-texto: var(--pv-jade-700);
+  --pv-primary: var(--pv-bronce-600);
+  --pv-primary-strong: var(--pv-bronce-700);
+  --pv-bronce-texto: var(--pv-bronce-700);
   --pv-plata-texto: var(--pv-plata-700);
 
-  --pv-sombra-panel: 0 1px 2px rgb(16 26 22 / 0.05), 0 9px 26px -12px rgb(16 26 22 / 0.17);
-  --pv-sombra-flotante: 0 14px 42px -13px rgb(9 15 13 / 0.32);
+  --pv-sombra-panel: 0 1px 2px rgb(22 19 13 / 0.05), 0 9px 26px -12px rgb(22 19 13 / 0.17);
+  --pv-sombra-flotante: 0 14px 42px -13px rgb(16 13 8 / 0.32);
 }
 
 @theme inline {
-  --color-jade: var(--pv-primary);
-  --color-jade-fuerte: var(--pv-primary-strong);
-  --color-jade-texto: var(--pv-jade-texto);
+  --color-bronce: var(--pv-primary);
+  --color-bronce-fuerte: var(--pv-primary-strong);
+  --color-bronce-texto: var(--pv-bronce-texto);
   --color-accion: var(--pv-accion);
   --color-accion-hover: var(--pv-accion-hover);
-  --color-jade-900: var(--pv-jade-900);
-  --color-jade-800: var(--pv-jade-800);
-  --color-jade-600: var(--pv-jade-600);
-  --color-jade-400: var(--pv-jade-400);
-  --color-jade-200: var(--pv-jade-200);
-  --color-jade-50: var(--pv-jade-50);
+  --color-bronce-900: var(--pv-bronce-900);
+  --color-bronce-800: var(--pv-bronce-800);
+  --color-bronce-600: var(--pv-bronce-600);
+  --color-bronce-400: var(--pv-bronce-400);
+  --color-bronce-200: var(--pv-bronce-200);
+  --color-bronce-50: var(--pv-bronce-50);
 
   --color-plata: var(--pv-plata-500);
   --color-plata-texto: var(--pv-plata-texto);
@@ -285,7 +297,7 @@ body {
 }
 
 .pv-tono-cobrado {
-  --pv-tono-color: var(--pv-jade-500);
+  --pv-tono-color: var(--pv-bronce-500);
 }
 
 .pv-tono-por-cobrar {
@@ -318,25 +330,30 @@ body {
   height: 3px;
   background: linear-gradient(
     90deg,
-    var(--pv-jade-800) 0%,
-    var(--pv-jade-600) 40%,
-    var(--pv-jade-400) 100%
+    var(--pv-bronce-800) 0%,
+    var(--pv-bronce-600) 40%,
+    var(--pv-bronce-400) 100%
   );
 }
 
-/* Fondo del área de trabajo: dos lavados jade muy tenues que tiñen el espacio
- * sin restar contraste al contenido, que va siempre sobre superficies opacas. */
+/* Fondo del área de trabajo: dos lavados de bronce muy tenues.
+ *
+ * Van más bajos que en las verticales frías: un lavado cálido pesa más a la
+ * vista que uno azul a la misma opacidad, y el área de trabajo debe leerse
+ * como carbón con una insinuación de color, no como marrón. El contenido va
+ * siempre sobre superficies opacas, así que el lavado nunca le resta
+ * contraste. */
 .pv-fondo-vertical {
   background-color: var(--pv-bg);
   background-image:
     radial-gradient(
       55rem 26rem at 0% 0%,
-      color-mix(in srgb, var(--pv-jade-500) 20%, transparent),
+      color-mix(in srgb, var(--pv-bronce-500) 10%, transparent),
       transparent 70%
     ),
     radial-gradient(
       45rem 24rem at 100% 0%,
-      color-mix(in srgb, var(--pv-jade-700) 24%, transparent),
+      color-mix(in srgb, var(--pv-bronce-700) 13%, transparent),
       transparent 70%
     );
   background-attachment: local;
@@ -347,12 +364,12 @@ body {
   background-image:
     radial-gradient(
       55rem 26rem at 0% 0%,
-      color-mix(in srgb, var(--pv-jade-500) 11%, transparent),
+      color-mix(in srgb, var(--pv-bronce-500) 11%, transparent),
       transparent 70%
     ),
     radial-gradient(
       45rem 24rem at 100% 0%,
-      color-mix(in srgb, var(--pv-jade-700) 9%, transparent),
+      color-mix(in srgb, var(--pv-bronce-700) 9%, transparent),
       transparent 70%
     );
 }
@@ -362,7 +379,7 @@ body {
   background-image: linear-gradient(
     180deg,
     transparent 45%,
-    color-mix(in srgb, var(--pv-jade-600) 26%, transparent) 100%
+    color-mix(in srgb, var(--pv-bronce-600) 16%, transparent) 100%
   );
 }
 
@@ -371,7 +388,7 @@ body {
   background-image: linear-gradient(
     90deg,
     transparent 40%,
-    color-mix(in srgb, var(--pv-jade-500) 12%, transparent) 100%
+    color-mix(in srgb, var(--pv-bronce-500) 9%, transparent) 100%
   );
 }
 
@@ -379,15 +396,15 @@ body {
   background-image: linear-gradient(
     90deg,
     transparent 40%,
-    color-mix(in srgb, var(--pv-jade-500) 8%, transparent) 100%
+    color-mix(in srgb, var(--pv-bronce-500) 8%, transparent) 100%
   );
 }
 
 /* Distintivo del vertical: nombre + icono sobre fondo de acento suave. */
 .pv-chip-vertical {
-  background-color: color-mix(in srgb, var(--pv-jade-500) 14%, var(--pv-surface));
-  border: 1px solid color-mix(in srgb, var(--pv-jade-500) 50%, var(--pv-surface));
-  color: var(--pv-jade-texto);
+  background-color: color-mix(in srgb, var(--pv-bronce-500) 14%, var(--pv-surface));
+  border: 1px solid color-mix(in srgb, var(--pv-bronce-500) 50%, var(--pv-surface));
+  color: var(--pv-bronce-texto);
 }
 
 /* Filo superior de las tarjetas de indicadores. */
@@ -401,7 +418,7 @@ body {
   inset: 0 0 auto 0;
   height: 3px;
   border-radius: var(--pv-radio-card) var(--pv-radio-card) 0 0;
-  background: linear-gradient(90deg, var(--pv-jade-600) 0%, var(--pv-jade-400) 100%);
+  background: linear-gradient(90deg, var(--pv-bronce-600) 0%, var(--pv-bronce-400) 100%);
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────
@@ -477,7 +494,7 @@ body {
 }
 
 .pv-campo:focus {
-  border-color: var(--pv-jade-500);
+  border-color: var(--pv-bronce-500);
 }
 
 /* Transiciones de entrada de 150–300 ms que refuerzan el cambio de estado. */

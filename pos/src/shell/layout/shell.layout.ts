@@ -22,7 +22,7 @@ import { modulos, moduloDeRuta } from './navegacion'
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="flex h-full">
-      <!-- Barra de módulos. Lleva el carbón verdoso en ambos temas. -->
+      <!-- Barra de módulos. Lleva el carbón tabaco en ambos temas. -->
       <nav
         class="pv-rail flex w-rail shrink-0 flex-col items-center gap-1 py-4 text-rail-tinta"
         aria-label="Módulos"
@@ -71,7 +71,7 @@ import { modulos, moduloDeRuta } from './navegacion'
                 <a
                   class="flex min-h-toque items-center rounded-control px-3 text-sm"
                   [routerLink]="seccion.ruta"
-                  routerLinkActive="bg-seleccion font-semibold text-jade-texto"
+                  routerLinkActive="bg-seleccion font-semibold text-bronce-texto"
                   [routerLinkActiveOptions]="{ exact: true }"
                   >{{ seccion.titulo }}</a
                 >

@@ -36,9 +36,9 @@
 
   /* Firma de la vertical. No es color de acción ni de estado: solo distingue
    * este sistema de los demás del ecosistema Karma. */
-  --km-vertical: #0f9d76;
-  --km-vertical-texto-claro: #0a6b51;
-  --km-vertical-texto-oscuro: #4fd1aa;
+  --km-vertical: #8a6628;
+  --km-vertical-texto-claro: #6b4f20;
+  --km-vertical-texto-oscuro: #c9a257;
   --km-vertical-texto: var(--km-vertical-texto-claro);
 
   /* Radios */

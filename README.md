@@ -111,9 +111,11 @@ Los perfiles se cargan solo con `import()` diferido, desde
 
 ## Diseño
 
-El POS tiene identidad propia dentro de la suite, como sus hermanas: **jade
-sobre carbón verdoso**, donde Hospedaje usa turquesa y azul y Restaurante el
-naranja del fuego. Tres rasgos lo separan sin romper la estructura compartida:
+El POS tiene identidad propia dentro de la suite, como sus hermanas: **bronce
+sobre carbón tabaco**, un oro apagado y de baja saturación, no un ámbar de
+aviso. Hospedaje lleva turquesa y azul, Taller azul marino y carmín,
+Restaurante el naranja del fuego, y la plataforma el violeta; el verde queda
+reservado. Tres rasgos lo separan sin romper la estructura compartida:
 
 1. **Tema oscuro por defecto.** La caja está en interior y la pantalla queda
    encendida toda la jornada. El claro existe y se recuerda, pero hay que

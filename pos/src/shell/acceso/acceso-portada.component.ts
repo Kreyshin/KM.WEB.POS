@@ -20,7 +20,7 @@ import { KarmaLogoComponent } from '../marca/karma-logo.component'
       >
         <km-karma-logo />
         <div class="max-w-lg">
-          <p class="pv-etiqueta text-jade-texto mb-4">Punto de venta</p>
+          <p class="pv-etiqueta text-bronce-texto mb-4">Punto de venta</p>
           <h1 class="pv-titulo-pagina mb-4 text-4xl leading-tight">
             El mostrador, en una sola pantalla.
           </h1>

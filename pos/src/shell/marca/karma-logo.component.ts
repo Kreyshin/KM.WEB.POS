@@ -5,7 +5,7 @@ import { ChangeDetectionStrategy, Component, input } from '@angular/core'
  *
  * Aparece como atribución («Un sistema Karma Systems») en el acceso y al pie
  * de la barra de módulos. Es lo único de la identidad violeta de plataforma
- * que sobrevive dentro del tema jade de la vertical, y es a propósito: fija
+ * que sobrevive dentro del tema bronce de la vertical, y es a propósito: fija
  * que el POS es una pieza de la suite, no un producto suelto.
  */
 @Component({

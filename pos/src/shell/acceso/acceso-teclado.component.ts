@@ -64,7 +64,7 @@ import { usuariosDemo } from '@pos-adaptadores/simulado/index'
             <span class="text-tenue text-sm">· · · ·</span>
           } @else {
             @for (punto of puntos(); track $index) {
-              <span class="h-2.5 w-2.5 rounded-full bg-jade"></span>
+              <span class="h-2.5 w-2.5 rounded-full bg-bronce"></span>
             }
           }
         </div>

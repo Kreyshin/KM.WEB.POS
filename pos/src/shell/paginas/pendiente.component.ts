@@ -12,7 +12,7 @@ import { ChangeDetectionStrategy, Component, input } from '@angular/core'
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <section class="pv-panel pv-filo-firma pv-fade-in mx-auto max-w-2xl overflow-hidden p-8">
-      <p class="pv-etiqueta text-jade-texto mb-3">{{ hito() }}</p>
+      <p class="pv-etiqueta text-bronce-texto mb-3">{{ hito() }}</p>
       <h1 class="pv-titulo-pagina mb-3">{{ titulo() }}</h1>
       <p class="text-tenue leading-relaxed">{{ detalle() }}</p>
     </section>

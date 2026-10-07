@@ -12,16 +12,16 @@
     <link rel="icon" type="image/svg+xml" href="demo/favicon.svg" />
     <style>
       :root {
-        --jade-700: #07604a;
-        --jade-600: #0a7d5e;
-        --jade-500: #10a37a;
-        --jade-400: #34c99b;
-        --bg: #090f0d;
-        --surface: #111a17;
-        --surface-2: #17221e;
-        --text: #eef4f1;
-        --muted: #9aaaa3;
-        --border: #26332e;
+        --bronce-700: #6b4f20;
+        --bronce-600: #8a6628;
+        --bronce-500: #a8802f;
+        --bronce-400: #c9a257;
+        --bg: #100d08;
+        --surface: #1a1610;
+        --surface-2: #221d15;
+        --text: #f4f0e7;
+        --muted: #aaa294;
+        --border: #332c20;
         --radio-card: 16px;
         --radio-control: 10px;
       }
@@ -34,17 +34,31 @@
         margin: 0;
         background-color: var(--bg);
         background-image:
-          radial-gradient(55rem 26rem at 0% 0%, rgb(16 163 122 / 0.2), transparent 70%),
-          radial-gradient(45rem 24rem at 100% 0%, rgb(7 96 74 / 0.24), transparent 70%);
+          radial-gradient(
+            55rem 26rem at 0% 0%,
+            rgb(168 128 47 / 0.18),
+            transparent 70%
+          ),
+          radial-gradient(
+            45rem 24rem at 100% 0%,
+            rgb(107 79 32 / 0.26),
+            transparent 70%
+          );
         color: var(--text);
-        font-family: 'Inter', ui-sans-serif, system-ui, 'Segoe UI', Roboto, sans-serif;
+        font-family:
+          "Inter", ui-sans-serif, system-ui, "Segoe UI", Roboto, sans-serif;
         -webkit-font-smoothing: antialiased;
         line-height: 1.6;
       }
 
       .firma {
         height: 3px;
-        background: linear-gradient(90deg, #06402f 0%, var(--jade-600) 40%, var(--jade-400) 100%);
+        background: linear-gradient(
+          90deg,
+          #413017 0%,
+          var(--bronce-600) 40%,
+          var(--bronce-400) 100%
+        );
       }
 
       main {
@@ -58,7 +72,7 @@
         font-weight: 700;
         letter-spacing: 0.07em;
         text-transform: uppercase;
-        color: var(--jade-400);
+        color: var(--bronce-400);
       }
 
       h1 {
@@ -95,12 +109,12 @@
       }
 
       .boton-accion {
-        background-color: var(--jade-600);
+        background-color: var(--bronce-600);
         color: #fff;
       }
 
       .boton-accion:hover {
-        background-color: var(--jade-700);
+        background-color: var(--bronce-700);
       }
 
       .boton-tenue {
@@ -134,11 +148,15 @@
       }
 
       .tarjeta::before {
-        content: '';
+        content: "";
         position: absolute;
         inset: 0 0 auto 0;
         height: 3px;
-        background: linear-gradient(90deg, var(--jade-600) 0%, var(--jade-400) 100%);
+        background: linear-gradient(
+          90deg,
+          var(--bronce-600) 0%,
+          var(--bronce-400) 100%
+        );
       }
 
       .tarjeta h3 {
@@ -183,7 +201,7 @@
       }
 
       .hecho {
-        color: var(--jade-400);
+        color: var(--bronce-400);
         font-weight: 600;
       }
 
@@ -202,14 +220,19 @@
       <p class="etiqueta">Karma Systems · Suite de gestión</p>
       <h1>KM.WEB.POS</h1>
       <p class="entrada">
-        La aplicación de venta de mostrador de la suite: un solo shell que carga un perfil de rubro
-        y delega el cobro, el stock y los comprobantes a otras piezas. El objetivo de diseño es que
-        agregar un rubro nuevo sea crear una librería más, sin tocar el núcleo.
+        La aplicación de venta de mostrador de la suite: un solo shell que carga
+        un perfil de rubro y delega el cobro, el stock y los comprobantes a
+        otras piezas. El objetivo de diseño es que agregar un rubro nuevo sea
+        crear una librería más, sin tocar el núcleo.
       </p>
 
       <div class="acciones">
         <a class="boton boton-accion" href="demo/">Abrir la demo</a>
-        <a class="boton boton-tenue" href="https://github.com/Kreyshin/KM.WEB.POS">Código</a>
+        <a
+          class="boton boton-tenue"
+          href="https://github.com/Kreyshin/KM.WEB.POS"
+          >Código</a
+        >
       </div>
 
       <h2>Cómo recorrer la demo</h2>
@@ -217,30 +240,32 @@
         <div class="tarjeta">
           <h3>Entrar</h3>
           <p>
-            Cualquiera de los usuarios de ejemplo de la pantalla de acceso. La contraseña de todos
-            es <code>demo</code>, y cada uno tiene además un PIN numérico
-            (<code>1111</code>…<code>4444</code>) para la variante Teclado.
+            Cualquiera de los usuarios de ejemplo de la pantalla de acceso. La
+            contraseña de todos es <code>demo</code>, y cada uno tiene además un
+            PIN numérico (<code>1111</code>…<code>4444</code>) para la variante
+            Teclado.
           </p>
         </div>
         <div class="tarjeta">
           <h3>Tres variantes de acceso</h3>
           <p>
-            Portada, Mostrador y Teclado se comparan con el selector flotante, o con
+            Portada, Mostrador y Teclado se comparan con el selector flotante, o
+            con
             <code>?acceso=teclado</code> en la URL.
           </p>
         </div>
         <div class="tarjeta">
           <h3>Tema</h3>
           <p>
-            Arranca en oscuro, que es la decisión de producto. El claro está en el pie de la barra
-            de módulos y en Ajustes.
+            Arranca en oscuro, que es la decisión de producto. El claro está en
+            el pie de la barra de módulos y en Ajustes.
           </p>
         </div>
         <div class="tarjeta">
           <h3>Roles</h3>
           <p>
-            «Sesión de caja» solo la abren cajero, supervisor y administrador. Con el usuario
-            vendedor la sección desaparece del menú.
+            «Sesión de caja» solo la abren cajero, supervisor y administrador.
+            Con el usuario vendedor la sección desaparece del menú.
           </p>
         </div>
       </div>
@@ -257,7 +282,10 @@
         <tbody>
           <tr>
             <td>1 · Esqueleto</td>
-            <td>Workspace, shell, sesión, tema, librerías y reglas de dependencia activas</td>
+            <td>
+              Workspace, shell, sesión, tema, librerías y reglas de dependencia
+              activas
+            </td>
             <td class="hecho">Listo</td>
           </tr>
           <tr>
