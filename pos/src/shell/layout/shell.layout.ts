@@ -31,10 +31,10 @@ import { modulos, moduloDeRuta } from './navegacion'
           <km-karma-logo [conTexto]="false" [tamano]="28" />
         </a>
 
-        @for (modulo of modulos; track modulo.codigo) {
+        @for (modulo of modulosVisibles(); track modulo.codigo) {
           <a
             class="flex w-16 flex-col items-center gap-1 rounded-control px-1 py-2 text-[10px] font-semibold tracking-wide transition-colors"
-            [routerLink]="modulo.secciones[0].ruta"
+            [routerLink]="modulo.primeraRuta"
             [class.bg-accion]="moduloActivo()?.codigo === modulo.codigo"
             [class.text-rail-tenue]="moduloActivo()?.codigo !== modulo.codigo"
             [attr.aria-current]="moduloActivo()?.codigo === modulo.codigo ? 'page' : null"
@@ -136,8 +136,25 @@ export class ShellLayout {
   private readonly sesion = inject(SesionStore)
 
   protected readonly tema = inject(TemaService)
-  protected readonly modulos = modulos
   protected readonly menuAbierto = signal(false)
+
+  /**
+   * Módulos que este rol puede abrir, con la primera sección que puede abrir.
+   *
+   * La barra se filtra igual que el menú: enseñar «Caja» a un vendedor para
+   * después rebotarlo a «sin permiso» es ofrecerle una puerta cerrada. La
+   * pantalla de sin permiso sigue existiendo para quien llegue por URL
+   * directa o por un enlace guardado.
+   */
+  protected readonly modulosVisibles = computed(() =>
+    modulos
+      .map((modulo) => ({
+        ...modulo,
+        secciones: modulo.secciones.filter((seccion) => this.sesion.puede(seccion.roles)),
+      }))
+      .filter((modulo) => modulo.secciones.length > 0)
+      .map((modulo) => ({ ...modulo, primeraRuta: modulo.secciones[0].ruta })),
+  )
 
   protected readonly usuario = this.sesion.usuario
   protected readonly sucursal = this.sesion.sucursal
