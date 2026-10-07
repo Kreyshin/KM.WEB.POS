@@ -19,16 +19,21 @@
  * (#8a6628). Si alguna vez hay que separarlos más, se baja aún la saturación
  * de este, nunca se sube la del otro.
  *
- * Tres rasgos separan esta vertical de sus hermanas sin romper la estructura
- * compartida (barra de módulos + menú de secciones + área de trabajo):
- *   1. TEMA OSCURO POR DEFECTO. La caja vive en interior, con la pantalla
+ * Cuatro rasgos separan esta vertical de sus hermanas:
+ *   1. NO COMPARTE LA ESTRUCTURA. Hospedaje, Restaurante y Taller llevan
+ *      barra de módulos + menú de secciones + área de trabajo. El POS lleva
+ *      una barra fina y una columna de ticket fija, porque el cajero no
+ *      navega: vive en una pantalla toda la jornada. Ver el reparto del
+ *      color más abajo.
+ *   2. TEMA OSCURO POR DEFECTO. La caja vive en interior, con la pantalla
  *      encendida toda la jornada; el claro existe pero se pide. El atributo
  *      `data-theme` llega ya en `index.html`, antes del primer pintado.
- *   2. Geometría intermedia: radios 10/16/22 px. Más blanda que Restaurante
+ *   3. Geometría intermedia: radios 10/16/22 px. Más blanda que Restaurante
  *      (8/14/20) porque se toca con el dedo, más firme que Hospedaje
- *      (12/20/28) porque el registro es operativo, no hospitalario.
- *   3. Cifras tabulares en todo importe. En un mostrador los números se
- *      comparan en columna, y las cifras proporcionales bailan.
+ *      (12/20/28) porque el registro es operativo, no hospitalario. Y 44px
+ *      de alto mínimo en todo control.
+ *   4. Cifras tabulares en todo importe, y 40px en el total. En un mostrador
+ *      los números se comparan en columna y se leen de pie, a un metro.
  *
  * La identidad de plataforma Karma se conserva íntegra en
  * `src/assets/karma/karma-identidad.css` y en el isotipo de
@@ -38,9 +43,9 @@
  * Prefijo `pv-` (punto de venta), como `hs-` en Hospedaje y `rs-` en
  * Restaurante. NO se usa `ps-`, que sería lo natural para «punto de venta»:
  * Tailwind reserva ese espacio de nombres para `padding-inline-start`, así que
- * una clase `.pv-rail` escrita `ps-rail` colisionaría con la utilidad que
- * Tailwind genera a partir de `--spacing-rail` y le metería 92px de relleno a
- * la barra de módulos. Al añadir una clase nueva, comprobar que su nombre no
+ * una clase `.pv-ticket` escrita `ps-ticket` colisionaría con la utilidad que
+ * Tailwind generaría a partir de un token de espaciado homónimo y le metería
+ * relleno por sorpresa. Al añadir una clase nueva, comprobar que su nombre no
  * es ya una utilidad de Tailwind.
  *
  * Escalas: 900 = más oscuro, 50 = más claro.
@@ -128,9 +133,14 @@
   --pv-sombra-flotante: 0 14px 42px -13px rgb(0 0 0 / 0.75);
   --pv-foco: 0 0 0 3px color-mix(in srgb, var(--pv-bronce-500) 42%, transparent);
 
-  /* Estructura del shell */
-  --pv-rail-ancho: 92px;
-  --pv-menu-ancho: 300px;
+  /*
+   * Estructura. No hay barra de módulos ni menú de secciones: hay una barra
+   * superior fina y una columna de ticket fija. Los 380px de la columna son
+   * los que caben de descripción de producto sin truncar en una caja de 1366
+   * de ancho, que es la pantalla real del mostrador.
+   */
+  --pv-barra-alto: 44px;
+  --pv-ticket-ancho: 380px;
 
   /* Alto mínimo del blanco táctil: el mostrador se opera con el dedo. */
   --pv-toque: 44px;
@@ -198,8 +208,8 @@
   --shadow-panel: var(--pv-sombra-panel);
   --shadow-flotante: var(--pv-sombra-flotante);
 
-  --spacing-rail: var(--pv-rail-ancho);
-  --spacing-menu: var(--pv-menu-ancho);
+  --spacing-barra: var(--pv-barra-alto);
+  --spacing-ticket: var(--pv-ticket-ancho);
   --spacing-toque: var(--pv-toque);
 
   --font-sans: 'Inter', ui-sans-serif, system-ui, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
@@ -317,15 +327,28 @@ body {
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────
- * Firma de la vertical
+ * Reparto del color — específico del punto de venta
  *
- * Todo lo que sigue viste el CROMO (barra de módulos, cabecera, fondo,
- * portada de acceso). El área de contenido —tarjetas, tablas, el carrito— se
- * mantiene neutra para que la plataforma se sienta una sola: el color de
- * marca no cubre grandes áreas de contenido.
+ * Las otras verticales de la suite visten el CROMO: barra de módulos, menú de
+ * secciones, cabecera. Aquí no, y es la decisión de diseño de esta vertical.
+ *
+ * En un mostrador la navegación no importa: el cajero vive en UNA pantalla
+ * toda la jornada y casi nunca la abandona. Lo que sí importa, y a un metro
+ * de distancia, es el ticket y el total. Así que el bronce se retira de la
+ * navegación y se concentra donde está el dinero:
+ *
+ *   navegación  -> neutra, una barra fina y callada
+ *   zona de venta -> superficie limpia, sin lavados de color
+ *   columna del ticket -> CARBÓN en ambos temas, es el ancla de la pantalla
+ *   total y «cobrar» -> BRONCE, y son lo único bronce que hay a la vista
+ *
+ * La regla operativa que se sigue de esto: si algo se pinta de bronce y no es
+ * el total ni el botón de cobrar, está mal. Un POS en el que el botón de
+ * cobrar compite con la barra de menús es un POS que hace perder ventas.
  * ────────────────────────────────────────────────────────────────────────────*/
 
-/* Barra superior de 3px: la señal más rápida de «en qué sistema Karma estoy». */
+/* Filo de 3px. Ya no corona la pantalla: corona la columna del ticket, que es
+ * lo que esta vertical quiere que mires. */
 .pv-firma {
   height: 3px;
   background: linear-gradient(
@@ -336,14 +359,109 @@ body {
   );
 }
 
-/* Fondo del área de trabajo: dos lavados de bronce muy tenues.
+/* Lienzo de trabajo: liso y neutro, SIN lavados de color. Sobre él se escanea
+ * y se lee a toda velocidad; cualquier tinte le resta nitidez al producto. */
+.pv-lienzo {
+  background-color: var(--pv-bg);
+}
+
+/* Barra superior. Deliberadamente callada y de 44px: es un recordatorio de
+ * dónde estás, no un centro de mando. */
+.pv-barra {
+  background-color: var(--pv-surface);
+  border-bottom: 1px solid var(--pv-border);
+}
+
+/*
+ * Columna del ticket — el ancla.
  *
- * Van más bajos que en las verticales frías: un lavado cálido pesa más a la
- * vista que uno azul a la misma opacidad, y el área de trabajo debe leerse
- * como carbón con una insinuación de color, no como marrón. El contenido va
- * siempre sobre superficies opacas, así que el lavado nunca le resta
- * contraste. */
-.pv-fondo-vertical {
+ * Va en carbón en los DOS temas, igual que la barra de módulos en las
+ * hermanas: es el rasgo que fija la identidad y no depende de la preferencia
+ * del usuario. En claro, además, el contraste contra el lienzo blanco separa
+ * el dinero del catálogo de un vistazo.
+ */
+.pv-ticket {
+  background-color: var(--pv-rail);
+  color: var(--pv-rail-text);
+  /*
+   * El filo y la sombra no son adorno. En tema oscuro el carbón de la columna
+   * y el del lienzo están a dos pasos uno de otro, y sin un borde la columna
+   * se funde con el fondo: el ticket dejaría de leerse como una pieza aparte,
+   * que es justo lo que tiene que ser.
+   */
+  border-left: 1px solid color-mix(in srgb, var(--pv-bronce-400) 22%, var(--pv-border));
+  box-shadow: -12px 0 28px -20px rgb(0 0 0 / 0.9);
+}
+
+.pv-ticket-linea {
+  border-bottom: 1px solid color-mix(in srgb, var(--pv-rail-text) 12%, transparent);
+}
+
+/*
+ * Bloque del total. El único bronce grande de la pantalla.
+ *
+ * El importe va en 40px y tabular: tiene que leerse de pie, a un metro, y con
+ * el cliente mirando.
+ */
+.pv-total {
+  background-color: color-mix(in srgb, var(--pv-bronce-600) 20%, var(--pv-rail));
+  border-top: 1px solid color-mix(in srgb, var(--pv-bronce-400) 40%, transparent);
+}
+
+.pv-total-cifra {
+  font-variant-numeric: tabular-nums lining-nums;
+  font-size: 40px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  color: var(--pv-bronce-200);
+}
+
+/*
+ * Distintivo de tecla. El mostrador se opera con el teclado, no con el ratón,
+ * así que cada acción enseña la suya. Si una acción no tiene tecla, es que
+ * no es una acción frecuente y no debería estar aquí.
+ */
+.pv-tecla {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2.25rem;
+  padding: 0.125rem 0.375rem;
+  border-radius: 6px;
+  border: 1px solid color-mix(in srgb, currentColor 32%, transparent);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  font-variant-numeric: tabular-nums;
+  opacity: 0.75;
+}
+
+/* Estado de la caja: un punto, porque es lo único que el cajero necesita
+ * saber de un vistazo y no merece ocupar más. */
+.pv-pulso {
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background-color: var(--pv-bronce-400);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--pv-bronce-400) 22%, transparent);
+}
+
+.pv-pulso-cerrada {
+  background-color: var(--pv-muted);
+  box-shadow: none;
+}
+
+/* Distintivo del rubro activo. */
+.pv-chip-vertical {
+  background-color: color-mix(in srgb, var(--pv-bronce-500) 14%, var(--pv-surface));
+  border: 1px solid color-mix(in srgb, var(--pv-bronce-500) 50%, var(--pv-surface));
+  color: var(--pv-bronce-texto);
+}
+
+/* Portada de acceso: el ÚNICO sitio donde el color puede ocupar superficie,
+ * porque todavía no hay ni ticket ni total con los que competir. */
+.pv-fondo-acceso {
   background-color: var(--pv-bg);
   background-image:
     radial-gradient(
@@ -356,11 +474,9 @@ body {
       color-mix(in srgb, var(--pv-bronce-700) 13%, transparent),
       transparent 70%
     );
-  background-attachment: local;
 }
 
-/* En claro los lavados necesitan menos cuerpo o comen legibilidad. */
-[data-theme='light'] .pv-fondo-vertical {
+[data-theme='light'] .pv-fondo-acceso {
   background-image:
     radial-gradient(
       55rem 26rem at 0% 0%,
@@ -374,40 +490,6 @@ body {
     );
 }
 
-.pv-rail {
-  background-color: var(--pv-rail);
-  background-image: linear-gradient(
-    180deg,
-    transparent 45%,
-    color-mix(in srgb, var(--pv-bronce-600) 16%, transparent) 100%
-  );
-}
-
-.pv-cabecera {
-  background-color: var(--pv-surface);
-  background-image: linear-gradient(
-    90deg,
-    transparent 40%,
-    color-mix(in srgb, var(--pv-bronce-500) 9%, transparent) 100%
-  );
-}
-
-[data-theme='light'] .pv-cabecera {
-  background-image: linear-gradient(
-    90deg,
-    transparent 40%,
-    color-mix(in srgb, var(--pv-bronce-500) 8%, transparent) 100%
-  );
-}
-
-/* Distintivo del vertical: nombre + icono sobre fondo de acento suave. */
-.pv-chip-vertical {
-  background-color: color-mix(in srgb, var(--pv-bronce-500) 14%, var(--pv-surface));
-  border: 1px solid color-mix(in srgb, var(--pv-bronce-500) 50%, var(--pv-surface));
-  color: var(--pv-bronce-texto);
-}
-
-/* Filo superior de las tarjetas de indicadores. */
 .pv-filo-firma {
   position: relative;
 }

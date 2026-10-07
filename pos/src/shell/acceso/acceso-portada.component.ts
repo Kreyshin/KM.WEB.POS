@@ -15,7 +15,7 @@ import { KarmaLogoComponent } from '../marca/karma-logo.component'
   template: `
     <div class="grid h-full lg:grid-cols-[1.1fr_minmax(26rem,0.9fr)]">
       <section
-        class="pv-fondo-vertical hidden flex-col justify-between p-12 lg:flex"
+        class="pv-fondo-acceso hidden flex-col justify-between p-12 lg:flex"
         aria-hidden="true"
       >
         <km-karma-logo />

@@ -14,7 +14,7 @@ import { KarmaLogoComponent } from '../marca/karma-logo.component'
   imports: [FormularioAccesoComponent, KarmaLogoComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="pv-fondo-vertical relative flex h-full flex-col items-center justify-center p-6">
+    <div class="pv-fondo-acceso relative flex h-full flex-col items-center justify-center p-6">
       <!-- El cajón: cuatro gavetas de monedas y billetes, puramente escenográficas. -->
       <div
         class="pointer-events-none absolute inset-x-0 bottom-0 flex h-1/3 items-end justify-center gap-3 px-6 opacity-40"

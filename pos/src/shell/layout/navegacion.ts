@@ -1,55 +1,47 @@
 import type { Rol } from '@pos-core/index'
 
 /**
- * Mapa de navegación del shell.
+ * Destinos del shell.
  *
- * Es declarativo a propósito: la barra de módulos y el menú de secciones lo
- * leen, y las guardas de rol salen de aquí mismo. Añadir una pantalla es
- * añadir una entrada, no tocar tres componentes.
+ * Es una lista plana, no un árbol de módulos y secciones como en las otras
+ * verticales de la suite. Un POS no se navega: el cajero vive en el mostrador
+ * y solo sale de ahí para cosas puntuales (revisar los pedidos por cobrar,
+ * cuadrar la caja, cambiar el tema). Cuatro destinos caben en una barra; un
+ * árbol de dos niveles para cuatro destinos es ceremonia inútil.
+ *
+ * Cada destino lleva su tecla, porque el mostrador se opera con el teclado.
+ * Un destino sin tecla es un destino al que no se va a menudo.
  */
-export interface Seccion {
+export interface Destino {
   ruta: string
   titulo: string
+  /** Tecla de acceso directo, mostrada junto al nombre. */
+  tecla: string
   roles?: readonly Rol[]
+  /** ¿Lleva la columna del ticket al lado? Solo las pantallas de venta. */
+  conTicket?: boolean
 }
 
-export interface Modulo {
-  codigo: string
-  titulo: string
-  /** Glifo del rail. Se sustituirá por el set de iconos de la suite. */
-  glifo: string
-  secciones: readonly Seccion[]
-}
-
-export const modulos: readonly Modulo[] = [
+export const destinos: readonly Destino[] = [
+  { ruta: '/venta', titulo: 'Mostrador', tecla: 'F1', conTicket: true },
+  { ruta: '/venta/por-cobrar', titulo: 'Por cobrar', tecla: 'F3' },
   {
-    codigo: 'venta',
-    titulo: 'Venta',
-    glifo: '▦',
-    secciones: [
-      { ruta: '/venta', titulo: 'Mostrador' },
-      { ruta: '/venta/por-cobrar', titulo: 'Pedidos por cobrar' },
-    ],
-  },
-  {
-    codigo: 'caja',
+    ruta: '/caja',
     titulo: 'Caja',
-    glifo: '▤',
-    secciones: [
-      { ruta: '/caja', titulo: 'Sesión de caja', roles: ['cajero', 'supervisor', 'administrador'] },
-    ],
+    tecla: 'F4',
+    roles: ['cajero', 'supervisor', 'administrador'],
   },
-  {
-    codigo: 'ajustes',
-    titulo: 'Ajustes',
-    glifo: '⚙',
-    secciones: [{ ruta: '/ajustes', titulo: 'Preferencias' }],
-  },
+  { ruta: '/ajustes', titulo: 'Ajustes', tecla: 'F9' },
 ]
 
-export function moduloDeRuta(url: string): Modulo | undefined {
-  // El más específico primero, para que '/venta/por-cobrar' no caiga en otro módulo.
-  return [...modulos]
-    .sort((a, b) => b.codigo.length - a.codigo.length)
-    .find((modulo) => modulo.secciones.some((seccion) => url.startsWith(seccion.ruta)))
+export function destinoDeRuta(url: string): Destino | undefined {
+  const limpia = url.split('?')[0]
+  // El más específico primero: '/venta/por-cobrar' no debe caer en '/venta'.
+  return [...destinos]
+    .sort((a, b) => b.ruta.length - a.ruta.length)
+    .find((destino) => limpia === destino.ruta || limpia.startsWith(destino.ruta + '/'))
+}
+
+export function destinoDeTecla(tecla: string): Destino | undefined {
+  return destinos.find((destino) => destino.tecla === tecla)
 }

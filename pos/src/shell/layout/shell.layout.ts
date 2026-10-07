@@ -1,132 +1,155 @@
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core'
-import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router'
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  HostListener,
+  inject,
+  signal,
+} from '@angular/core'
+import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router'
 import { toSignal } from '@angular/core/rxjs-interop'
 import { filter, map } from 'rxjs'
-import { NavigationEnd } from '@angular/router'
 import { SesionStore } from '../sesion/sesion.store'
 import { TemaService } from '../tema/tema.service'
 import { KarmaLogoComponent } from '../marca/karma-logo.component'
-import { modulos, moduloDeRuta } from './navegacion'
+import { ColumnaTicketComponent } from './columna-ticket.component'
+import { destinoDeRuta, destinoDeTecla, destinos } from './navegacion'
 
 /**
- * Estructura compartida con el resto de la suite: barra de módulos a la
- * izquierda, menú de secciones del módulo activo, y el área de trabajo.
+ * Estructura del punto de venta.
  *
- * El shell es delgado por decisión: sabe quién entró, en qué sucursal está y
- * qué perfil de rubro toca cargar. Lo que se vende y cómo se cobra no es
- * asunto suyo.
+ * Las otras verticales de la suite comparten barra de módulos + menú de
+ * secciones + área de trabajo. Este shell NO la sigue, y esa es la decisión
+ * de diseño de la vertical:
+ *
+ *   ┌──────────────────────────────────────────────┬─────────────┐
+ *   │ barra fina: sucursal · destinos · caja · yo   │             │
+ *   ├──────────────────────────────────────────────┤   TICKET    │
+ *   │                                              │   (carbón,  │
+ *   │  ZONA DE VENTA                               │    fija)    │
+ *   │  la pone el perfil de rubro activo           │             │
+ *   │                                              │   TOTAL     │
+ *   │                                              │  [ COBRAR ] │
+ *   └──────────────────────────────────────────────┴─────────────┘
+ *
+ * Por qué: el cajero no navega. Pasa la jornada en una sola pantalla, con las
+ * manos en el teclado y el escáner, y lo que necesita ver sin buscarlo es el
+ * ticket y el total. Dedicarle 92px de ancho permanente a una barra de módulos
+ * que se usa cuatro veces al día, y esconder el total, es diseñar un
+ * backoffice y llamarlo POS.
+ *
+ * De ahí salen las tres reglas de esta pantalla:
+ *   1. La navegación es una barra de 44px, neutra y callada.
+ *   2. La columna del ticket no se pliega y no comparte el scroll: el total
+ *      está siempre en pantalla por largo que sea el ticket.
+ *   3. Todo lo frecuente tiene tecla, y la enseña.
  */
 @Component({
   selector: 'km-shell',
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, KarmaLogoComponent],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, KarmaLogoComponent, ColumnaTicketComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="flex h-full">
-      <!-- Barra de módulos. Lleva el carbón tabaco en ambos temas. -->
-      <nav
-        class="pv-rail flex w-rail shrink-0 flex-col items-center gap-1 py-4 text-rail-tinta"
-        aria-label="Módulos"
+    <div class="pv-lienzo flex h-full flex-col">
+      <!-- Barra superior. Identidad a la izquierda, destinos al centro,
+           estado del turno a la derecha. Nada de color de marca. -->
+      <header
+        class="pv-barra flex h-barra shrink-0 items-center gap-4 px-3"
+        aria-label="Barra del puesto"
       >
-        <a class="mb-4" routerLink="/venta" aria-label="Inicio">
-          <km-karma-logo [conTexto]="false" [tamano]="28" />
+        <a class="shrink-0" routerLink="/venta" aria-label="Mostrador">
+          <km-karma-logo [conTexto]="false" [tamano]="22" />
         </a>
 
-        @for (modulo of modulosVisibles(); track modulo.codigo) {
-          <a
-            class="flex w-16 flex-col items-center gap-1 rounded-control px-1 py-2 text-[10px] font-semibold tracking-wide transition-colors"
-            [routerLink]="modulo.primeraRuta"
-            [class.bg-accion]="moduloActivo()?.codigo === modulo.codigo"
-            [class.text-rail-tenue]="moduloActivo()?.codigo !== modulo.codigo"
-            [attr.aria-current]="moduloActivo()?.codigo === modulo.codigo ? 'page' : null"
-          >
-            <span class="text-lg leading-none" aria-hidden="true">{{ modulo.glifo }}</span>
-            {{ modulo.titulo }}
-          </a>
-        }
-
-        <div class="mt-auto flex flex-col items-center gap-2">
-          <button
-            class="rounded-control px-2 py-1 text-lg text-rail-tenue"
-            type="button"
-            [attr.aria-label]="
-              tema.tema() === 'oscuro' ? 'Cambiar a tema claro' : 'Cambiar a tema oscuro'
-            "
-            (click)="tema.alternar()"
-          >
-            {{ tema.tema() === 'oscuro' ? '☀' : '☾' }}
-          </button>
+        <div class="hidden min-w-0 shrink-0 md:block">
+          <p class="pv-etiqueta truncate text-tenue">{{ sucursal()?.nombre }}</p>
         </div>
-      </nav>
 
-      <!-- Menú de secciones del módulo activo. -->
-      @if (secciones().length > 0) {
-        <aside
-          class="hidden w-menu shrink-0 flex-col border-r border-linea bg-panel p-4 lg:flex"
-          aria-label="Secciones"
-        >
-          <p class="pv-etiqueta text-tenue mb-3 px-2">{{ moduloActivo()?.titulo }}</p>
-          <ul class="flex flex-col gap-0.5">
-            @for (seccion of secciones(); track seccion.ruta) {
-              <li>
-                <a
-                  class="flex min-h-toque items-center rounded-control px-3 text-sm"
-                  [routerLink]="seccion.ruta"
-                  routerLinkActive="bg-seleccion font-semibold text-bronce-texto"
-                  [routerLinkActiveOptions]="{ exact: true }"
-                  >{{ seccion.titulo }}</a
-                >
-              </li>
-            }
-          </ul>
-        </aside>
-      }
-
-      <!-- Área de trabajo. -->
-      <div class="flex min-w-0 flex-1 flex-col">
-        <div class="pv-firma"></div>
-        <header class="pv-cabecera flex items-center gap-4 border-b border-linea px-6 py-3">
-          <div class="min-w-0 flex-1">
-            <p class="pv-etiqueta text-tenue">{{ sucursal()?.nombre }}</p>
-            <p class="truncate text-sm font-semibold">{{ moduloActivo()?.titulo }}</p>
-          </div>
-
-          <span class="pv-chip-vertical pv-etiqueta rounded-control px-2 py-1">
-            {{ perfilActivo() ?? 'sin perfil' }}
-          </span>
-
-          <div class="relative">
-            <button
-              class="pv-boton pv-boton-tenue px-3 text-sm"
-              type="button"
-              [attr.aria-expanded]="menuAbierto()"
-              aria-haspopup="menu"
-              (click)="menuAbierto.set(!menuAbierto())"
+        <nav class="flex min-w-0 flex-1 items-center gap-1" aria-label="Destinos">
+          @for (destino of destinosVisibles(); track destino.ruta) {
+            <a
+              class="flex min-h-9 items-center gap-2 rounded-control px-3 text-sm"
+              [routerLink]="destino.ruta"
+              routerLinkActive="bg-seleccion font-semibold text-bronce-texto"
+              [routerLinkActiveOptions]="{ exact: true }"
             >
-              {{ usuario()?.nombre }}
-              <span class="text-tenue text-xs">{{ usuario()?.rol }}</span>
-            </button>
+              {{ destino.titulo }}
+              <span class="pv-tecla hidden lg:inline-flex">{{ destino.tecla }}</span>
+            </a>
+          }
+        </nav>
 
-            @if (menuAbierto()) {
-              <div
-                class="pv-panel pv-fade-in absolute right-0 top-full z-50 mt-2 w-48 p-1 shadow-flotante"
-                role="menu"
+        <!-- Estado de la caja: un punto y una palabra. -->
+        <div
+          class="flex shrink-0 items-center gap-2"
+          [title]="cajaAbierta() ? 'Caja abierta' : 'Caja cerrada'"
+        >
+          <span
+            class="pv-pulso"
+            [class.pv-pulso-cerrada]="!cajaAbierta()"
+            aria-hidden="true"
+          ></span>
+          <span class="pv-etiqueta hidden text-tenue sm:inline">
+            {{ cajaAbierta() ? 'Caja abierta' : 'Caja cerrada' }}
+          </span>
+        </div>
+
+        <span class="pv-chip-vertical pv-etiqueta shrink-0 rounded-control px-2 py-1">
+          {{ perfilActivo() ?? 'sin perfil' }}
+        </span>
+
+        <button
+          class="shrink-0 rounded-control px-2 py-1 text-base text-tenue"
+          type="button"
+          [attr.aria-label]="
+            tema.tema() === 'oscuro' ? 'Cambiar a tema claro' : 'Cambiar a tema oscuro'
+          "
+          (click)="tema.alternar()"
+        >
+          {{ tema.tema() === 'oscuro' ? '☀' : '☾' }}
+        </button>
+
+        <div class="relative shrink-0">
+          <button
+            class="pv-boton pv-boton-tenue h-9 min-h-0 px-3 text-sm"
+            type="button"
+            [attr.aria-expanded]="menuAbierto()"
+            aria-haspopup="menu"
+            (click)="menuAbierto.set(!menuAbierto())"
+          >
+            {{ usuario()?.nombre }}
+          </button>
+
+          @if (menuAbierto()) {
+            <div
+              class="pv-panel pv-fade-in absolute right-0 top-full z-50 mt-2 w-52 p-1 shadow-flotante"
+              role="menu"
+            >
+              <p class="px-3 py-2 text-xs text-tenue">
+                {{ usuario()?.rol }} · {{ sucursal()?.nombre }}
+              </p>
+              <button
+                class="pv-boton pv-boton-tenue w-full justify-between border-0 text-sm"
+                type="button"
+                role="menuitem"
+                (click)="salir()"
               >
-                <button
-                  class="pv-boton pv-boton-tenue w-full justify-start border-0 text-sm"
-                  type="button"
-                  role="menuitem"
-                  (click)="salir()"
-                >
-                  Cerrar turno
-                </button>
-              </div>
-            }
-          </div>
-        </header>
+                <span>Cerrar turno</span>
+                <span class="pv-tecla">Esc</span>
+              </button>
+            </div>
+          }
+        </div>
+      </header>
 
-        <main class="pv-fondo-vertical min-h-0 flex-1 overflow-auto p-6">
+      <div class="flex min-h-0 flex-1">
+        <!-- Zona de venta. En el hito 3 la ocupa la pantalla del perfil. -->
+        <main class="min-w-0 flex-1 overflow-auto p-5">
           <router-outlet />
         </main>
+
+        @if (conTicket()) {
+          <km-columna-ticket />
+        }
       </div>
     </div>
   `,
@@ -138,29 +161,19 @@ export class ShellLayout {
   protected readonly tema = inject(TemaService)
   protected readonly menuAbierto = signal(false)
 
-  /**
-   * Módulos que este rol puede abrir, con la primera sección que puede abrir.
-   *
-   * La barra se filtra igual que el menú: enseñar «Caja» a un vendedor para
-   * después rebotarlo a «sin permiso» es ofrecerle una puerta cerrada. La
-   * pantalla de sin permiso sigue existiendo para quien llegue por URL
-   * directa o por un enlace guardado.
-   */
-  protected readonly modulosVisibles = computed(() =>
-    modulos
-      .map((modulo) => ({
-        ...modulo,
-        secciones: modulo.secciones.filter((seccion) => this.sesion.puede(seccion.roles)),
-      }))
-      .filter((modulo) => modulo.secciones.length > 0)
-      .map((modulo) => ({ ...modulo, primeraRuta: modulo.secciones[0].ruta })),
-  )
-
   protected readonly usuario = this.sesion.usuario
   protected readonly sucursal = this.sesion.sucursal
   protected readonly perfilActivo = this.sesion.perfilActivo
 
-  /** Ruta actual, para resaltar el módulo. Arranca con la URL ya cargada. */
+  /**
+   * Estado de la caja. Hoy es falso siempre porque detrás no hay nadie: lo
+   * responderá `PuertoCobro.cajaAbierta()` cuando exista KARMA.LIB.CAJA, en
+   * el hito 5. Se muestra desde ya porque es lo primero que un cajero mira al
+   * llegar, y porque enseñar «cerrada» cuando no se sabe es más honesto que
+   * enseñar «abierta».
+   */
+  protected readonly cajaAbierta = signal(false)
+
   private readonly url = toSignal(
     this.router.events.pipe(
       filter((evento): evento is NavigationEnd => evento instanceof NavigationEnd),
@@ -169,14 +182,35 @@ export class ShellLayout {
     { initialValue: this.router.url },
   )
 
-  protected readonly moduloActivo = computed(() => moduloDeRuta(this.url()))
+  /** Destinos que este rol puede abrir. La guarda cubre la URL directa. */
+  protected readonly destinosVisibles = computed(() =>
+    destinos.filter((destino) => this.sesion.puede(destino.roles)),
+  )
 
-  protected readonly secciones = computed(() => {
-    const modulo = this.moduloActivo()
-    if (!modulo) return []
-    // El menú solo ofrece lo que el rol puede abrir.
-    return modulo.secciones.filter((seccion) => this.sesion.puede(seccion.roles))
-  })
+  /** La columna del ticket solo acompaña a las pantallas de venta. */
+  protected readonly conTicket = computed(() => destinoDeRuta(this.url())?.conTicket === true)
+
+  /**
+   * Teclas de navegación.
+   *
+   * Se capturan en el documento y no en un campo, porque el cajero puede
+   * tener el foco en cualquier sitio cuando las pulsa. Las de un destino que
+   * su rol no abre se ignoran en silencio: no se le avisa de una puerta que
+   * no es suya.
+   */
+  @HostListener('document:keydown', ['$event'])
+  protected atajo(evento: KeyboardEvent): void {
+    if (evento.key === 'Escape' && this.menuAbierto()) {
+      this.menuAbierto.set(false)
+      return
+    }
+
+    const destino = destinoDeTecla(evento.key)
+    if (!destino || !this.sesion.puede(destino.roles)) return
+
+    evento.preventDefault()
+    void this.router.navigate([destino.ruta])
+  }
 
   protected async salir(): Promise<void> {
     this.menuAbierto.set(false)

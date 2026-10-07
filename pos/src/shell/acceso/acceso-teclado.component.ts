@@ -19,7 +19,7 @@ import { usuariosDemo } from '@pos-adaptadores/simulado/index'
   imports: [FormularioAccesoComponent, KarmaLogoComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="pv-fondo-vertical flex h-full items-center justify-center p-6">
+    <div class="pv-fondo-acceso flex h-full items-center justify-center p-6">
       <div class="pv-panel pv-fade-in w-full max-w-md p-8">
         <div class="mb-6 flex items-center justify-between">
           <km-karma-logo [conTexto]="false" />

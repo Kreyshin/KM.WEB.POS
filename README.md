@@ -111,11 +111,57 @@ Los perfiles se cargan solo con `import()` diferido, desde
 
 ## Diseño
 
-El POS tiene identidad propia dentro de la suite, como sus hermanas: **bronce
-sobre carbón tabaco**, un oro apagado y de baja saturación, no un ámbar de
-aviso. Hospedaje lleva turquesa y azul, Taller azul marino y carmín,
+El POS **no comparte la estructura** de las otras verticales. Hospedaje,
+Restaurante y Taller llevan barra de módulos + menú de secciones + área de
+trabajo. Este lleva otra cosa:
+
+```
+┌──────────────────────────────────────────────┬─────────────┐
+│ barra fina 44px: sucursal · destinos · caja  │             │
+├──────────────────────────────────────────────┤   TICKET    │
+│                                              │  (carbón,   │
+│  ZONA DE VENTA                               │   380px,    │
+│  buscador + pantalla del perfil de rubro     │   fija)     │
+│                                              │   TOTAL     │
+│                                              │  [ COBRAR ] │
+└──────────────────────────────────────────────┴─────────────┘
+```
+
+El motivo: el cajero no navega. Pasa la jornada en una pantalla, con las manos
+en el teclado y el escáner, y lo que necesita ver sin buscarlo es el ticket y
+el total. Dedicarle 92px permanentes a una barra de módulos que se usa cuatro
+veces al día, y esconder el total, es diseñar un backoffice y llamarlo POS.
+
+De ahí salen tres reglas:
+
+1. La navegación es una barra de 44px, neutra y callada.
+2. La columna del ticket no se pliega y no comparte el scroll: el total está
+   siempre en pantalla por largo que sea el ticket.
+3. Todo lo frecuente tiene tecla y la enseña (F1 mostrador, F2 buscar,
+   F3 por cobrar, F4 caja, F6 cliente, F9 ajustes, F12 cobrar).
+
+### El color
+
+**Bronce sobre carbón tabaco**, un oro apagado y de baja saturación, no un
+ámbar de aviso. Hospedaje lleva turquesa y azul, Taller azul marino y carmín,
 Restaurante el naranja del fuego, y la plataforma el violeta; el verde queda
-reservado. Tres rasgos lo separan sin romper la estructura compartida:
+reservado.
+
+Lo propio de esta vertical es **dónde** se reparte. Las hermanas visten el
+cromo; aquí el bronce se retira de la navegación y se concentra en el dinero:
+
+| Zona | Color |
+| --- | --- |
+| Navegación | neutra, sin color de marca |
+| Zona de venta | superficie limpia, sin lavados |
+| Columna del ticket | carbón en **ambos** temas: es el ancla |
+| Total y «Cobrar» | bronce, y son lo único bronce en pantalla |
+
+La regla operativa: **si algo se pinta de bronce y no es el total ni el botón
+de cobrar, está mal.** Un POS en el que el botón de cobrar compite con la
+barra de menús es un POS que hace perder ventas.
+
+Los demás rasgos:
 
 1. **Tema oscuro por defecto.** La caja está en interior y la pantalla queda
    encendida toda la jornada. El claro existe y se recuerda, pero hay que
@@ -123,8 +169,8 @@ reservado. Tres rasgos lo separan sin romper la estructura compartida:
    pintado, para que no haya destello.
 2. **Geometría intermedia:** radios 10/16/22 px, y 44 px de alto mínimo en todo
    control, porque el mostrador se opera con el dedo.
-3. **Cifras tabulares** en todo importe, para que la columna de totales quede
-   alineada dígito a dígito.
+3. **Cifras tabulares** en todo importe, y 40 px en el total: tiene que leerse
+   de pie, a un metro, con el cliente mirando.
 
 Los tokens están en `pos/src/assets/main.css`. La identidad de plataforma se
 conserva íntegra en `pos/src/assets/karma/karma-identidad.css` y en el isotipo
