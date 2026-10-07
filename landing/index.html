@@ -1,0 +1,293 @@
+<!doctype html>
+<html lang="es" data-theme="dark">
+  <head>
+    <meta charset="utf-8" />
+    <title>KM.WEB.POS · Karma Systems</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="dark light" />
+    <meta
+      name="description"
+      content="Aplicación de venta de mostrador de la suite Karma Systems: un shell que carga un perfil de rubro."
+    />
+    <link rel="icon" type="image/svg+xml" href="demo/favicon.svg" />
+    <style>
+      :root {
+        --jade-700: #07604a;
+        --jade-600: #0a7d5e;
+        --jade-500: #10a37a;
+        --jade-400: #34c99b;
+        --bg: #090f0d;
+        --surface: #111a17;
+        --surface-2: #17221e;
+        --text: #eef4f1;
+        --muted: #9aaaa3;
+        --border: #26332e;
+        --radio-card: 16px;
+        --radio-control: 10px;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        background-color: var(--bg);
+        background-image:
+          radial-gradient(55rem 26rem at 0% 0%, rgb(16 163 122 / 0.2), transparent 70%),
+          radial-gradient(45rem 24rem at 100% 0%, rgb(7 96 74 / 0.24), transparent 70%);
+        color: var(--text);
+        font-family: 'Inter', ui-sans-serif, system-ui, 'Segoe UI', Roboto, sans-serif;
+        -webkit-font-smoothing: antialiased;
+        line-height: 1.6;
+      }
+
+      .firma {
+        height: 3px;
+        background: linear-gradient(90deg, #06402f 0%, var(--jade-600) 40%, var(--jade-400) 100%);
+      }
+
+      main {
+        max-width: 56rem;
+        margin: 0 auto;
+        padding: 4rem 1.5rem 6rem;
+      }
+
+      .etiqueta {
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 0.07em;
+        text-transform: uppercase;
+        color: var(--jade-400);
+      }
+
+      h1 {
+        font-size: clamp(2rem, 5vw, 3rem);
+        line-height: 1.1;
+        letter-spacing: -0.02em;
+        margin: 0.75rem 0 1rem;
+      }
+
+      .entrada {
+        color: var(--muted);
+        font-size: 1.125rem;
+        max-width: 42rem;
+      }
+
+      .acciones {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        margin: 2.5rem 0 4rem;
+      }
+
+      .boton {
+        display: inline-flex;
+        align-items: center;
+        min-height: 44px;
+        padding: 0 1.25rem;
+        border-radius: var(--radio-control);
+        border: 1px solid transparent;
+        font-size: 0.9375rem;
+        font-weight: 600;
+        text-decoration: none;
+        transition: background-color 0.15s ease;
+      }
+
+      .boton-accion {
+        background-color: var(--jade-600);
+        color: #fff;
+      }
+
+      .boton-accion:hover {
+        background-color: var(--jade-700);
+      }
+
+      .boton-tenue {
+        border-color: var(--border);
+        color: var(--text);
+      }
+
+      .boton-tenue:hover {
+        background-color: var(--surface-2);
+      }
+
+      h2 {
+        font-size: 1.0625rem;
+        font-weight: 650;
+        margin: 3rem 0 1rem;
+      }
+
+      .rejilla {
+        display: grid;
+        gap: 1rem;
+        grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+      }
+
+      .tarjeta {
+        position: relative;
+        overflow: hidden;
+        padding: 1.5rem;
+        background-color: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radio-card);
+      }
+
+      .tarjeta::before {
+        content: '';
+        position: absolute;
+        inset: 0 0 auto 0;
+        height: 3px;
+        background: linear-gradient(90deg, var(--jade-600) 0%, var(--jade-400) 100%);
+      }
+
+      .tarjeta h3 {
+        margin: 0 0 0.5rem;
+        font-size: 0.9375rem;
+      }
+
+      .tarjeta p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 0.875rem;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.875rem;
+      }
+
+      th,
+      td {
+        text-align: left;
+        padding: 0.625rem 0.75rem;
+        border-bottom: 1px solid var(--border);
+        vertical-align: top;
+      }
+
+      th {
+        color: var(--muted);
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 0.07em;
+        text-transform: uppercase;
+      }
+
+      code {
+        font-variant-numeric: tabular-nums;
+        background-color: var(--surface-2);
+        border-radius: 5px;
+        padding: 0.1rem 0.35rem;
+        font-size: 0.8125rem;
+      }
+
+      .hecho {
+        color: var(--jade-400);
+        font-weight: 600;
+      }
+
+      footer {
+        border-top: 1px solid var(--border);
+        padding: 2rem 1.5rem;
+        text-align: center;
+        color: var(--muted);
+        font-size: 0.8125rem;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="firma"></div>
+    <main>
+      <p class="etiqueta">Karma Systems · Suite de gestión</p>
+      <h1>KM.WEB.POS</h1>
+      <p class="entrada">
+        La aplicación de venta de mostrador de la suite: un solo shell que carga un perfil de rubro
+        y delega el cobro, el stock y los comprobantes a otras piezas. El objetivo de diseño es que
+        agregar un rubro nuevo sea crear una librería más, sin tocar el núcleo.
+      </p>
+
+      <div class="acciones">
+        <a class="boton boton-accion" href="demo/">Abrir la demo</a>
+        <a class="boton boton-tenue" href="https://github.com/Kreyshin/KM.WEB.POS">Código</a>
+      </div>
+
+      <h2>Cómo recorrer la demo</h2>
+      <div class="rejilla">
+        <div class="tarjeta">
+          <h3>Entrar</h3>
+          <p>
+            Cualquiera de los usuarios de ejemplo de la pantalla de acceso. La contraseña de todos
+            es <code>demo</code>, y cada uno tiene además un PIN numérico
+            (<code>1111</code>…<code>4444</code>) para la variante Teclado.
+          </p>
+        </div>
+        <div class="tarjeta">
+          <h3>Tres variantes de acceso</h3>
+          <p>
+            Portada, Mostrador y Teclado se comparan con el selector flotante, o con
+            <code>?acceso=teclado</code> en la URL.
+          </p>
+        </div>
+        <div class="tarjeta">
+          <h3>Tema</h3>
+          <p>
+            Arranca en oscuro, que es la decisión de producto. El claro está en el pie de la barra
+            de módulos y en Ajustes.
+          </p>
+        </div>
+        <div class="tarjeta">
+          <h3>Roles</h3>
+          <p>
+            «Sesión de caja» solo la abren cajero, supervisor y administrador. Con el usuario
+            vendedor la sección desaparece del menú.
+          </p>
+        </div>
+      </div>
+
+      <h2>Plan por hitos</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Hito</th>
+            <th>Qué deja listo</th>
+            <th>Estado</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>1 · Esqueleto</td>
+            <td>Workspace, shell, sesión, tema, librerías y reglas de dependencia activas</td>
+            <td class="hecho">Listo</td>
+          </tr>
+          <tr>
+            <td>2 · Núcleo del ticket</td>
+            <td>Modelo, store y carrito con adaptadores simulados</td>
+            <td>Pendiente</td>
+          </tr>
+          <tr>
+            <td>3 · Perfil ropa</td>
+            <td>Buscador, matriz de talla y color, registro diferido</td>
+            <td>Pendiente</td>
+          </tr>
+          <tr>
+            <td>4 · Perfil farmacia</td>
+            <td>Buscador por principio activo, lote y receta</td>
+            <td>Pendiente</td>
+          </tr>
+          <tr>
+            <td>5 · Cobro</td>
+            <td>KARMA.LIB.CAJA conectada a <code>PuertoCobro</code></td>
+            <td>Pendiente</td>
+          </tr>
+          <tr>
+            <td>6 · Back real</td>
+            <td>KARMA.MS.POS y los adaptadores HTTP</td>
+            <td>Pendiente</td>
+          </tr>
+        </tbody>
+      </table>
+    </main>
+    <footer>Un sistema Karma Systems</footer>
+  </body>
+</html>

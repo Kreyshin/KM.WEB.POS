@@ -1,0 +1,67 @@
+# Publica en GitHub Pages la portada del repo (raíz) y la demo del POS (/demo/).
+name: Portada y demo en GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# Un solo despliegue a la vez; uno nuevo no cancela el que está publicando.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+defaults:
+  run:
+    working-directory: pos
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: pos/package-lock.json
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Verificar (formato, lint, tipos y pruebas)
+        run: npm run verify
+
+      - name: Construir demo
+        run: npm run build:demo
+
+      - name: Unir sitios
+        run: |
+          mkdir -p site
+          cp -r ../landing/. site/
+          cp -r dist-demo/browser site/demo
+          # Pages no conoce las rutas del enrutador: sin este 404 un enlace
+          # directo a /demo/ajustes devolvería el error de GitHub en vez de la app.
+          cp site/demo/index.html site/demo/404.html
+          touch site/.nojekyll
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: pos/site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

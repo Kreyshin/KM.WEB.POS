@@ -1,0 +1,7 @@
+node_modules/
+dist/
+dist-demo/
+out-tsc/
+coverage/
+.angular/
+*.log

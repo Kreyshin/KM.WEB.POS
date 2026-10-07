@@ -1,0 +1,506 @@
+@import 'tailwindcss';
+
+@source './../';
+
+/* =============================================================================
+ * Punto de venta — sistema de diseño propio
+ *
+ * Identidad: JADE sobre carbón verdoso, con plata fría. Donde Hospedaje usa la
+ * frialdad limpia de la habitación preparada y Restaurante el fuego del
+ * servicio, el POS usa el verde de la operación confirmada: el color que
+ * aparece cuando el cobro cierra y el cajón se abre.
+ *
+ * Tres rasgos separan esta vertical de sus hermanas sin romper la estructura
+ * compartida (barra de módulos + menú de secciones + área de trabajo):
+ *   1. TEMA OSCURO POR DEFECTO. La caja vive en interior, con la pantalla
+ *      encendida toda la jornada; el claro existe pero se pide. El atributo
+ *      `data-theme` llega ya en `index.html`, antes del primer pintado.
+ *   2. Geometría intermedia: radios 10/16/22 px. Más blanda que Restaurante
+ *      (8/14/20) porque se toca con el dedo, más firme que Hospedaje
+ *      (12/20/28) porque el registro es operativo, no hospitalario.
+ *   3. Cifras tabulares en todo importe. En un mostrador los números se
+ *      comparan en columna, y las cifras proporcionales bailan.
+ *
+ * La identidad de plataforma Karma se conserva íntegra en
+ * `src/assets/karma/karma-identidad.css` y en el isotipo de
+ * `src/shell/marca/karma-logo.component.ts`, que sigue apareciendo como
+ * atribución («Un sistema Karma Systems»).
+ *
+ * Prefijo `pv-` (punto de venta), como `hs-` en Hospedaje y `rs-` en
+ * Restaurante. NO se usa `ps-`, que sería lo natural para «punto de venta»:
+ * Tailwind reserva ese espacio de nombres para `padding-inline-start`, así que
+ * una clase `.pv-rail` escrita `ps-rail` colisionaría con la utilidad que
+ * Tailwind genera a partir de `--spacing-rail` y le metería 92px de relleno a
+ * la barra de módulos. Al añadir una clase nueva, comprobar que su nombre no
+ * es ya una utilidad de Tailwind.
+ *
+ * Escalas: 900 = más oscuro, 50 = más claro.
+ * ========================================================================== */
+
+@custom-variant dark ([data-theme='dark'] &);
+
+:root {
+  /*
+   * Jade — escala principal. Sostiene acción, foco y estado cobrado.
+   *
+   * El 500 y el 400 son luminosos: NO sostienen texto blanco a 4.5:1 y no
+   * sirven como fondo de botón. Para texto se usa `--pv-jade-texto`, que baja
+   * al 700 en claro y sube al 400 en oscuro.
+   */
+  --pv-jade-900: #042f24;
+  --pv-jade-800: #06402f;
+  --pv-jade-700: #07604a;
+  --pv-jade-600: #0a7d5e;
+  --pv-jade-500: #10a37a;
+  --pv-jade-400: #34c99b;
+  --pv-jade-200: #a7ebd5;
+  --pv-jade-50: #e6f8f1;
+
+  /*
+   * Plata — neutro frío de la escala. Viste tablas, bordes y texto secundario
+   * sin arrastrar el verde al área de contenido.
+   */
+  --pv-plata-700: #333d39;
+  --pv-plata-600: #495650;
+  --pv-plata-500: #6f7d76;
+  --pv-plata-400: #a4b0aa;
+  --pv-plata-200: #d4dcd8;
+  --pv-plata-50: #f2f5f3;
+
+  /* Estados complementarios, enfriados para convivir con el jade. */
+  --pv-rojo: #c0392f;
+  --pv-rojo-claro: #f2a49b;
+  --pv-ambar: #a86a06;
+  --pv-ambar-claro: #f1c26a;
+  --pv-indigo: #3b5b9a;
+  --pv-indigo-claro: #9db2dc;
+
+  /* ── Superficies: tema OSCURO, que es el de partida ───────────────────── */
+  --pv-bg: #090f0d;
+  --pv-surface: #111a17;
+  --pv-surface-2: #17221e;
+  --pv-text: #eef4f1;
+  --pv-muted: #9aaaa3;
+  --pv-border: #26332e;
+  --pv-selection: #0f2b22;
+
+  /* Roles derivados */
+  --pv-primary: var(--pv-jade-400);
+  --pv-primary-strong: #6fdcb9;
+  --pv-jade-texto: var(--pv-jade-400);
+  --pv-plata-texto: var(--pv-plata-200);
+
+  /*
+   * Fondo de botón primario. Se separa de --pv-primary porque ese token también
+   * pinta barras y gráficos, donde se aclara en oscuro; aquí no, porque debe
+   * sostener texto blanco a 4.5:1 en ambos temas. El 600 da 5.1:1 y el 700
+   * da 7.6:1, así que el hover oscurece en lugar de aclarar: en el 500 el
+   * texto blanco cae a 3.2:1 y dejaría de cumplir.
+   */
+  --pv-accion: var(--pv-jade-600);
+  --pv-accion-hover: var(--pv-jade-700);
+
+  /*
+   * La barra de módulos es el carbón verdoso del isotipo en AMBOS temas. Es el
+   * rasgo que fija la identidad y no depende de la preferencia del usuario.
+   */
+  --pv-rail: #050a09;
+  --pv-rail-text: #f1f6f3;
+  --pv-rail-muted: #85958e;
+
+  /* Geometría */
+  --pv-radio-control: 10px;
+  --pv-radio-card: 16px;
+  --pv-radio-overlay: 22px;
+  --pv-sombra-panel: 0 1px 2px rgb(0 0 0 / 0.4), 0 9px 26px -12px rgb(0 0 0 / 0.6);
+  --pv-sombra-flotante: 0 14px 42px -13px rgb(0 0 0 / 0.75);
+  --pv-foco: 0 0 0 3px color-mix(in srgb, var(--pv-jade-500) 42%, transparent);
+
+  /* Estructura del shell */
+  --pv-rail-ancho: 92px;
+  --pv-menu-ancho: 300px;
+
+  /* Alto mínimo del blanco táctil: el mostrador se opera con el dedo. */
+  --pv-toque: 44px;
+}
+
+/*
+ * Tema claro. Es la excepción, no la base: solo redefine superficies y los
+ * roles que cambian de extremo de escala.
+ */
+[data-theme='light'] {
+  --pv-bg: #f1f4f2;
+  --pv-surface: #ffffff;
+  --pv-surface-2: #f7faf8;
+  --pv-text: #101a16;
+  --pv-muted: #5a6a63;
+  --pv-border: #dde4e0;
+  --pv-selection: var(--pv-jade-50);
+
+  --pv-primary: var(--pv-jade-600);
+  --pv-primary-strong: var(--pv-jade-700);
+  --pv-jade-texto: var(--pv-jade-700);
+  --pv-plata-texto: var(--pv-plata-700);
+
+  --pv-sombra-panel: 0 1px 2px rgb(16 26 22 / 0.05), 0 9px 26px -12px rgb(16 26 22 / 0.17);
+  --pv-sombra-flotante: 0 14px 42px -13px rgb(9 15 13 / 0.32);
+}
+
+@theme inline {
+  --color-jade: var(--pv-primary);
+  --color-jade-fuerte: var(--pv-primary-strong);
+  --color-jade-texto: var(--pv-jade-texto);
+  --color-accion: var(--pv-accion);
+  --color-accion-hover: var(--pv-accion-hover);
+  --color-jade-900: var(--pv-jade-900);
+  --color-jade-800: var(--pv-jade-800);
+  --color-jade-600: var(--pv-jade-600);
+  --color-jade-400: var(--pv-jade-400);
+  --color-jade-200: var(--pv-jade-200);
+  --color-jade-50: var(--pv-jade-50);
+
+  --color-plata: var(--pv-plata-500);
+  --color-plata-texto: var(--pv-plata-texto);
+  --color-plata-200: var(--pv-plata-200);
+
+  --color-lienzo: var(--pv-bg);
+  --color-panel: var(--pv-surface);
+  --color-panel-2: var(--pv-surface-2);
+  --color-tinta: var(--pv-text);
+  --color-tenue: var(--pv-muted);
+  --color-linea: var(--pv-border);
+  --color-seleccion: var(--pv-selection);
+
+  --color-rail: var(--pv-rail);
+  --color-rail-tinta: var(--pv-rail-text);
+  --color-rail-tenue: var(--pv-rail-muted);
+
+  --color-rojo: var(--pv-rojo);
+  --color-ambar: var(--pv-ambar);
+  --color-indigo: var(--pv-indigo);
+
+  --radius-control: var(--pv-radio-control);
+  --radius-card: var(--pv-radio-card);
+  --radius-overlay: var(--pv-radio-overlay);
+
+  --shadow-panel: var(--pv-sombra-panel);
+  --shadow-flotante: var(--pv-sombra-flotante);
+
+  --spacing-rail: var(--pv-rail-ancho);
+  --spacing-menu: var(--pv-menu-ancho);
+  --spacing-toque: var(--pv-toque);
+
+  --font-sans: 'Inter', ui-sans-serif, system-ui, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --font-cifra: 'Inter', ui-sans-serif, system-ui, sans-serif;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background-color: var(--pv-bg);
+  color: var(--pv-text);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background-color: var(--pv-selection);
+  color: var(--pv-text);
+}
+
+:focus-visible {
+  outline: none;
+  box-shadow: var(--pv-foco);
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--pv-border) transparent;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+ * Jerarquía tipográfica
+ * ────────────────────────────────────────────────────────────────────────────*/
+
+.pv-titulo-pagina {
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+}
+
+@media (max-width: 640px) {
+  .pv-titulo-pagina {
+    font-size: 21px;
+  }
+}
+
+.pv-titulo-seccion {
+  font-size: 17px;
+  font-weight: 650;
+  line-height: 1.3;
+}
+
+.pv-etiqueta {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+/*
+ * Cifras. Todo importe del POS pasa por aquí: tabulares para que la columna
+ * de totales quede alineada dígito a dígito, y sin ligaduras para que un
+ * 1 nunca se confunda con un 7 a un metro de distancia.
+ */
+.pv-cifra {
+  font-family: var(--font-cifra);
+  font-variant-numeric: tabular-nums lining-nums;
+  font-feature-settings: 'ss01' off;
+  letter-spacing: -0.01em;
+}
+
+.pv-cifra-total {
+  font-size: 34px;
+  font-weight: 700;
+  line-height: 1.05;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+ * Tonos de estado
+ *
+ * Se calculan con color-mix sobre la superficie activa, así que el mismo
+ * token funciona en claro y oscuro sin duplicar valores.
+ * ────────────────────────────────────────────────────────────────────────────*/
+
+.pv-tono {
+  --pv-tono-color: var(--pv-muted);
+  background-color: color-mix(in srgb, var(--pv-tono-color) 14%, var(--pv-surface));
+  border: 1px solid color-mix(in srgb, var(--pv-tono-color) 45%, var(--pv-surface));
+  color: color-mix(in srgb, var(--pv-tono-color) 80%, var(--pv-text));
+}
+
+.pv-tono-cobrado {
+  --pv-tono-color: var(--pv-jade-500);
+}
+
+.pv-tono-por-cobrar {
+  --pv-tono-color: var(--pv-ambar);
+}
+
+.pv-tono-borrador {
+  --pv-tono-color: var(--pv-indigo);
+}
+
+.pv-tono-anulado {
+  --pv-tono-color: var(--pv-rojo);
+}
+
+[data-theme='light'] .pv-tono-borrador {
+  --pv-tono-color: var(--pv-indigo);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+ * Firma de la vertical
+ *
+ * Todo lo que sigue viste el CROMO (barra de módulos, cabecera, fondo,
+ * portada de acceso). El área de contenido —tarjetas, tablas, el carrito— se
+ * mantiene neutra para que la plataforma se sienta una sola: el color de
+ * marca no cubre grandes áreas de contenido.
+ * ────────────────────────────────────────────────────────────────────────────*/
+
+/* Barra superior de 3px: la señal más rápida de «en qué sistema Karma estoy». */
+.pv-firma {
+  height: 3px;
+  background: linear-gradient(
+    90deg,
+    var(--pv-jade-800) 0%,
+    var(--pv-jade-600) 40%,
+    var(--pv-jade-400) 100%
+  );
+}
+
+/* Fondo del área de trabajo: dos lavados jade muy tenues que tiñen el espacio
+ * sin restar contraste al contenido, que va siempre sobre superficies opacas. */
+.pv-fondo-vertical {
+  background-color: var(--pv-bg);
+  background-image:
+    radial-gradient(
+      55rem 26rem at 0% 0%,
+      color-mix(in srgb, var(--pv-jade-500) 20%, transparent),
+      transparent 70%
+    ),
+    radial-gradient(
+      45rem 24rem at 100% 0%,
+      color-mix(in srgb, var(--pv-jade-700) 24%, transparent),
+      transparent 70%
+    );
+  background-attachment: local;
+}
+
+/* En claro los lavados necesitan menos cuerpo o comen legibilidad. */
+[data-theme='light'] .pv-fondo-vertical {
+  background-image:
+    radial-gradient(
+      55rem 26rem at 0% 0%,
+      color-mix(in srgb, var(--pv-jade-500) 11%, transparent),
+      transparent 70%
+    ),
+    radial-gradient(
+      45rem 24rem at 100% 0%,
+      color-mix(in srgb, var(--pv-jade-700) 9%, transparent),
+      transparent 70%
+    );
+}
+
+.pv-rail {
+  background-color: var(--pv-rail);
+  background-image: linear-gradient(
+    180deg,
+    transparent 45%,
+    color-mix(in srgb, var(--pv-jade-600) 26%, transparent) 100%
+  );
+}
+
+.pv-cabecera {
+  background-color: var(--pv-surface);
+  background-image: linear-gradient(
+    90deg,
+    transparent 40%,
+    color-mix(in srgb, var(--pv-jade-500) 12%, transparent) 100%
+  );
+}
+
+[data-theme='light'] .pv-cabecera {
+  background-image: linear-gradient(
+    90deg,
+    transparent 40%,
+    color-mix(in srgb, var(--pv-jade-500) 8%, transparent) 100%
+  );
+}
+
+/* Distintivo del vertical: nombre + icono sobre fondo de acento suave. */
+.pv-chip-vertical {
+  background-color: color-mix(in srgb, var(--pv-jade-500) 14%, var(--pv-surface));
+  border: 1px solid color-mix(in srgb, var(--pv-jade-500) 50%, var(--pv-surface));
+  color: var(--pv-jade-texto);
+}
+
+/* Filo superior de las tarjetas de indicadores. */
+.pv-filo-firma {
+  position: relative;
+}
+
+.pv-filo-firma::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 3px;
+  border-radius: var(--pv-radio-card) var(--pv-radio-card) 0 0;
+  background: linear-gradient(90deg, var(--pv-jade-600) 0%, var(--pv-jade-400) 100%);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+ * Primitivas de control
+ *
+ * El POS repite tres formas en todas las pantallas: panel, botón de acción y
+ * campo. Se declaran una vez para que el carrito, el buscador y el acceso no
+ * reinventen la misma composición de utilidades.
+ * ────────────────────────────────────────────────────────────────────────────*/
+
+.pv-panel {
+  background-color: var(--pv-surface);
+  border: 1px solid var(--pv-border);
+  border-radius: var(--pv-radio-card);
+  box-shadow: var(--pv-sombra-panel);
+}
+
+.pv-boton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: var(--pv-toque);
+  padding: 0 1rem;
+  border-radius: var(--pv-radio-control);
+  border: 1px solid transparent;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.pv-boton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.pv-boton-accion {
+  background-color: var(--pv-accion);
+  color: #ffffff;
+}
+
+.pv-boton-accion:hover:not(:disabled) {
+  background-color: var(--pv-accion-hover);
+}
+
+.pv-boton-tenue {
+  background-color: transparent;
+  border-color: var(--pv-border);
+  color: var(--pv-text);
+}
+
+.pv-boton-tenue:hover:not(:disabled) {
+  background-color: var(--pv-surface-2);
+}
+
+.pv-campo {
+  width: 100%;
+  min-height: var(--pv-toque);
+  padding: 0 0.75rem;
+  background-color: var(--pv-surface);
+  color: var(--pv-text);
+  border: 1px solid var(--pv-border);
+  border-radius: var(--pv-radio-control);
+  font-size: 15px;
+}
+
+.pv-campo::placeholder {
+  color: var(--pv-muted);
+}
+
+.pv-campo:focus {
+  border-color: var(--pv-jade-500);
+}
+
+/* Transiciones de entrada de 150–300 ms que refuerzan el cambio de estado. */
+@keyframes pv-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.pv-fade-in {
+  animation: pv-fade-in 0.18s ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pv-fade-in {
+    animation: none;
+  }
+  .pv-boton {
+    transition: none;
+  }
+}

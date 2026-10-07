@@ -1,0 +1,83 @@
+/* =============================================================================
+ * PRESERVADO — Identidad visual Karma Corp
+ *
+ * Implementación del tema de plataforma, anterior a la identidad propia del
+ * POS. NO se importa en la aplicación: se conserva como referencia y como
+ * punto de retorno si la vertical debe volver al tema de plataforma.
+ *
+ * El isotipo Karma sí sigue en uso, en `src/shell/marca/karma-logo.component.ts`,
+ * como atribución de plataforma («Un sistema Karma Systems»).
+ * ========================================================================== */
+@import 'tailwindcss';
+
+@custom-variant dark ([data-theme='dark'] &);
+
+:root {
+  /* Identidad */
+  --km-brand-primary: #8a2be2;
+  --km-brand-active: #6a0dad;
+  --km-brand-focus: #b47bff;
+  --km-brand-avatar: #9f5bff;
+  --km-blue-cosmic: #1a237e;
+
+  /* Superficies — tema claro */
+  --km-bg: #f5f5f5;
+  --km-surface: #ffffff;
+  --km-surface-nav: #ede7f6;
+  --km-text: #121212;
+  --km-text-muted: #555555;
+  --km-border: #dfd5e8;
+  --km-selection: #e2d2f4;
+
+  /* Estados */
+  --km-success: #0eaf9c;
+  --km-warning: #ff8f00;
+  --km-error: #b71c1c;
+
+  /* Firma de la vertical. No es color de acción ni de estado: solo distingue
+   * este sistema de los demás del ecosistema Karma. */
+  --km-vertical: #0f9d76;
+  --km-vertical-texto-claro: #0a6b51;
+  --km-vertical-texto-oscuro: #4fd1aa;
+  --km-vertical-texto: var(--km-vertical-texto-claro);
+
+  /* Radios */
+  --km-radius-control: 7px;
+  --km-radius-card: 11px;
+  --km-radius-overlay: 16px;
+  --km-focus-ring: 0 0 0 2px #b47bff;
+
+  /* Estructura del shell */
+  --km-rail: 100px;
+  --km-menu: 325px;
+}
+
+[data-theme='dark'] {
+  --km-bg: #121015;
+  --km-surface: #1e1b25;
+  --km-surface-nav: #1b1724;
+  --km-text: #ffffff;
+  --km-text-muted: #b7a9c6;
+  --km-border: #332b40;
+  --km-selection: #352345;
+  --km-vertical-texto: var(--km-vertical-texto-oscuro);
+}
+
+@theme inline {
+  --color-brand: var(--km-brand-primary);
+  --color-brand-active: var(--km-brand-active);
+  --color-brand-focus: var(--km-brand-focus);
+  --color-bg: var(--km-bg);
+  --color-surface: var(--km-surface);
+  --color-surface-nav: var(--km-surface-nav);
+  --color-text: var(--km-text);
+  --color-muted: var(--km-text-muted);
+  --color-border: var(--km-border);
+  --color-success: var(--km-success);
+  --color-warning: var(--km-warning);
+  --color-error: var(--km-error);
+  --color-vertical: var(--km-vertical);
+  --radius-control: var(--km-radius-control);
+  --radius-card: var(--km-radius-card);
+  --radius-overlay: var(--km-radius-overlay);
+}

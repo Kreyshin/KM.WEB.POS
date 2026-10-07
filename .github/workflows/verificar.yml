@@ -1,0 +1,46 @@
+# Verificación en cada rama y cada pull request. Lo mismo que corre antes de
+# publicar, pero sin desplegar nada.
+name: Verificar
+
+on:
+  push:
+    branches-ignore: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    working-directory: pos
+
+jobs:
+  verificar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: pos/package-lock.json
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Formato
+        run: npm run formato
+
+      - name: Lint y fronteras entre librerías
+        run: npm run lint
+
+      - name: Tipos
+        run: npm run tipos
+
+      - name: Pruebas
+        run: npm run test
+
+      - name: Construir
+        run: npm run build

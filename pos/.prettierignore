@@ -1,0 +1,6 @@
+dist/
+dist-demo/
+out-tsc/
+coverage/
+node_modules/
+package-lock.json
