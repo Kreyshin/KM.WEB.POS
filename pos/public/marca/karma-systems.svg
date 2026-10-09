@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1254" height="1254" viewBox="0 0 1254 1254" fill="none">
+  <defs>
+    <linearGradient id="silverTop" x1="625" y1="90" x2="988" y2="666" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#EEF1F6"/>
+      <stop offset="0.55" stop-color="#CBD2DD"/>
+      <stop offset="1" stop-color="#A8B0BE"/>
+    </linearGradient>
+    <linearGradient id="silverBottom" x1="266" y1="579" x2="555" y2="1192" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#EEF1F6"/>
+      <stop offset="0.55" stop-color="#CCD3DE"/>
+      <stop offset="1" stop-color="#A6AFBC"/>
+    </linearGradient>
+    <linearGradient id="violetSmall" x1="418" y1="323" x2="558" y2="732" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#AAA0FF"/>
+      <stop offset="1" stop-color="#6E67F3"/>
+    </linearGradient>
+    <linearGradient id="violetLarge" x1="626" y1="483" x2="988" y2="1111" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#7F80FF"/>
+      <stop offset="0.55" stop-color="#5C61FB"/>
+      <stop offset="1" stop-color="#3E45F0"/>
+    </linearGradient>
+  </defs>
+  <polygon points="625,90 622,340 988,666 987,394" fill="url(#silverTop)"/>
+  <polygon points="418,323 414,609 555,732 558,441" fill="url(#violetSmall)"/>
+  <polygon points="626,483 622,791 987,1111 988,798" fill="url(#violetLarge)"/>
+  <polygon points="266,579 261,919 555,1192 559,838" fill="url(#silverBottom)"/>
+</svg>

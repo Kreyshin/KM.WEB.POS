@@ -11,7 +11,7 @@ import { toSignal } from '@angular/core/rxjs-interop'
 import { filter, map } from 'rxjs'
 import { SesionStore } from '../sesion/sesion.store'
 import { TemaService } from '../tema/tema.service'
-import { KarmaLogoComponent } from '../marca/karma-logo.component'
+import { LogoPosComponent } from '../marca/marca'
 import { ColumnaTicketComponent } from './columna-ticket.component'
 import { destinoDeRuta, destinoDeTecla, destinos } from './navegacion'
 
@@ -46,7 +46,7 @@ import { destinoDeRuta, destinoDeTecla, destinos } from './navegacion'
  */
 @Component({
   selector: 'km-shell',
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, KarmaLogoComponent, ColumnaTicketComponent],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, LogoPosComponent, ColumnaTicketComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="pv-lienzo flex h-full flex-col">
@@ -56,8 +56,8 @@ import { destinoDeRuta, destinoDeTecla, destinos } from './navegacion'
         class="pv-barra flex h-barra shrink-0 items-center gap-4 px-3"
         aria-label="Barra del puesto"
       >
-        <a class="shrink-0" routerLink="/venta" aria-label="Mostrador">
-          <km-karma-logo [conTexto]="false" [tamano]="22" />
+        <a class="pv-marca-barra shrink-0" routerLink="/venta" aria-label="Mostrador">
+          <km-logo-pos [tamano]="26" alt="" />
         </a>
 
         <div class="hidden min-w-0 shrink-0 md:block">

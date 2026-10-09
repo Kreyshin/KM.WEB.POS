@@ -20,7 +20,15 @@ export interface SucursalRef {
 export interface Usuario {
   id: string
   nombre: string
-  email: string
+  /**
+   * Nombre de usuario con el que inicia sesión.
+   *
+   * No es un correo, y no hay correo en este modelo: en un mostrador el
+   * cajero no tiene cuenta de correo de la empresa, y escribir una dirección
+   * con el cliente esperando es una fricción que no se justifica. La
+   * identificación es usuario y clave, o turno y PIN.
+   */
+  usuario: string
   rol: Rol
 }
 
@@ -31,6 +39,6 @@ export interface Sesion {
 }
 
 export interface PuertoSesion {
-  iniciar(email: string, password: string): Promise<Sesion>
+  iniciar(usuario: string, clave: string): Promise<Sesion>
   cerrar(): Promise<void>
 }

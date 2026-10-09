@@ -13,12 +13,12 @@ más, sin tocar el núcleo**.
 
 ## Alcance
 
-| Le corresponde a este repo | No le corresponde |
-| --- | --- |
-| Shell: sesión, sucursal y carga del perfil activo | Panel de cobro y sesión de caja: van en `KARMA.LIB.CAJA` |
+| Le corresponde a este repo                                   | No le corresponde                                                           |
+| ------------------------------------------------------------ | --------------------------------------------------------------------------- |
+| Shell: sesión, sucursal y carga del perfil activo            | Panel de cobro y sesión de caja: van en `KARMA.LIB.CAJA`                    |
 | `pos-core`: ticket, contrato del perfil y pedidos por cobrar | Reglas de rubro del lado servidor: van en el microservicio de cada vertical |
-| Perfiles de rubro: ropa y farmacia en la primera etapa | Inventario, facturación y contabilidad: son del ERP |
-| Puertos hacia el back, con simulaciones mientras no exista | Pantallas de gestión de un vertical, como la recepción del hotel |
+| Perfiles de rubro: ropa y farmacia en la primera etapa       | Inventario, facturación y contabilidad: son del ERP                         |
+| Puertos hacia el back, con simulaciones mientras no exista   | Pantallas de gestión de un vertical, como la recepción del hotel            |
 
 ## Empezar
 
@@ -28,21 +28,25 @@ npm install
 npm run dev       # http://localhost:4200
 ```
 
-En la pantalla de acceso hay usuarios de ejemplo; la contraseña de todos es
-`demo`, y cada uno tiene además un PIN numérico (`1111` a `4444`) porque la
-variante «Teclado» solo marca dígitos.
+El acceso es un pad numérico: se elige el turno y se marca el PIN (`1111` a
+`4444` en la demo). Debajo, plegado, hay entrada por **usuario y clave**
+(`rquispe`, `ltirado`, `emori`, `admin`; clave `demo`).
 
-Los atajos de demo viven en un componente aparte que se monta con `@defer`, así
-que quedan en su propio trozo: cuando `KM_DEMO` es falso no se descargan nunca.
+No hay campo de correo en ninguna parte, y no debe haberlo: en un mostrador el
+cajero no tiene cuenta de correo de la empresa, y escribir una dirección con el
+cliente esperando es fricción sin contrapartida.
 
-| Comando | Qué hace |
-| --- | --- |
-| `npm run dev` | Servidor de desarrollo |
-| `npm run verify` | Formato, lint, tipos y pruebas: lo mismo que corre el CI |
-| `npm run build` | Paquete de producción |
-| `npm run build:demo` | Paquete de la demo publicada en Pages |
-| `npm run test` | Pruebas con Vitest |
-| `npm run lint` | ESLint, incluidas las fronteras entre librerías |
+Los turnos de ejemplo viven en un componente aparte que se monta con `@defer`,
+así que quedan en su propio trozo: cuando `KM_DEMO` es falso no se descargan.
+
+| Comando              | Qué hace                                                 |
+| -------------------- | -------------------------------------------------------- |
+| `npm run dev`        | Servidor de desarrollo                                   |
+| `npm run verify`     | Formato, lint, tipos y pruebas: lo mismo que corre el CI |
+| `npm run build`      | Paquete de producción                                    |
+| `npm run build:demo` | Paquete de la demo publicada en Pages                    |
+| `npm run test`       | Pruebas con Vitest                                       |
+| `npm run lint`       | ESLint, incluidas las fronteras entre librerías          |
 
 ## Estructura
 
@@ -75,13 +79,13 @@ cambio de framework no los alcanza. Solo `pos-core-ui` toca el framework.
 
 ### Reglas de dependencia
 
-| Librería | Puede importar | No puede importar |
-| --- | --- | --- |
-| `pos-core` | Nada del repo | UI, adaptadores, perfiles, shell |
-| `pos-core-ui` | `pos-core` | Adaptadores, perfiles, shell |
-| `pos-adaptadores` | `pos-core` | UI, perfiles, shell |
-| `perfil-*` | `pos-core`, `pos-core-ui` | Otro perfil, adaptadores, shell |
-| `shell` | Todo menos un perfil de forma estática | Un perfil con `import` estático |
+| Librería          | Puede importar                         | No puede importar                |
+| ----------------- | -------------------------------------- | -------------------------------- |
+| `pos-core`        | Nada del repo                          | UI, adaptadores, perfiles, shell |
+| `pos-core-ui`     | `pos-core`                             | Adaptadores, perfiles, shell     |
+| `pos-adaptadores` | `pos-core`                             | UI, perfiles, shell              |
+| `perfil-*`        | `pos-core`, `pos-core-ui`              | Otro perfil, adaptadores, shell  |
+| `shell`           | Todo menos un perfil de forma estática | Un perfil con `import` estático  |
 
 No son una convención escrita en un documento: están en `pos/eslint.config.js`
 y **el lint falla** si alguien las rompe. Para comprobarlo:
@@ -150,12 +154,12 @@ reservado.
 Lo propio de esta vertical es **dónde** se reparte. Las hermanas visten el
 cromo; aquí el bronce se retira de la navegación y se concentra en el dinero:
 
-| Zona | Color |
-| --- | --- |
-| Navegación | neutra, sin color de marca |
-| Zona de venta | superficie limpia, sin lavados |
-| Columna del ticket | carbón en **ambos** temas: es el ancla |
-| Total y «Cobrar» | bronce, y son lo único bronce en pantalla |
+| Zona               | Color                                     |
+| ------------------ | ----------------------------------------- |
+| Navegación         | neutra, sin color de marca                |
+| Zona de venta      | superficie limpia, sin lavados            |
+| Columna del ticket | carbón en **ambos** temas: es el ancla    |
+| Total y «Cobrar»   | bronce, y son lo único bronce en pantalla |
 
 La regla operativa: **si algo se pinta de bronce y no es el total ni el botón
 de cobrar, está mal.** Un POS en el que el botón de cobrar compite con la
@@ -194,14 +198,14 @@ vive aquí.
 
 ## Plan por hitos
 
-| Hito | Deja listo | Estado |
-| --- | --- | --- |
-| 1 · Esqueleto | Workspace, shell, sesión, tema, librerías y reglas de dependencia activas | **Listo** |
-| 2 · Núcleo del ticket | Modelo, store y carrito con adaptadores simulados | Pendiente |
-| 3 · Perfil ropa | Buscador, matriz de talla y color, registro diferido | Pendiente |
-| 4 · Perfil farmacia | Buscador por principio activo, lote y receta | Pendiente |
-| 5 · Cobro | `KARMA.LIB.CAJA` conectada a `PuertoCobro` | Pendiente |
-| 6 · Back real | `KARMA.MS.POS` y los adaptadores HTTP | Pendiente |
+| Hito                  | Deja listo                                                                | Estado    |
+| --------------------- | ------------------------------------------------------------------------- | --------- |
+| 1 · Esqueleto         | Workspace, shell, sesión, tema, librerías y reglas de dependencia activas | **Listo** |
+| 2 · Núcleo del ticket | Modelo, store y carrito con adaptadores simulados                         | Pendiente |
+| 3 · Perfil ropa       | Buscador, matriz de talla y color, registro diferido                      | Pendiente |
+| 4 · Perfil farmacia   | Buscador por principio activo, lote y receta                              | Pendiente |
+| 5 · Cobro             | `KARMA.LIB.CAJA` conectada a `PuertoCobro`                                | Pendiente |
+| 6 · Back real         | `KARMA.MS.POS` y los adaptadores HTTP                                     | Pendiente |
 
 El hito 4 es la prueba del diseño: es el momento barato para descubrir que al
 contrato del perfil le falta algo.

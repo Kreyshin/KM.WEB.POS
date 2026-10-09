@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core'
 import { TemaService, temas, type Tema } from '../tema/tema.service'
 import { SesionStore } from '../sesion/sesion.store'
+import { LogoKarmaComponent, LogoNovumComponent, LogoPosComponent } from '../marca/marca'
 
 /**
  * Preferencias del puesto.
@@ -10,6 +11,7 @@ import { SesionStore } from '../sesion/sesion.store'
  */
 @Component({
   selector: 'km-ajustes-page',
+  imports: [LogoKarmaComponent, LogoNovumComponent, LogoPosComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="pv-fade-in mx-auto flex max-w-2xl flex-col gap-6">
@@ -54,6 +56,29 @@ import { SesionStore } from '../sesion/sesion.store'
         <p class="text-tenue mt-4 text-xs">
           El perfil lo fija la sucursal al iniciar sesión; no se elige desde la caja.
         </p>
+      </section>
+
+      <!-- Las tres marcas y su jerarquía: el producto, la plataforma de la
+           que forma parte, y la empresa que lo hace. -->
+      <section class="pv-panel p-6">
+        <h2 class="pv-titulo-seccion mb-4">Acerca de</h2>
+        <div class="flex items-center gap-4">
+          <km-logo-pos [tamano]="48" alt="" />
+          <div class="min-w-0">
+            <p class="text-sm font-semibold">Punto de venta</p>
+            <p class="text-tenue text-xs">Aplicación de venta de mostrador</p>
+          </div>
+        </div>
+        <div class="mt-4 flex items-center gap-4 border-t border-linea pt-4">
+          <km-logo-novum [tamano]="28" />
+          <div class="min-w-0">
+            <p class="text-sm font-semibold">Karma Novum</p>
+            <p class="text-tenue text-xs">La plataforma de la que forma parte</p>
+          </div>
+        </div>
+        <div class="mt-4 flex items-center border-t border-linea pt-4">
+          <km-logo-karma [tamano]="20" />
+        </div>
       </section>
     </div>
   `,

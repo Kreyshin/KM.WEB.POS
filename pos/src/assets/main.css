@@ -579,7 +579,47 @@ body {
   border-color: var(--pv-bronce-500);
 }
 
-/* Transiciones de entrada de 150–300 ms que refuerzan el cambio de estado. */
+/* ─────────────────────────────────────────────────────────────────────────────
+ * Movimiento
+ *
+ * Tres curvas y nada más, para que todo el producto se mueva igual:
+ *   --pv-salida   entrada de algo que aparece. Arranca rápido y frena.
+ *   --pv-suave    cambios de estado. Simétrica.
+ *   --pv-rebote   confirmación de una pulsación. Se pasa un poco y vuelve.
+ *
+ * Y dos duraciones: 140 ms para responder a un dedo, 320 ms para que algo
+ * entre en pantalla. Más lento que eso, en una caja, se siente lento.
+ * ────────────────────────────────────────────────────────────────────────────*/
+
+:root {
+  --pv-salida: cubic-bezier(0.16, 1, 0.3, 1);
+  --pv-suave: cubic-bezier(0.4, 0, 0.2, 1);
+  --pv-rebote: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --pv-rapido: 140ms;
+  --pv-entrada: 320ms;
+}
+
+@keyframes pv-entra {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.pv-entra {
+  animation: pv-entra var(--pv-entrada) var(--pv-salida) both;
+}
+
+/* La marca entra un pelo después que el panel, para que se lea como una
+ * secuencia y no como un parpadeo simultáneo. */
+.pv-entra-marca {
+  animation: pv-entra 420ms var(--pv-salida) 90ms both;
+}
+
 @keyframes pv-fade-in {
   from {
     opacity: 0;
@@ -592,14 +632,189 @@ body {
 }
 
 .pv-fade-in {
-  animation: pv-fade-in 0.18s ease-out;
+  animation: pv-fade-in 180ms var(--pv-salida) both;
+}
+
+/* Sacudida del visor cuando la clave no entra. Corta y seca: es un «no», no
+ * un espectáculo. */
+@keyframes pv-sacude {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  20% {
+    transform: translateX(-7px);
+  }
+  40% {
+    transform: translateX(6px);
+  }
+  60% {
+    transform: translateX(-4px);
+  }
+  80% {
+    transform: translateX(2px);
+  }
+}
+
+.pv-sacude {
+  animation: pv-sacude 420ms var(--pv-suave);
+  border-color: color-mix(in srgb, var(--pv-rojo) 60%, var(--pv-border)) !important;
+}
+
+/* ── Pad numérico ──────────────────────────────────────────────────────── */
+
+.pv-tecla-pad {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  /* 3rem = 48px, por encima del mínimo táctil de 44 y con la tarjeta entera
+   * dentro de una pantalla de 768 de alto, que es la caja más corta. */
+  height: 3rem;
+  border-radius: var(--pv-radio-control);
+  border: 1px solid var(--pv-border);
+  background-color: var(--pv-surface-2);
+  color: var(--pv-text);
+  font-size: 1.25rem;
+  font-weight: 600;
+  cursor: pointer;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    background-color var(--pv-rapido) var(--pv-suave),
+    border-color var(--pv-rapido) var(--pv-suave),
+    transform var(--pv-rapido) var(--pv-rebote);
+}
+
+.pv-tecla-pad:hover:not(:disabled) {
+  background-color: color-mix(in srgb, var(--pv-bronce-500) 10%, var(--pv-surface-2));
+  border-color: color-mix(in srgb, var(--pv-bronce-500) 35%, var(--pv-border));
+}
+
+/* El hundido al pulsar es lo que hace que el pad se sienta físico. Va en
+ * :active y no en un estado de JavaScript para que responda en el mismo
+ * fotograma que el dedo. */
+.pv-tecla-pad:active:not(:disabled) {
+  transform: scale(0.94);
+  background-color: color-mix(in srgb, var(--pv-bronce-500) 18%, var(--pv-surface-2));
+}
+
+.pv-tecla-pad:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.pv-tecla-pad-accion {
+  background-color: var(--pv-accion);
+  border-color: transparent;
+  color: #ffffff;
+}
+
+.pv-tecla-pad-accion:hover:not(:disabled) {
+  background-color: var(--pv-accion-hover);
+  border-color: transparent;
+}
+
+.pv-tecla-pad-accion:active:not(:disabled) {
+  background-color: var(--pv-accion-hover);
+}
+
+/* ── Puntos de la clave ────────────────────────────────────────────────── */
+
+.pv-punto {
+  width: 0.625rem;
+  height: 0.625rem;
+  border-radius: 999px;
+  background-color: transparent;
+  border: 1.5px solid color-mix(in srgb, var(--pv-muted) 55%, transparent);
+  transition:
+    background-color var(--pv-rapido) var(--pv-suave),
+    border-color var(--pv-rapido) var(--pv-suave),
+    transform 220ms var(--pv-rebote);
+}
+
+.pv-punto-lleno {
+  background-color: var(--pv-bronce-400);
+  border-color: var(--pv-bronce-400);
+  transform: scale(1.25);
+}
+
+/* ── Plegable ──────────────────────────────────────────────────────────── */
+
+/*
+ * Se anima `grid-template-rows` de 0fr a 1fr. Es la única forma de ir de cero
+ * a «lo que mida el contenido» sin fijar una altura en píxeles que se rompa
+ * cuando el contenido cambie.
+ */
+.pv-plegable {
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  transition:
+    grid-template-rows var(--pv-entrada) var(--pv-salida),
+    opacity 200ms var(--pv-suave);
+}
+
+.pv-plegable-abierto {
+  grid-template-rows: 1fr;
+  opacity: 1;
+}
+
+.pv-chevron {
+  display: inline-block;
+  transition: transform var(--pv-entrada) var(--pv-salida);
+}
+
+.pv-chevron-abierto {
+  transform: rotate(180deg);
+}
+
+/* Turno elegido en los atajos. */
+.pv-turno-elegido {
+  background-color: color-mix(in srgb, var(--pv-bronce-500) 16%, var(--pv-surface));
+  border-color: color-mix(in srgb, var(--pv-bronce-500) 55%, var(--pv-border));
+  color: var(--pv-bronce-texto);
+}
+
+/* ── Respeto por quien pide menos movimiento ───────────────────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+  .pv-entra,
+  .pv-entra-marca,
+  .pv-fade-in,
+  .pv-sacude {
+    animation: none;
+  }
+  .pv-boton,
+  .pv-tecla-pad,
+  .pv-punto,
+  .pv-plegable,
+  .pv-chevron {
+    transition: none;
+  }
+  .pv-tecla-pad:active:not(:disabled) {
+    transform: none;
+  }
+}
+
+/* La marca de la barra reacciona al puntero sin llamar la atención: es un
+ * enlace al mostrador, no un botón de acción. */
+.pv-marca-barra {
+  opacity: 0.9;
+  transition:
+    opacity var(--pv-rapido) var(--pv-suave),
+    transform var(--pv-rapido) var(--pv-rebote);
+}
+
+.pv-marca-barra:hover {
+  opacity: 1;
+  transform: scale(1.06);
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .pv-fade-in {
-    animation: none;
-  }
-  .pv-boton {
+  .pv-marca-barra {
     transition: none;
+  }
+  .pv-marca-barra:hover {
+    transform: none;
   }
 }
