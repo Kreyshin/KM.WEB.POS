@@ -959,6 +959,22 @@ body {
   );
 }
 
+/*
+ * En tema claro el fondo NO sigue al tema. Es la única excepción del
+ * producto y tiene un motivo: la comanda es papel claro, y papel claro sobre
+ * fondo claro deja de ser un objeto y pasa a ser una zona. Toda la escena
+ * depende de que el comprobante se recorte contra algo oscuro, igual que la
+ * columna del ticket lleva carbón en los dos temas.
+ */
+[data-theme='light'] .pv-comanda-lienzo {
+  background-color: #1a1610;
+  background-image: radial-gradient(
+    46rem 34rem at 50% -6rem,
+    color-mix(in srgb, var(--pv-bronce-500) 26%, transparent),
+    transparent 70%
+  );
+}
+
 /* Cabezal de impresión: la ranura de la que sale el papel. */
 .pv-impresora {
   position: relative;
