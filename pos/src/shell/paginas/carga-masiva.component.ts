@@ -1,6 +1,6 @@
-import { ChangeDetectionStrategy, Component, computed, output, signal } from '@angular/core'
+import { ChangeDetectionStrategy, Component, computed, inject, output, signal } from '@angular/core'
 import { analizarFilas, type ErrorImportacion, type ProductoRef } from '@pos-core/index'
-import { MonedaPipe } from '@pos-core-ui/index'
+import { MonedaPipe, PUERTO_HOJA_CATALOGO } from '@pos-core-ui/index'
 
 /**
  * Carga masiva de catálogo desde una hoja de cálculo.
@@ -195,6 +195,10 @@ import { MonedaPipe } from '@pos-core-ui/index'
   `,
 })
 export class CargaMasivaComponent {
+  /* Por puerto y no importando el adaptador: esta pantalla no depende de
+     qué librería lee el .xlsx, y mañana servirá igual para un CSV. */
+  private readonly hoja = inject(PUERTO_HOJA_CATALOGO)
+
   readonly cerrar = output<void>()
   readonly importar = output<ProductoRef[]>()
 
@@ -214,8 +218,7 @@ export class CargaMasivaComponent {
     this.generando.set(true)
     this.fallo.set(null)
     try {
-      const { generarPlantilla } = await import('@pos-adaptadores/hoja/excel')
-      const blob = await generarPlantilla()
+      const blob = await this.hoja.plantilla()
       const url = URL.createObjectURL(blob)
       const enlace = document.createElement('a')
       enlace.href = url
@@ -241,8 +244,7 @@ export class CargaMasivaComponent {
     this.analizado.set(false)
 
     try {
-      const { leerLibro } = await import('@pos-adaptadores/hoja/excel')
-      const filas = await leerLibro(archivo)
+      const filas = await this.hoja.leer(archivo)
       const { productos, errores } = analizarFilas(filas)
 
       this.archivo.set(`${archivo.name} · ${filas.length} filas`)

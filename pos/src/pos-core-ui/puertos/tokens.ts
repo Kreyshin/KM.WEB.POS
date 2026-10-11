@@ -12,6 +12,7 @@ import type {
   PuertoCatalogo,
   PuertoClientes,
   PuertoCobro,
+  PuertoHojaCatalogo,
   PuertoMantenimientoCatalogo,
   PuertoMediosPago,
   PuertoPagos,
@@ -19,6 +20,7 @@ import type {
   PuertoSesion,
   PuertoStock,
   PuertoTickets,
+  PuertoTurnos,
 } from '@pos-core/index'
 
 export const PUERTO_CATALOGO = new InjectionToken<PuertoCatalogo>('PuertoCatalogo')
@@ -31,6 +33,8 @@ export const PUERTO_CLIENTES = new InjectionToken<PuertoClientes>('PuertoCliente
 export const PUERTO_MANTENIMIENTO_CATALOGO = new InjectionToken<PuertoMantenimientoCatalogo>(
   'PuertoMantenimientoCatalogo',
 )
+export const PUERTO_HOJA_CATALOGO = new InjectionToken<PuertoHojaCatalogo>('PuertoHojaCatalogo')
+export const PUERTO_TURNOS = new InjectionToken<PuertoTurnos>('PuertoTurnos')
 export const PUERTO_CAJA = new InjectionToken<PuertoCaja>('PuertoCaja')
 export const PUERTO_MEDIOS_PAGO = new InjectionToken<PuertoMediosPago>('PuertoMediosPago')
 export const PUERTO_PAGOS = new InjectionToken<PuertoPagos>('PuertoPagos')

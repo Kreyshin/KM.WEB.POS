@@ -10,11 +10,14 @@
  * componente usa HTTP directamente.
  */
 import type {
+  CategoriaRef,
   Cliente,
   Cobro,
   ConsultaCatalogo,
   ContextoPrecio,
   CuentaPorCobrar,
+  Faceta,
+  FilaHoja,
   MedioPago,
   MovimientoCaja,
   ProductoRef,
@@ -25,6 +28,21 @@ import type {
 
 export interface PuertoCatalogo {
   buscar(consulta: ConsultaCatalogo): Promise<ProductoRef[]>
+  /**
+   * Las categorías del catálogo, con cuántos productos tiene cada una.
+   *
+   * Están en el puerto y no importadas del adaptador porque la pantalla de
+   * venta las pinta: traerlas del módulo simulado dejaba la caja enseñando
+   * las categorías de la demo el día que entre el back de verdad.
+   */
+  categorias(sucursalId: string): Promise<readonly GrupoCategoria[]>
+  /** Los filtros avanzados que el catálogo publica. */
+  facetas(sucursalId: string): Promise<readonly Faceta[]>
+}
+
+export interface GrupoCategoria {
+  categoria: CategoriaRef
+  cuantos: number
 }
 
 export interface PuertoPrecios {
@@ -123,4 +141,34 @@ export interface PuertoMantenimientoCatalogo {
   eliminar(productoId: string): Promise<void>
   /** Ajusta las existencias sin pasar por el formulario completo. */
   ajustarStock(productoId: string, unidades: number): Promise<void>
+}
+
+/**
+ * Lectura y escritura de hojas de cálculo para el catálogo.
+ *
+ * Puerto y no una importación directa: el shell no puede depender de qué
+ * librería lee el .xlsx, y mañana la misma pantalla servirá para un CSV o
+ * para un pegado desde el portapapeles sin tocarse.
+ */
+export interface PuertoHojaCatalogo {
+  plantilla(): Promise<Blob>
+  leer(archivo: File): Promise<readonly FilaHoja[]>
+}
+
+/**
+ * Los turnos que el acceso ofrece para marcar sin teclear el usuario.
+ *
+ * Puerto aparte y OPCIONAL: en la demo los pone el adaptador simulado, y
+ * en producción los dará el puesto —quién abrió turno hoy en esta caja—.
+ * Sin él, el acceso pide usuario y clave, que es lo que debe pasar cuando
+ * nadie publica una lista.
+ */
+export interface PuertoTurnos {
+  delPuesto(sucursalId: string): Promise<readonly TurnoSugerido[]>
+}
+
+export interface TurnoSugerido {
+  /** El `usuario` con el que se inicia sesión, no el id interno. */
+  usuario: string
+  nombre: string
 }

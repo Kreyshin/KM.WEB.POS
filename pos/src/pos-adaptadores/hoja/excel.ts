@@ -1,4 +1,4 @@
-import { columnasPlantilla, type FilaHoja } from '@pos-core/index'
+import { columnasPlantilla, type FilaHoja, type PuertoHojaCatalogo } from '@pos-core/index'
 
 /**
  * Lectura y escritura de .xlsx.
@@ -245,4 +245,21 @@ export async function generarPlantilla(): Promise<Blob> {
   return new Blob([buffer], {
     type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
   })
+}
+
+/**
+ * El puerto, implementado.
+ *
+ * Carga `exceljs` solo al usarse: pesa cerca de un mega y la pantalla de
+ * venta no puede pagarlo. Las dos funciones de arriba ya lo importan de
+ * forma dinámica, así que esta clase no añade peso al arrancar.
+ */
+export class HojaCatalogoExcel implements PuertoHojaCatalogo {
+  async plantilla(): Promise<Blob> {
+    return generarPlantilla()
+  }
+
+  async leer(archivo: File): Promise<readonly FilaHoja[]> {
+    return leerLibro(archivo)
+  }
 }

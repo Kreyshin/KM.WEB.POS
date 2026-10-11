@@ -11,6 +11,7 @@ import { toSignal } from '@angular/core/rxjs-interop'
 import { filter, map } from 'rxjs'
 import { CajaService, TicketService } from '@pos-core-ui/index'
 import { SesionStore } from '../sesion/sesion.store'
+import { PerfilService } from '../perfiles/perfil.service'
 import { TemaService } from '../tema/tema.service'
 import { LogoPosComponent } from '../marca/marca'
 import { ColumnaTicketComponent } from './columna-ticket.component'
@@ -187,6 +188,7 @@ export class ShellLayout {
   private readonly sesion = inject(SesionStore)
   private readonly ticket = inject(TicketService)
   private readonly caja = inject(CajaService)
+  private readonly perfilRubro = inject(PerfilService)
 
   protected readonly tema = inject(TemaService)
   protected readonly menuAbierto = signal(false)
@@ -236,6 +238,11 @@ export class ShellLayout {
     // aunque el cajero nunca pase por Caja.
     const usuario = this.sesion.usuario()
     if (sucursal && usuario) void this.caja.cargar(sucursal.id, usuario.id)
+
+    // El perfil del rubro se carga aquí, con la sucursal ya resuelta: es
+    // quien aporta las marcas y las validaciones, y la pantalla de venta
+    // lo necesita desde el primer producto que pinta.
+    void this.perfilRubro.cargar()
   }
 
   private readonly url = toSignal(
@@ -295,6 +302,7 @@ export class ShellLayout {
     // cajero anterior no puede acabar cobrado a nombre del siguiente.
     this.ticket.cerrar()
     this.caja.limpiar()
+    this.perfilRubro.limpiar()
     await this.sesion.cerrar()
     await this.router.navigate(['/acceso'])
   }

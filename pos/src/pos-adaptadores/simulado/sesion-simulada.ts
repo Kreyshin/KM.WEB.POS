@@ -1,4 +1,11 @@
-import type { PuertoSesion, Sesion, SucursalRef, Usuario } from '@pos-core/index'
+import type {
+  PuertoSesion,
+  PuertoTurnos,
+  Sesion,
+  SucursalRef,
+  TurnoSugerido,
+  Usuario,
+} from '@pos-core/index'
 
 /**
  * Sesión en memoria.
@@ -53,6 +60,19 @@ const usuarios: UsuarioDemo[] = [
 
 /** Los turnos que la pantalla de acceso ofrece como atajo en la demo. */
 export const usuariosDemo = usuarios.map(({ usuario, pin }) => ({ ...usuario, pin }))
+
+/**
+ * Turnos sugeridos del puesto.
+ *
+ * Solo usuario y nombre: el PIN no sale de aquí. Enseñarlo junto al
+ * nombre convierte la clave en una etiqueta pública, y la pantalla queda
+ * impresentable delante de un cliente.
+ */
+export class TurnosSimulados implements PuertoTurnos {
+  async delPuesto(): Promise<readonly TurnoSugerido[]> {
+    return usuarios.map(({ usuario }) => ({ usuario: usuario.usuario, nombre: usuario.nombre }))
+  }
+}
 
 export const claveDemo = CLAVE_DEMO
 

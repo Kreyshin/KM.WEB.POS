@@ -1474,18 +1474,6 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
-/* Marca de receta: ámbar, porque avisa sin bloquear. */
-.pv-receta {
-  padding: 0 0.3rem;
-  border-radius: 4px;
-  background-color: color-mix(in srgb, var(--pv-aviso) 30%, transparent);
-  color: var(--pv-text);
-  font-size: 9px;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-}
-
 @media (prefers-reduced-motion: reduce) {
   .pv-chip {
     transition: none;
@@ -2755,4 +2743,45 @@ select.pv-campo {
   padding: 0.625rem 0.875rem;
   font-size: 0.8125rem;
   color: var(--pv-error);
+}
+
+/*
+ * Marca de producto que pone el PERFIL del rubro.
+ *
+ * El tono es semántico y el color lo decide el tema, no el perfil: así
+ * farmacia dice «esto es un aviso» sin saber qué color es un aviso aquí,
+ * que es lo que permite que el mismo perfil sirva en claro y en oscuro.
+ *
+ * Sustituye a `.pv-receta`, que era una clase con el nombre de un rubro
+ * dentro de la hoja que comparten todos.
+ */
+.pv-marca {
+  --pv-marca-color: var(--pv-muted);
+
+  display: inline-flex;
+  align-items: center;
+  border-radius: 5px;
+  padding: 0.0625rem 0.3125rem;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--pv-marca-color);
+  background-color: color-mix(in srgb, var(--pv-marca-color) 15%, transparent);
+}
+
+.pv-marca[data-tono='aviso'] {
+  --pv-marca-color: var(--pv-aviso);
+}
+
+.pv-marca[data-tono='error'] {
+  --pv-marca-color: var(--pv-error);
+}
+
+.pv-marca[data-tono='info'] {
+  --pv-marca-color: var(--pv-primary-texto);
+}
+
+.pv-marca[data-tono='exito'] {
+  --pv-marca-color: var(--pv-exito);
 }

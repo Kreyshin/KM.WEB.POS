@@ -11,6 +11,7 @@ import { FormsModule } from '@angular/forms'
 import type { Cobro, ComprobanteRef } from '@pos-core/index'
 import { CajaService, CarritoComponent, MonedaPipe, TicketService } from '@pos-core-ui/index'
 import { PUERTO_PAGOS, PUERTO_TICKETS } from '@pos-core-ui/index'
+import { PerfilService } from '../perfiles/perfil.service'
 import { PanelCobroComponent } from '../cobro/panel-cobro.component'
 import { ReciboComponent } from '../cobro/recibo.component'
 
@@ -129,6 +130,10 @@ import { ReciboComponent } from '../cobro/recibo.component'
           <span class="text-[11px] opacity-70">Alt + C</span>
         </button>
 
+        @if (reparo(); as mensaje) {
+          <p class="pv-error-campo">{{ mensaje }}</p>
+        }
+
         <!-- Aparcar: el cliente se dejó la billetera en el carro, o el
              pedido lo cobra otra persona en caja. Lo que no puede es
              parar la cola. -->
@@ -199,12 +204,14 @@ export class ColumnaTicketComponent {
   private readonly caja = inject(CajaService)
   private readonly pagos = inject(PUERTO_PAGOS)
   private readonly tickets = inject(PUERTO_TICKETS)
+  private readonly perfilRubro = inject(PerfilService)
 
   private readonly cobrar = viewChild<ElementRef<HTMLButtonElement>>('cobrar')
   private readonly panel = viewChild<PanelCobroComponent>('panel')
 
   protected readonly cobrando = signal(false)
   protected readonly aparcando = signal(false)
+  protected readonly reparo = signal<string | null>(null)
   protected nota = ''
   protected readonly recibo = signal<Cobro | null>(null)
   protected readonly comprobante = signal<ComprobanteRef | undefined>(undefined)
@@ -230,8 +237,26 @@ export class ColumnaTicketComponent {
     this.ticket.nuevo()
   }
 
-  protected abrirCobro(): void {
+  /**
+   * El perfil del rubro tiene la última palabra ANTES de abrir el cobro.
+   *
+   * Antes y no después: descubrir que falta la receta con el cliente ya
+   * contando el dinero es llegar tarde. La regla definitiva la aplica el
+   * microservicio del vertical; esto es cortesía, no autoridad.
+   */
+  protected async abrirCobro(): Promise<void> {
     if (this.ticket.vacio() || !this.ticket.editable()) return
+
+    const actual = this.ticket.ticket()
+    if (actual) {
+      const veredicto = await this.perfilRubro.validarAntesDeCobrar(actual)
+      if (!veredicto.ok) {
+        this.reparo.set(veredicto.mensaje ?? 'El rubro no permite cobrar este ticket.')
+        return
+      }
+    }
+
+    this.reparo.set(null)
     this.cobrando.set(true)
   }
 

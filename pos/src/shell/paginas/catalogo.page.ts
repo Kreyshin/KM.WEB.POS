@@ -15,7 +15,6 @@ import {
   PUERTO_CATALOGO,
   PUERTO_MANTENIMIENTO_CATALOGO,
 } from '@pos-core-ui/index'
-import { nuevoProductoId } from '@pos-adaptadores/simulado/index'
 import { SesionStore } from '../sesion/sesion.store'
 import { FichaProductoComponent } from './ficha-producto.component'
 import { EditorProductoComponent } from './editor-producto.component'
@@ -246,10 +245,9 @@ export class CatalogoPage {
   }
 
   protected async guardarProducto(producto: ProductoRef): Promise<void> {
-    await this.mantenimiento.guardar({
-      ...producto,
-      id: producto.id || nuevoProductoId(),
-    })
+    // Sin id: lo pone el adaptador al guardar, que es quien conoce su
+    // formato. La pantalla no tiene por qué saberlo.
+    await this.mantenimiento.guardar(producto)
     this.editando.set(false)
     await this.cargar()
   }

@@ -8,8 +8,13 @@ import {
 } from '@angular/core'
 import { FormsModule } from '@angular/forms'
 import type { ElementRef } from '@angular/core'
-import type { OrdenCatalogo, PresentacionVenta, ProductoRef } from '@pos-core/index'
-import { categoriasDelCatalogo, facetasDelCatalogo } from '@pos-adaptadores/simulado/index'
+import type {
+  Faceta,
+  GrupoCategoria,
+  OrdenCatalogo,
+  PresentacionVenta,
+  ProductoRef,
+} from '@pos-core/index'
 import {
   IconoProductoComponent,
   MonedaPipe,
@@ -17,6 +22,7 @@ import {
   TicketService,
 } from '@pos-core-ui/index'
 import { SesionStore } from '../sesion/sesion.store'
+import { PerfilService } from '../perfiles/perfil.service'
 import { FichaProductoComponent, type Agregado } from './ficha-producto.component'
 
 /**
@@ -90,9 +96,9 @@ import { FichaProductoComponent, type Agregado } from './ficha-producto.componen
           (click)="filtrar(null)"
         >
           Todo
-          <span class="pv-chip-cuenta">{{ totalCatalogo }}</span>
+          <span class="pv-chip-cuenta">{{ totalCatalogo() }}</span>
         </button>
-        @for (grupo of categorias; track grupo.categoria.codigo) {
+        @for (grupo of categorias(); track grupo.categoria.codigo) {
           <button
             class="pv-chip"
             type="button"
@@ -109,7 +115,7 @@ import { FichaProductoComponent, type Agregado } from './ficha-producto.componen
            escanear, y una barra permanente robaría dos filas de catálogo. -->
       @if (filtrosAbiertos()) {
         <div class="pv-filtros pv-entra">
-          @for (faceta of facetas; track faceta.clave) {
+          @for (faceta of facetas(); track faceta.clave) {
             <div class="pv-filtro">
               <p class="pv-etiqueta text-tenue mb-1.5">{{ faceta.etiqueta }}</p>
               <div class="flex flex-wrap gap-1">
@@ -192,14 +198,16 @@ import { FichaProductoComponent, type Agregado } from './ficha-producto.componen
                       {{ producto.descripcion }}
                     </span>
                     <span class="text-tenue mt-0.5 block truncate text-xs">
-                      {{ sinReceta(producto.nota ?? '') }}
+                      {{ perfilRubro.nota(producto) }}
                     </span>
                   </span>
                 </button>
 
                 <div class="pv-tarjeta-marcas">
-                  @if (exigeReceta(producto)) {
-                    <span class="pv-receta">receta</span>
+                  @for (marca of perfilRubro.marcas(producto); track marca.texto) {
+                    <span class="pv-marca" [attr.data-tono]="marca.tono" [title]="marca.detalle">
+                      {{ marca.texto }}
+                    </span>
                   }
                   @if (producto.stock === 0) {
                     <span class="pv-marca-agotado">agotado</span>
@@ -262,15 +270,21 @@ import { FichaProductoComponent, type Agregado } from './ficha-producto.componen
 export class VentaPage {
   private readonly catalogo = inject(PUERTO_CATALOGO)
   private readonly sesion = inject(SesionStore)
+  protected readonly perfilRubro = inject(PerfilService)
   private readonly ticket = inject(TicketService)
 
   private readonly campo = viewChild<ElementRef<HTMLInputElement>>('campo')
 
-  protected readonly categorias = categoriasDelCatalogo()
-  protected readonly totalCatalogo = this.categorias.reduce((s, g) => s + g.cuantos, 0)
-
-  /** La categoría ya tiene su fila de pastillas, así que no se repite aquí. */
-  protected readonly facetas = facetasDelCatalogo().filter((f) => f.clave !== 'categoria')
+  /*
+   * Categorías y facetas vienen del PUERTO, no importadas del adaptador.
+   * Antes se traían de `@pos-adaptadores/simulado` y eso dejaba la caja
+   * enseñando las categorías de la demo el día que entre el back real.
+   */
+  protected readonly categorias = signal<readonly GrupoCategoria[]>([])
+  protected readonly facetas = signal<readonly Faceta[]>([])
+  protected readonly totalCatalogo = computed(() =>
+    this.categorias().reduce((suma, grupo) => suma + grupo.cuantos, 0),
+  )
 
   protected readonly ordenes: { valor: OrdenCatalogo; etiqueta: string }[] = [
     { valor: 'relevancia', etiqueta: 'Relevancia' },
@@ -303,7 +317,20 @@ export class VentaPage {
   private columnas = 3
 
   constructor() {
-    void this.buscar('')
+    void this.arrancar()
+  }
+
+  private async arrancar(): Promise<void> {
+    const sucursalId = this.sesion.sucursal()?.id ?? ''
+    const [categorias, facetas] = await Promise.all([
+      this.catalogo.categorias(sucursalId),
+      this.catalogo.facetas(sucursalId),
+    ])
+    this.categorias.set(categorias)
+    // La categoría ya tiene su fila de pastillas: repetirla como faceta
+    // sería dos mandos para lo mismo.
+    this.facetas.set(facetas.filter((faceta) => faceta.clave !== 'categoria'))
+    await this.buscar('')
   }
 
   protected async buscar(texto: string): Promise<void> {
@@ -362,15 +389,6 @@ export class VentaPage {
   protected limpiarFiltros(): void {
     this.filtros.set({})
     void this.buscar(this.texto())
-  }
-
-  /** La nota trae «… · exige receta»; la marca lo dice mejor que el texto. */
-  protected exigeReceta(producto: ProductoRef): boolean {
-    return producto.nota?.includes('exige receta') === true
-  }
-
-  protected sinReceta(nota: string): string {
-    return nota.replace(' · exige receta', '')
   }
 
   protected verFicha(producto: ProductoRef): void {

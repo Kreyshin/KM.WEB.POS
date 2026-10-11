@@ -80,11 +80,44 @@ pos/src/
 ├── pos-adaptadores/
 │   ├── simulado/       Implementaciones en memoria
 │   └── http/           Implementaciones reales (hito 6)
-├── perfil-ropa/        (hito 3)
-├── perfil-farmacia/    (hito 4)
-├── shell/              Layout, sesión, tema, guardas, registro de perfiles
+│   └── hoja/           Lectura y plantilla .xlsx del catálogo
+├── perfil-ropa/        (pendiente)
+├── perfil-farmacia/    Marcas, reglas y atributos de botica
+├── shell/              Layout, sesión, tema, guardas, pantallas comunes
+│   ├── perfiles/       Registro con import() diferido y PerfilService
+│   ├── paginas/        Mostrador, por cobrar, caja, catálogo, clientes…
+│   ├── cobro/          Panel de cobro y recibo (sustituto de KARMA.LIB.CAJA)
+│   └── acceso/         Entrada al puesto
 └── app/                Rutas y arranque
 ```
+
+### Las cuatro capas, de un vistazo
+
+```
+   ┌──────────────────────────────────────────────────────────┐
+   │  shell          Sesión · navegación · pantallas comunes  │
+   │                 Es el ÚNICO que cablea puertos ←→ adaptadores
+   └───────┬──────────────────────┬───────────────────┬───────┘
+           │ usa                  │ carga con import()│ registra
+           ▼                      ▼                   ▼
+   ┌───────────────┐      ┌───────────────┐   ┌────────────────┐
+   │ pos-core-ui   │      │  perfil-*     │   │ pos-adaptadores│
+   │ Angular:      │      │ farmacia, ropa│   │ simulado · http│
+   │ señales,      │◄─────┤ marcas,       │   │ hoja (.xlsx)   │
+   │ pipes, carrito│      │ reglas, pantalla  └───────┬────────┘
+   └───────┬───────┘      └───────┬───────┘           │ implementa
+           │                      │                   │
+           └──────────┬───────────┴───────────────────┘
+                      ▼
+            ┌─────────────────────────────────────┐
+            │  pos-core   TypeScript PURO         │
+            │  modelo · puertos · contrato perfil │
+            │  store del ticket · sin framework   │
+            └─────────────────────────────────────┘
+```
+
+Las flechas van en un solo sentido: **todo apunta al núcleo y el núcleo no
+apunta a nada**. El lint lo comprueba.
 
 `pos-core` es TypeScript puro a propósito: el modelo del ticket y los puertos no
 importan nada de Angular, así que los reutiliza cualquier front de la suite y un
@@ -92,13 +125,17 @@ cambio de framework no los alcanza. Solo `pos-core-ui` toca el framework.
 
 ### Reglas de dependencia
 
-| Librería          | Puede importar                         | No puede importar                |
-| ----------------- | -------------------------------------- | -------------------------------- |
-| `pos-core`        | Nada del repo                          | UI, adaptadores, perfiles, shell |
-| `pos-core-ui`     | `pos-core`                             | Adaptadores, perfiles, shell     |
-| `pos-adaptadores` | `pos-core`                             | UI, perfiles, shell              |
-| `perfil-*`        | `pos-core`, `pos-core-ui`              | Otro perfil, adaptadores, shell  |
-| `shell`           | Todo menos un perfil de forma estática | Un perfil con `import` estático  |
+| Librería          | Puede importar                     | No puede importar                    |
+| ----------------- | ---------------------------------- | ------------------------------------ |
+| `pos-core`        | Nada del repo                      | UI, adaptadores, perfiles, shell     |
+| `pos-core-ui`     | `pos-core`                         | Adaptadores, perfiles, shell         |
+| `pos-adaptadores` | `pos-core`                         | UI, perfiles, shell                  |
+| `perfil-*`        | `pos-core`, `pos-core-ui`          | Otro perfil, adaptadores, shell      |
+| `shell`           | `pos-core`, `pos-core-ui`, puertos | **Adaptadores** y perfiles estáticos |
+
+Las dos excepciones del shell están aisladas en un archivo cada una:
+`shell/proveedores.ts` es el único sitio que puede nombrar un adaptador, y
+`shell/perfiles/registro.ts` el único que puede nombrar un perfil.
 
 No son una convención escrita en un documento: están en `pos/eslint.config.js`
 y **el lint falla** si alguien las rompe. Para comprobarlo:
@@ -231,29 +268,84 @@ atribución («Un sistema Karma Systems»).
 
 ## Mapa de la suite
 
-```
-KM.WEB.POS ──(ticket y pedidos)──────────► KARMA.MS.POS
-KM.WEB.POS ──(cobro)──► KARMA.LIB.CAJA ──► KARMA.MS.POS
-KM.WEB.HOTEL ─(cobro)─► KARMA.LIB.CAJA ──► KARMA.MS.POS
+Cómo se engancha este repo con los demás verticales y con el ERP.
 
-KARMA.MS.POS ──► Microservicios de verticales   (receta, precios por mayor)
-KARMA.MS.POS ──► ERP                            (inventario, SUNAT, contabilidad)
+```
+  ┌─────────────┐  ┌──────────────┐  ┌───────────────┐  ┌──────────────┐
+  │ KM.WEB.POS  │  │ KM.WEB.HOTEL │  │ KM.WEB.       │  │ KM.WEB.      │
+  │  mostrador  │  │  recepción   │  │  RESTAURANT   │  │  TALLER.AUTO │
+  └──────┬──────┘  └──────┬───────┘  └───────┬───────┘  └──────┬───────┘
+         │                │                  │                 │
+         │  ticket,       │                  │                 │
+         │  catálogo      └────────┬─────────┴─────────────────┘
+         │                         │ cobro
+         │                ┌────────▼─────────┐
+         ├───────────────►│  KARMA.LIB.CAJA  │  medios de pago · pago mixto
+         │     cobro      │   (compartida)   │  vuelto · sesión · arqueo
+         │                └────────┬─────────┘
+         ▼                         ▼
+  ┌──────────────────────────────────────────┐
+  │              KARMA.MS.POS                │
+  └───────┬──────────────────────────┬───────┘
+          │                          │
+  ┌───────▼────────────┐   ┌─────────▼───────────────────────────┐
+  │ MS de cada vertical│   │                ERP                  │
+  │ receta, mayoreo,   │   │ inventario · SUNAT · contabilidad   │
+  │ lote y vencimiento │   │ compras · precios · asistencia      │
+  └────────────────────┘   └─────────────────────────────────────┘
 ```
 
 Este repo le habla directo al back para el ticket y pasa por la librería solo
-para cobrar. `KM.WEB.HOTEL` cobra con la misma librería; por eso el cobro no
-vive aquí.
+para cobrar. El hotel cobra con la misma: por eso el cobro no vive aquí.
+
+### El enganche con el ERP no es un interruptor
+
+No es «conectado o no». Es **por capacidad y por modo**, con la decisión
+tomada por capacidad, por empresa y por local:
+
+```
+capacidad   inventario · compras · precios · ventas · contabilidad · asistencia
+
+modo        autonomo      la vertical registra y decide
+            sincronizado  registra y homologa; en conflicto manda el ERP
+            delegado      opera el ERP; la vertical solo lee
+
+VinculoErp  { entidad, idVertical, idExterno, estado, version }
+```
+
+Una botica sin ERP va en `inventario: autonomo` y el stock del POS es la
+verdad. El día que contrata el módulo de almacén pasa a `sincronizado`, y
+entonces la verdad es la del ERP. La pantalla no cambia: cambia el modo.
+
+> **Estado:** este contrato está decidido y escrito en `KM.WEB.RESTAURANT`
+> (decisión D-009). Este repo todavía NO lo implementa: lo resuelve con
+> campos opcionales (`ProductoRef.stock?`) y notas en el código. Adoptarlo
+> tal cual, sin reinventarlo, es trabajo pendiente.
 
 ## Plan por hitos
 
-| Hito                  | Deja listo                                                                | Estado    |
-| --------------------- | ------------------------------------------------------------------------- | --------- |
-| 1 · Esqueleto         | Workspace, shell, sesión, tema, librerías y reglas de dependencia activas | **Listo** |
-| 2 · Núcleo del ticket | Modelo, store y carrito con adaptadores simulados                         | Pendiente |
-| 3 · Perfil ropa       | Buscador, matriz de talla y color, registro diferido                      | Pendiente |
-| 4 · Perfil farmacia   | Buscador por principio activo, lote y receta                              | Pendiente |
-| 5 · Cobro             | `KARMA.LIB.CAJA` conectada a `PuertoCobro`                                | Pendiente |
-| 6 · Back real         | `KARMA.MS.POS` y los adaptadores HTTP                                     | Pendiente |
+| Hito                  | Deja listo                                                        | Estado       |
+| --------------------- | ----------------------------------------------------------------- | ------------ |
+| 1 · Esqueleto         | Workspace, shell, sesión, tema, librerías y reglas de dependencia | **Listo**    |
+| 2 · Núcleo del ticket | Modelo, store, carrito y totales con IGV incluido                 | **Listo**    |
+| 3 · Mostrador         | Rejilla, filtros por facetas, ficha de producto y fraccionamiento | **Listo**    |
+| 4 · Perfil farmacia   | Marcas, reglas y atributos del rubro, cargados en diferido        | **Listo**    |
+| 5 · Cobro y caja      | Pago mixto, vuelto, comprobante, sesión de caja y arqueo          | **Listo** \* |
+| 6 · Gestión           | Por cobrar, catálogo con alta y carga masiva, clientes, reportes  | **Listo**    |
+| 7 · Perfil ropa       | Matriz de talla y color, pantalla de venta propia                 | Pendiente    |
+| 8 · Enlace ERP        | `ModoIntegracion` y `VinculoErp` de D-009                         | Pendiente    |
+| 9 · Back real         | `KARMA.MS.POS` y los adaptadores HTTP                             | Pendiente    |
 
-El hito 4 es la prueba del diseño: es el momento barato para descubrir que al
-contrato del perfil le falta algo.
+\* El cobro y la caja funcionan, pero **dentro de este repo**, no en
+`KARMA.LIB.CAJA`. `KM.WEB.RESTAURANT` tiene su propia implementación, con
+otros nombres para las mismas cosas. Hay dos modelos de lo mismo y la
+librería compartida sigue sin existir: decidir si se extrae o si cada
+vertical se queda con la suya es lo que desbloquea este punto.
+
+### Deuda conocida
+
+| Qué                                        | Por qué importa                                        |
+| ------------------------------------------ | ------------------------------------------------------ |
+| `KARMA.LIB.CAJA` no existe                 | Dos implementaciones del mismo cobro, ya divergiendo   |
+| `ModoIntegracion` / `VinculoErp` sin traer | El enganche con el ERP se resuelve con campos sueltos  |
+| `perfil-ropa` vacío                        | El contrato del perfil solo se ha probado con un rubro |

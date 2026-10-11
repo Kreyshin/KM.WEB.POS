@@ -503,6 +503,14 @@ function ordenar(lista: ProductoRef[], orden: OrdenCatalogo | undefined): Produc
 }
 
 export class CatalogoSimulado implements PuertoCatalogo {
+  async categorias() {
+    return categoriasDelCatalogo()
+  }
+
+  async facetas() {
+    return facetasDelCatalogo()
+  }
+
   async buscar(consulta: ConsultaCatalogo): Promise<ProductoRef[]> {
     await new Promise((listo) => setTimeout(listo, 90))
 
@@ -554,7 +562,10 @@ export class CatalogoSimulado implements PuertoCatalogo {
  * imposible saber qué puso el negocio.
  */
 export class MantenimientoCatalogoSimulado implements PuertoMantenimientoCatalogo {
-  async guardar(producto: ProductoRef): Promise<ProductoRef> {
+  async guardar(entrada: ProductoRef): Promise<ProductoRef> {
+    // El id lo pone quien guarda, no la pantalla: así el formulario no
+    // tiene que conocer el formato de id de este adaptador.
+    const producto: ProductoRef = { ...entrada, id: entrada.id || nuevoProductoId() }
     const lista = propios()
     const indice = lista.findIndex((guardado) => guardado.id === producto.id)
     if (indice === -1) lista.push(producto)

@@ -12,13 +12,13 @@ import type { CargadorPerfilAngular } from '@pos-core-ui/index'
  * Añadir un rubro es añadir una línea aquí y una librería en `src/`. El
  * núcleo no se toca: es el objetivo de diseño de todo el repo.
  *
- * Los perfiles llegan en los hitos 3 (ropa) y 4 (farmacia). Hasta entonces el
- * registro está vacío a propósito, y `cargarPerfil` devuelve null, que es lo
- * que la pantalla de venta tratará como «sucursal sin perfil configurado».
+ * Una sucursal sin perfil registrado funciona igual: la pantalla genérica
+ * del mostrador no necesita ninguno. Lo que pierde son las marcas y las
+ * validaciones del rubro, que es exactamente lo que el perfil aporta.
  */
 export const PERFILES: Record<string, CargadorPerfilAngular> = {
-  // ropa:     () => import('@perfil-ropa').then((m) => m.perfilRopa),
-  // farmacia: () => import('@perfil-farmacia').then((m) => m.perfilFarmacia),
+  farmacia: () => import('@perfil-farmacia').then((m) => m.perfilFarmacia),
+  // ropa: () => import('@perfil-ropa').then((m) => m.perfilRopa),
 }
 
 export function perfilRegistrado(codigo: string | null): boolean {

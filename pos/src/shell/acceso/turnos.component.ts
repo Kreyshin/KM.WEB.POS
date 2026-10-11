@@ -1,5 +1,6 @@
-import { ChangeDetectionStrategy, Component, input, output } from '@angular/core'
-import { usuariosDemo } from '@pos-adaptadores/simulado/index'
+import { ChangeDetectionStrategy, Component, inject, input, output, signal } from '@angular/core'
+import type { TurnoSugerido } from '@pos-core/index'
+import { PUERTO_TURNOS } from '@pos-core-ui/index'
 
 /**
  * Turnos del puesto.
@@ -19,15 +20,16 @@ import { usuariosDemo } from '@pos-adaptadores/simulado/index'
  * producción (`KM_DEMO` falso) ni los nombres ni el adaptador simulado entran
  * en el paquete que descarga la caja.
  *
- * En una caja real esta lista la dará un puerto —los cajeros asignados a la
- * sucursal—, y entonces dejará de ser un componente de demo.
+ * La lista llega por `PuertoTurnos`. En la demo la sirve el adaptador
+ * simulado; en una caja real la dará el puesto —quién tiene turno hoy—, y
+ * este componente no cambia.
  */
 @Component({
   selector: 'km-turnos',
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="grid grid-cols-2 gap-2">
-      @for (turno of turnos; track turno.id) {
+      @for (turno of turnos(); track turno.usuario) {
         <button
           class="pv-boton pv-boton-tenue px-3 text-xs"
           type="button"
@@ -42,8 +44,18 @@ import { usuariosDemo } from '@pos-adaptadores/simulado/index'
   `,
 })
 export class TurnosComponent {
+  private readonly puerto = inject(PUERTO_TURNOS)
+
   readonly elegido = input<string | null>(null)
   readonly elegir = output<string>()
 
-  protected readonly turnos = usuariosDemo
+  protected readonly turnos = signal<readonly TurnoSugerido[]>([])
+
+  constructor() {
+    void this.cargar()
+  }
+
+  private async cargar(): Promise<void> {
+    this.turnos.set(await this.puerto.delPuesto(''))
+  }
 }

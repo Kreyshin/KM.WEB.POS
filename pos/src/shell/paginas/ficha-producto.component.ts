@@ -1,6 +1,15 @@
-import { ChangeDetectionStrategy, Component, computed, input, output, signal } from '@angular/core'
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  inject,
+  input,
+  output,
+  signal,
+} from '@angular/core'
 import type { PresentacionVenta, ProductoRef } from '@pos-core/index'
 import { IconoProductoComponent, MonedaPipe } from '@pos-core-ui/index'
+import { PerfilService } from '../perfiles/perfil.service'
 
 /** Lo que el panel devuelve al cerrarse con una venta decidida. */
 export interface Agregado {
@@ -50,8 +59,10 @@ export interface Agregado {
               @for (campo of destacados(); track campo.etiqueta) {
                 <span class="pv-marca-ficha">{{ campo.valor }}</span>
               }
-              @if (exigeReceta()) {
-                <span class="pv-receta">receta</span>
+              @for (marca of perfilRubro.marcas(producto()); track marca.texto) {
+                <span class="pv-marca" [attr.data-tono]="marca.tono" [title]="marca.detalle">
+                  {{ marca.texto }}
+                </span>
               }
             </div>
           </div>
@@ -146,6 +157,10 @@ export interface Agregado {
   `,
 })
 export class FichaProductoComponent {
+  /* Las marcas del producto las pone el perfil del rubro: este panel no
+     sabe qué es una receta, igual que no sabe qué es una talla. */
+  protected readonly perfilRubro = inject(PerfilService)
+
   readonly producto = input.required<ProductoRef>()
 
   readonly cerrar = output<void>()

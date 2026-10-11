@@ -52,6 +52,34 @@ const zonas = [
     message:
       'Un perfil solo puede importar pos-core y pos-core-ui: nunca otro perfil, los adaptadores ni el shell.',
   },
+  /*
+   * El shell consume PUERTOS, no adaptadores.
+   *
+   * Esta zona faltaba, y por eso tres pantallas de producción acabaron
+   * importando el adaptador SIMULADO: categorías y facetas del catálogo,
+   * los turnos del acceso y el generador de ids. El día que entre el
+   * cliente HTTP, esas pantallas habrían seguido leyendo datos de la demo
+   * sin que nada fallara al compilar.
+   *
+   * La única excepción es `proveedores.ts`, que es precisamente el sitio
+   * donde se decide quién responde detrás de cada puerto.
+   */
+  {
+    target: [
+      './src/shell/paginas',
+      './src/shell/layout',
+      './src/shell/acceso',
+      './src/shell/cobro',
+      './src/shell/sesion',
+      './src/shell/perfiles',
+      './src/shell/guardas',
+      './src/shell/marca',
+      './src/shell/tema',
+    ],
+    from: ['./src/pos-adaptadores'],
+    message:
+      'El shell consume puertos, no adaptadores. Añade el método al puerto y regístralo en proveedores.ts, que es el único sitio que puede nombrar un adaptador.',
+  },
 ]
 
 export default tseslint.config(
