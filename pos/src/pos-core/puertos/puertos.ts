@@ -107,3 +107,20 @@ export interface PuertoClientes {
   porDocumento(documento: string): Promise<Cliente | null>
   guardar(cliente: Omit<Cliente, 'id'> & { id?: string }): Promise<Cliente>
 }
+
+/**
+ * Alta y edición del catálogo.
+ *
+ * Puerto APARTE del de lectura, y no dos métodos más en `PuertoCatalogo`.
+ * Cuando el negocio contrata el módulo de almacén del ERP, el catálogo
+ * pasa a ser suyo y el POS deja de poder escribirlo: ese día este puerto
+ * sencillamente no se registra, la pantalla esconde los botones de alta y
+ * todo lo demás sigue igual. Con los métodos metidos en `PuertoCatalogo`
+ * habría que dejarlos lanzando errores, que es peor.
+ */
+export interface PuertoMantenimientoCatalogo {
+  guardar(producto: ProductoRef): Promise<ProductoRef>
+  eliminar(productoId: string): Promise<void>
+  /** Ajusta las existencias sin pasar por el formulario completo. */
+  ajustarStock(productoId: string, unidades: number): Promise<void>
+}

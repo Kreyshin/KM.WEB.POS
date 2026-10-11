@@ -1,10 +1,17 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core'
 import { FormsModule } from '@angular/forms'
 import type { ProductoRef } from '@pos-core/index'
-import { facetasDelCatalogo } from '@pos-adaptadores/simulado/index'
-import { IconoProductoComponent, MonedaPipe, PUERTO_CATALOGO } from '@pos-core-ui/index'
+
+import {
+  IconoProductoComponent,
+  MonedaPipe,
+  PUERTO_CATALOGO,
+  PUERTO_MANTENIMIENTO_CATALOGO,
+} from '@pos-core-ui/index'
+import { nuevoProductoId } from '@pos-adaptadores/simulado/index'
 import { SesionStore } from '../sesion/sesion.store'
 import { FichaProductoComponent } from './ficha-producto.component'
+import { EditorProductoComponent } from './editor-producto.component'
 
 /**
  * Catálogo.
@@ -23,7 +30,13 @@ import { FichaProductoComponent } from './ficha-producto.component'
  */
 @Component({
   selector: 'km-catalogo-page',
-  imports: [FormsModule, MonedaPipe, IconoProductoComponent, FichaProductoComponent],
+  imports: [
+    FormsModule,
+    MonedaPipe,
+    IconoProductoComponent,
+    FichaProductoComponent,
+    EditorProductoComponent,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="pv-fade-in flex h-full flex-col gap-3">
@@ -35,14 +48,19 @@ import { FichaProductoComponent } from './ficha-producto.component'
             reponer
           </p>
         </div>
-        <input
-          class="pv-campo w-full max-w-xs text-sm"
-          type="search"
-          placeholder="Buscar en el catálogo…"
-          aria-label="Buscar en el catálogo"
-          [ngModel]="texto()"
-          (ngModelChange)="buscar($event)"
-        />
+        <div class="flex gap-2">
+          <input
+            class="pv-campo w-56 text-sm"
+            type="search"
+            placeholder="Buscar en el catálogo…"
+            aria-label="Buscar en el catálogo"
+            [ngModel]="texto()"
+            (ngModelChange)="buscar($event)"
+          />
+          <button class="pv-boton pv-boton-accion" type="button" (click)="nuevo()">
+            Nuevo producto
+          </button>
+        </div>
       </header>
 
       <div class="flex shrink-0 flex-wrap gap-1.5">
@@ -114,9 +132,12 @@ import { FichaProductoComponent } from './ficha-producto.component'
                       }
                     </div>
                   </td>
-                  <td class="text-right">
+                  <td class="text-right whitespace-nowrap">
                     <button class="pv-tabla-accion" type="button" (click)="ficha.set(producto)">
                       Ficha
+                    </button>
+                    <button class="pv-tabla-accion ml-3" type="button" (click)="editar(producto)">
+                      Editar
                     </button>
                   </td>
                 </tr>
@@ -136,10 +157,20 @@ import { FichaProductoComponent } from './ficha-producto.component'
     @if (ficha(); as abierto) {
       <km-ficha-producto [producto]="abierto" (cerrar)="ficha.set(null)" />
     }
+
+    @if (editando()) {
+      <km-editor-producto
+        [producto]="enEdicion()"
+        (cerrar)="editando.set(false)"
+        (guardar)="guardarProducto($event)"
+        (eliminar)="eliminarProducto($event)"
+      />
+    }
   `,
 })
 export class CatalogoPage {
   private readonly catalogo = inject(PUERTO_CATALOGO)
+  private readonly mantenimiento = inject(PUERTO_MANTENIMIENTO_CATALOGO)
   private readonly sesion = inject(SesionStore)
 
   protected readonly estados = [
@@ -153,15 +184,14 @@ export class CatalogoPage {
   protected readonly estado = signal('')
   protected readonly productos = signal<ProductoRef[]>([])
   protected readonly ficha = signal<ProductoRef | null>(null)
+  protected readonly editando = signal(false)
+  protected readonly enEdicion = signal<ProductoRef | null>(null)
 
   protected readonly agotados = computed(() => this.productos().filter((p) => p.stock === 0).length)
   protected readonly porReponer = computed(
     () =>
       this.productos().filter((p) => p.stock !== undefined && p.stock > 0 && p.stock <= 20).length,
   )
-
-  /** Las facetas existen; aquí solo se usa la de disponibilidad. */
-  protected readonly hayFacetas = facetasDelCatalogo().length > 0
 
   constructor() {
     void this.cargar()
@@ -184,6 +214,31 @@ export class CatalogoPage {
   protected buscar(texto: string): void {
     this.texto.set(texto)
     void this.cargar()
+  }
+
+  protected nuevo(): void {
+    this.enEdicion.set(null)
+    this.editando.set(true)
+  }
+
+  protected editar(producto: ProductoRef): void {
+    this.enEdicion.set(producto)
+    this.editando.set(true)
+  }
+
+  protected async guardarProducto(producto: ProductoRef): Promise<void> {
+    await this.mantenimiento.guardar({
+      ...producto,
+      id: producto.id || nuevoProductoId(),
+    })
+    this.editando.set(false)
+    await this.cargar()
+  }
+
+  protected async eliminarProducto(productoId: string): Promise<void> {
+    await this.mantenimiento.eliminar(productoId)
+    this.editando.set(false)
+    await this.cargar()
   }
 
   protected filtrarEstado(valor: string): void {

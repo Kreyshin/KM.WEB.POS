@@ -7,6 +7,7 @@ import {
   type OrdenCatalogo,
   type ProductoRef,
   type PuertoCatalogo,
+  type PuertoMantenimientoCatalogo,
 } from '@pos-core/index'
 
 /**
@@ -36,7 +37,7 @@ interface DetalleFarmacia extends Record<string, unknown> {
   advertencia?: string
 }
 
-const productos: ProductoRef[] = [
+const semilla: ProductoRef[] = [
   {
     id: 'f-paracetamol-500',
     categoria: { codigo: 'ANALG', nombre: 'Analgésicos' },
@@ -294,24 +295,72 @@ function normalizar(texto: string): string {
   return texto.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').trim()
 }
 
-/** Compone la línea de contexto, la ficha y el stock que ve la pantalla. */
+/**
+ * Productos dados de alta o editados desde la aplicación.
+ *
+ * Capa aparte de la semilla, no una mezcla: así se sabe siempre qué vino
+ * con el sistema y qué puso el negocio, y restablecer el catálogo de
+ * ejemplo es borrar una llave.
+ */
+const LLAVE_PROPIOS = 'km.pos.catalogo'
+
+function propios(): ProductoRef[] {
+  try {
+    const crudo = localStorage.getItem(LLAVE_PROPIOS)
+    return crudo ? (JSON.parse(crudo) as ProductoRef[]) : []
+  } catch {
+    return []
+  }
+}
+
+function guardarPropios(lista: ProductoRef[]): void {
+  try {
+    localStorage.setItem(LLAVE_PROPIOS, JSON.stringify(lista))
+  } catch {
+    // Sin respaldo se sigue vendiendo con lo que haya en memoria.
+  }
+}
+
+/**
+ * El catálogo vigente: la semilla, con lo propio encima.
+ *
+ * Un producto propio con el mismo id SUSTITUYE al de la semilla, que es lo
+ * que permite corregir el precio de un producto de ejemplo sin tocar
+ * código. Los que no coinciden se añaden al final.
+ */
+function catalogo(): ProductoRef[] {
+  const mios = propios()
+  const porId = new Map(mios.map((producto) => [producto.id, producto]))
+  const base = semilla.map((producto) => porId.get(producto.id) ?? producto)
+  const nuevos = mios.filter((producto) => !semilla.some((s) => s.id === producto.id))
+  return [...base, ...nuevos]
+}
+
+/**
+ * Compone la línea de contexto, la ficha y el stock que ve la pantalla.
+ *
+ * Lo que el producto YA traiga se respeta: un producto dado de alta desde
+ * la aplicación lleva su propia ficha y su propio stock, y no hay ninguna
+ * tabla de farmacia que consultar para él.
+ */
 function enriquecer(producto: ProductoRef): ProductoRef {
   const detalle = detalleFarmacia[producto.id]
   if (!detalle) return producto
+
   const partes = [detalle.principioActivo, detalle.laboratorio]
   if (detalle.exigeReceta) partes.push('exige receta')
   return {
     ...producto,
-    nota: partes.join(' · '),
-    ficha: fichaDe(producto),
-    stock: existencias[producto.id],
+    nota: producto.nota ?? partes.join(' · '),
+    ficha: producto.ficha ?? fichaDe(producto),
+    stock: producto.stock ?? existencias[producto.id],
   }
 }
 
 /** Las categorías del catálogo, con cuántos productos tiene cada una. */
 export function categoriasDelCatalogo(): { categoria: CategoriaRef; cuantos: number }[] {
   const cuenta = new Map<string, { categoria: CategoriaRef; cuantos: number }>()
-  for (const producto of productos) {
+  for (const producto of catalogo()) {
     if (!producto.categoria) continue
     const previo = cuenta.get(producto.categoria.codigo)
     if (previo) previo.cuantos += 1
@@ -330,7 +379,7 @@ export function categoriasDelCatalogo(): { categoria: CategoriaRef; cuantos: num
 export function facetasDelCatalogo(): readonly Faceta[] {
   const contar = (de: (p: ProductoRef) => { valor: string; etiqueta: string } | null) => {
     const cuenta = new Map<string, OpcionFacetaMutable>()
-    for (const producto of productos) {
+    for (const producto of catalogo()) {
       const clave = de(producto)
       if (!clave) continue
       const previo = cuenta.get(clave.valor)
@@ -458,7 +507,7 @@ export class CatalogoSimulado implements PuertoCatalogo {
     await new Promise((listo) => setTimeout(listo, 90))
 
     if (consulta.codigoBarras) {
-      const exacto = productos.find((p) => p.codigoBarras === consulta.codigoBarras)
+      const exacto = catalogo().find((p) => p.codigoBarras === consulta.codigoBarras)
       return exacto ? [enriquecer(exacto)] : []
     }
 
@@ -467,7 +516,7 @@ export class CatalogoSimulado implements PuertoCatalogo {
     const filtros = { ...consulta.filtros }
     if (consulta.categoria) filtros['categoria'] = consulta.categoria
 
-    const filtrados = productos.filter((producto) =>
+    const filtrados = catalogo().filter((producto) =>
       Object.entries(filtros).every(([clave, valor]) => cumple(producto, clave, valor)),
     )
 
@@ -495,4 +544,45 @@ export class CatalogoSimulado implements PuertoCatalogo {
       .slice(0, consulta.limite ?? 24)
       .map(enriquecer)
   }
+}
+
+/**
+ * Mantenimiento del catálogo desde la aplicación.
+ *
+ * Escribe en la capa de productos propios, nunca en la semilla: el
+ * catálogo de ejemplo tiene que poder restablecerse, y mezclarlos haría
+ * imposible saber qué puso el negocio.
+ */
+export class MantenimientoCatalogoSimulado implements PuertoMantenimientoCatalogo {
+  async guardar(producto: ProductoRef): Promise<ProductoRef> {
+    const lista = propios()
+    const indice = lista.findIndex((guardado) => guardado.id === producto.id)
+    if (indice === -1) lista.push(producto)
+    else lista[indice] = producto
+    guardarPropios(lista)
+    return producto
+  }
+
+  async eliminar(productoId: string): Promise<void> {
+    // Un producto de la semilla no se borra: se tacha guardando una copia
+    // con stock 0. Borrarlo de la lista propia solo lo haría reaparecer,
+    // porque la semilla sigue ahí.
+    const deSemilla = semilla.find((producto) => producto.id === productoId)
+    if (deSemilla) {
+      await this.guardar({ ...deSemilla, stock: 0 })
+      return
+    }
+    guardarPropios(propios().filter((producto) => producto.id !== productoId))
+  }
+
+  async ajustarStock(productoId: string, unidades: number): Promise<void> {
+    const actual = catalogo().find((producto) => producto.id === productoId)
+    if (!actual) return
+    await this.guardar({ ...enriquecer(actual), stock: Math.max(0, unidades) })
+  }
+}
+
+/** Id nuevo para un producto dado de alta en el puesto. */
+export function nuevoProductoId(): string {
+  return `prod-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`
 }

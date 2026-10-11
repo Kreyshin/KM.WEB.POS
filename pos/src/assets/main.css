@@ -2344,3 +2344,104 @@ body {
   font-variant-numeric: tabular-nums;
   color: var(--pv-muted);
 }
+
+/* ══ Editor de producto ════════════════════════════════════════════════════ */
+
+.pv-editor {
+  width: 100%;
+  max-width: 44rem;
+  max-height: min(92vh, 52rem);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.pv-editor-cuerpo {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding: 1.25rem;
+  overflow: auto;
+}
+
+/* Una forma de venta por fila: unidad, equivalencia, precio y marcas. En
+ * columnas se compara de un vistazo si los precios guardan proporción, que
+ * es el error más común al dar de alta un producto fraccionado. */
+.pv-presentacion-fila {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  padding: 0.625rem;
+  border-radius: 11px;
+  border: 1px solid var(--pv-border);
+  background-color: var(--pv-surface-2);
+}
+
+.pv-casilla {
+  display: flex;
+  align-items: center;
+  gap: 0.3125rem;
+  font-size: 11px;
+  color: var(--pv-muted);
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.pv-casilla input {
+  accent-color: var(--pv-info-600);
+}
+
+.pv-icono-opcion {
+  display: inline-flex;
+  padding: 0.3125rem;
+  border-radius: 10px;
+  border: 1px solid var(--pv-border);
+  background-color: var(--pv-surface);
+}
+
+.pv-icono-elegido {
+  border-color: var(--pv-info-500);
+  box-shadow: inset 0 0 0 1px var(--pv-info-500);
+}
+
+/* Los desplegables nativos heredan el fondo del sistema y en tema oscuro
+ * salían blancos. Se les fija el del tema como a cualquier campo. */
+select.pv-campo {
+  appearance: none;
+  background-image:
+    linear-gradient(45deg, transparent 50%, currentColor 50%),
+    linear-gradient(135deg, currentColor 50%, transparent 50%);
+  background-position:
+    calc(100% - 15px) calc(50% + 1px),
+    calc(100% - 10px) calc(50% + 1px);
+  background-size:
+    5px 5px,
+    5px 5px;
+  background-repeat: no-repeat;
+  padding-right: 1.875rem;
+}
+
+/*
+ * Anchos de las filas del editor.
+ *
+ * Con utilidades (`w-24`, `flex-1`) no bastaba: `.pv-campo` fija
+ * `width: 100%` y esta hoja va después de Tailwind, así que ganaba
+ * siempre y los campos se desbordaban. Con rejilla el ancho lo pone el
+ * contenedor y el hijo no tiene nada que decir.
+ */
+.pv-ficha-fila {
+  display: grid;
+  grid-template-columns: 10rem minmax(0, 1fr) auto;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.pv-pres-unidad {
+  min-width: 0;
+  flex: 1;
+}
+
+.pv-pres-numero {
+  flex: 0 0 5.5rem;
+  min-width: 0;
+}
