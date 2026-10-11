@@ -115,3 +115,21 @@ describe('totales del ticket', () => {
     expect(t.total).toBe(20)
   })
 })
+
+describe('descuentos que se pasan', () => {
+  it('un descuento de línea mayor que la línea no deja el total en negativo', () => {
+    // Se alcanza bajando la cantidad después de descontar: cinco soles de
+    // descuento sobre una tableta de cincuenta céntimos.
+    const totales = calcularTotales([linea({ cantidad: 1, precioUnitario: 0.5, descuento: 5 })])
+    expect(totales.total).toBe(0)
+    expect(totales.descuento).toBe(0.5)
+  })
+
+  it('tampoco arrastra a las otras líneas del ticket', () => {
+    const totales = calcularTotales([
+      linea({ cantidad: 1, precioUnitario: 0.5, descuento: 5 }),
+      linea({ cantidad: 1, precioUnitario: 10 }),
+    ])
+    expect(totales.total).toBe(10)
+  })
+})

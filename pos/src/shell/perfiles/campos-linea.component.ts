@@ -4,8 +4,8 @@ import {
   afterNextRender,
   computed,
   input,
+  linkedSignal,
   output,
-  signal,
 } from '@angular/core'
 import { FormsModule } from '@angular/forms'
 import type { CampoLinea } from '@pos-core/index'
@@ -96,7 +96,7 @@ import type { CampoLinea } from '@pos-core/index'
             [disabled]="!completo()"
             (click)="confirmar()"
           >
-            Agregar
+            {{ accion() }}
           </button>
         </div>
       </div>
@@ -107,11 +107,34 @@ export class CamposLineaComponent {
   readonly campos = input.required<readonly CampoLinea[]>()
   readonly producto = input.required<string>()
   readonly titulo = input('Datos de la línea')
+  /**
+   * Lo que la línea ya lleva, cuando se reabre para corregirla.
+   *
+   * Sin esto, cambiar el lote obligaba a volver a teclear también la
+   * receta, y el cajero acababa dejándola en blanco.
+   */
+  readonly valoresIniciales = input<Record<string, unknown>>({})
+  /** Qué dice el botón que cierra. Al corregir no se está agregando nada. */
+  readonly accion = input('Agregar')
 
   readonly cancelar = output<void>()
   readonly confirmar_ = output<Record<string, unknown>>()
 
-  protected readonly valores = signal<Record<string, string>>({})
+  /*
+   * Arranca con lo que la línea ya llevaba, y se puede escribir encima.
+   *
+   * `linkedSignal` y no leerlo en el constructor: los `input` se rellenan
+   * DESPUÉS de construir el componente, así que allí siempre llegaba vacío
+   * y el diálogo de corrección salía con «Elige…» puesto —justo el lote que
+   * el cajero estaba intentando conservar—.
+   */
+  protected readonly valores = linkedSignal<Record<string, string>>(() => {
+    const previos: Record<string, string> = {}
+    for (const [clave, valor] of Object.entries(this.valoresIniciales())) {
+      if (typeof valor === 'string' || typeof valor === 'number') previos[clave] = String(valor)
+    }
+    return previos
+  })
 
   constructor() {
     /*

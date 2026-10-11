@@ -33,6 +33,11 @@ export class TicketService {
   readonly estado = computed(() => this._ticket()?.estado ?? null)
   readonly editable = computed(() => this.estado() === 'borrador')
 
+  /** Lo que suman las líneas antes de descuentos. Techo del que se regatea. */
+  readonly bruto = computed(() =>
+    this.lineas().reduce((suma, linea) => suma + linea.cantidad * linea.precioUnitario, 0),
+  )
+
   /** Abre el mostrador sobre una sucursal y un perfil. Lo llama el shell. */
   abrir(opciones: OpcionesStore): void {
     this.soltar?.()
@@ -54,6 +59,11 @@ export class TicketService {
 
   cambiarCantidad(lineaId: string, cantidad: number): void {
     this.exigirAbierto().cambiarCantidad(lineaId, cantidad)
+  }
+
+  /** Cambia los datos del rubro de una línea: el lote, la serie, la talla. */
+  cambiarAtributos(lineaId: string, atributos: Record<string, unknown>): void {
+    this.exigirAbierto().cambiarAtributos(lineaId, atributos)
   }
 
   quitarLinea(lineaId: string): void {

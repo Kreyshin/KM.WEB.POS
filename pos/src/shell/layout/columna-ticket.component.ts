@@ -8,10 +8,11 @@ import {
 } from '@angular/core'
 import type { ElementRef } from '@angular/core'
 import { FormsModule } from '@angular/forms'
-import type { Cobro, ComprobanteRef, LineaTicket } from '@pos-core/index'
+import type { CampoLinea, Cobro, ComprobanteRef, DatoLinea, LineaTicket } from '@pos-core/index'
 import { CajaService, CarritoComponent, MonedaPipe, TicketService } from '@pos-core-ui/index'
-import { PUERTO_PAGOS, PUERTO_TICKETS } from '@pos-core-ui/index'
+import { ContextoVenta, PUERTO_CATALOGO, PUERTO_PAGOS, PUERTO_TICKETS } from '@pos-core-ui/index'
 import { PerfilService } from '../perfiles/perfil.service'
+import { CamposLineaComponent } from '../perfiles/campos-linea.component'
 import { PanelCobroComponent } from '../cobro/panel-cobro.component'
 import { ReciboComponent } from '../cobro/recibo.component'
 
@@ -28,7 +29,14 @@ import { ReciboComponent } from '../cobro/recibo.component'
  */
 @Component({
   selector: 'km-columna-ticket',
-  imports: [FormsModule, CarritoComponent, MonedaPipe, PanelCobroComponent, ReciboComponent],
+  imports: [
+    FormsModule,
+    CarritoComponent,
+    CamposLineaComponent,
+    MonedaPipe,
+    PanelCobroComponent,
+    ReciboComponent,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   /*
    * El host es el hijo real del contenedor flex, no el <aside>. Sin esto el
@@ -91,7 +99,7 @@ import { ReciboComponent } from '../cobro/recibo.component'
             </dl>
           </div>
         } @else {
-          <km-carrito [describir]="describirLinea" />
+          <km-carrito [detalle]="detalleDeLinea" [editable]="true" (editar)="reabrir($event)" />
         }
       </div>
 
@@ -108,6 +116,42 @@ import { ReciboComponent } from '../cobro/recibo.component'
           <div class="flex justify-between">
             <span>Descuento</span>
             <span class="pv-cifra">−{{ ticket.totales().descuento | moneda }}</span>
+          </div>
+        }
+
+        <!--
+          Descuento del ticket entero.
+
+          Aparte del de línea porque es otra conversación: el de línea lo
+          decide el producto —está rozado, le falta la caja—, y este lo
+          decide el cliente —«redondéamelo»—. Mezclarlos obligaba al cajero
+          a repartirlo a mano entre las líneas, y el reparto depende de la
+          tasa de IGV de cada una, así que lo hacía mal.
+
+          Se escribe en soles. En el mostrador se regatea en soles.
+        -->
+        @if (!ticket.vacio() && ticket.editable()) {
+          <div class="mt-1.5 flex items-center justify-between gap-2">
+            @if (regateando()) {
+              <label class="shrink-0 text-xs opacity-70" for="desc-ticket">
+                Descuento del ticket
+              </label>
+              <input
+                #descuento
+                class="pv-campo pv-cifra pv-ajuste-campo"
+                id="desc-ticket"
+                type="text"
+                inputmode="decimal"
+                placeholder="0.00"
+                [value]="descuentoTicket() || ''"
+                (keydown.enter)="$any($event.target).blur()"
+                (blur)="descontarTicket($any($event.target).value)"
+              />
+            } @else {
+              <button class="pv-enlace-tenue" type="button" (click)="abrirRegateo()">
+                + Descuento del ticket
+              </button>
+            }
           </div>
         }
       </div>
@@ -179,6 +223,18 @@ import { ReciboComponent } from '../cobro/recibo.component'
       </div>
     }
 
+    @if (corrigiendo(); as correccion) {
+      <km-campos-linea
+        [campos]="correccion.campos"
+        [producto]="correccion.linea.descripcion"
+        [valoresIniciales]="correccion.linea.atributos"
+        titulo="Cambiar los datos"
+        accion="Guardar"
+        (cancelar)="corrigiendo.set(null)"
+        (confirmar_)="guardarCorreccion($event)"
+      />
+    }
+
     @if (cobrando()) {
       <km-panel-cobro
         #panel
@@ -205,11 +261,21 @@ export class ColumnaTicketComponent {
   private readonly pagos = inject(PUERTO_PAGOS)
   private readonly tickets = inject(PUERTO_TICKETS)
   private readonly perfilRubro = inject(PerfilService)
+  private readonly catalogo = inject(PUERTO_CATALOGO)
+  private readonly contexto = inject(ContextoVenta)
 
   private readonly cobrar = viewChild<ElementRef<HTMLButtonElement>>('cobrar')
   private readonly panel = viewChild<PanelCobroComponent>('panel')
 
   protected readonly cobrando = signal(false)
+  protected readonly regateando = signal(false)
+  protected readonly descuentoTicket = signal(0)
+
+  /** La línea cuyos datos del rubro se están corrigiendo. */
+  protected readonly corrigiendo = signal<{
+    linea: LineaTicket
+    campos: readonly CampoLinea[]
+  } | null>(null)
   protected readonly aparcando = signal(false)
   protected readonly reparo = signal<string | null>(null)
 
@@ -220,6 +286,8 @@ export class ColumnaTicketComponent {
    */
   protected readonly describirLinea = (linea: LineaTicket): string =>
     this.perfilRubro.describirLinea(linea)
+  protected readonly detalleDeLinea = (linea: LineaTicket): readonly DatoLinea[] =>
+    this.perfilRubro.detalleDeLinea(linea)
   protected nota = ''
   protected readonly recibo = signal<Cobro | null>(null)
   protected readonly comprobante = signal<ComprobanteRef | undefined>(undefined)
@@ -231,6 +299,62 @@ export class ColumnaTicketComponent {
    */
   protected readonly lineasCobradas = signal<ReturnType<TicketService['lineas']>>([])
   protected readonly totalesCobrados = signal(this.ticket.totales())
+
+  /**
+   * Reabre los campos del rubro de una línea ya metida.
+   *
+   * Hay que volver al catálogo porque `camposDeLinea` necesita el producto
+   * —los lotes que quedan, las series que hay— y la línea solo guarda su
+   * id. Si el producto ya no está en el catálogo no se puede ofrecer una
+   * lista honesta de qué hay, así que no se abre nada.
+   */
+  protected async reabrir(linea: LineaTicket): Promise<void> {
+    const hallados = await this.catalogo.buscar({
+      sucursalId: this.contexto.sucursalId(),
+      texto: linea.descripcion,
+      limite: 20,
+    })
+    const encontrado = hallados.find((otro) => otro.id === linea.productoId)
+    if (!encontrado) return
+
+    const presentacion =
+      encontrado.presentaciones.find((pres) => pres.unidad.codigo === linea.unidad.codigo) ??
+      encontrado.presentaciones[0]
+    const campos = this.perfilRubro.camposDeLinea(encontrado, presentacion.id)
+    if (campos.length === 0) return
+
+    this.corrigiendo.set({ linea, campos })
+  }
+
+  protected guardarCorreccion(datos: Record<string, unknown>): void {
+    const correccion = this.corrigiendo()
+    if (!correccion) return
+    // Se conserva lo que el perfil estampó sin preguntar —que no está en
+    // los campos— y se pisa solo lo que se acaba de contestar.
+    this.ticket.cambiarAtributos(correccion.linea.id, {
+      ...correccion.linea.atributos,
+      ...datos,
+    })
+    this.corrigiendo.set(null)
+  }
+
+  protected abrirRegateo(): void {
+    this.regateando.set(true)
+  }
+
+  protected descontarTicket(texto: string): void {
+    const importe = Number(texto.replace(',', '.'))
+    if (!Number.isFinite(importe)) {
+      this.regateando.set(false)
+      return
+    }
+    // Topado a lo que suman las líneas: un descuento mayor que el ticket
+    // sería pagarle al cliente por llevárselo.
+    const limpio = Math.min(Math.max(0, importe), this.ticket.bruto())
+    this.descuentoTicket.set(limpio)
+    this.ticket.aplicarDescuento(limpio)
+    if (limpio === 0) this.regateando.set(false)
+  }
 
   protected async aparcar(): Promise<void> {
     const actual = this.ticket.ticket()

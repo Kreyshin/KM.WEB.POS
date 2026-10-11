@@ -429,6 +429,134 @@ body {
 
 .pv-ticket-linea {
   border-bottom: 1px solid var(--pv-border);
+  transition: background-color var(--km-mov-rapido) var(--km-curva);
+}
+
+/* La abierta se separa del resto: con seis mandos a la vista hay que saber
+   de qué línea son. */
+.pv-ticket-linea-abierta {
+  background-color: color-mix(in srgb, currentColor 6%, transparent);
+}
+
+/* El dato del rubro: el lote, la serie, la talla. Entero y en su sitio, no
+   recortado dentro del nombre. */
+.pv-dato-linea {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.25rem;
+  border-radius: 5px;
+  padding: 0.0625rem 0.3125rem;
+  background-color: color-mix(in srgb, currentColor 10%, transparent);
+  font-size: 11px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.01em;
+}
+
+.pv-dato-linea[data-tono='aviso'] {
+  background-color: color-mix(in srgb, var(--pv-aviso) 26%, transparent);
+}
+
+.pv-dato-clave {
+  font-size: 9.5px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  opacity: 0.55;
+}
+
+/* La cantidad se teclea: vender doce cajas eran doce clics en el «+». */
+.pv-cantidad {
+  width: 2.75rem;
+  height: 1.875rem;
+  border-radius: 7px;
+  border: 1px solid color-mix(in srgb, currentColor 20%, transparent);
+  background-color: transparent;
+  color: inherit;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.pv-cantidad:focus {
+  outline: 2px solid var(--pv-info-400);
+  outline-offset: 1px;
+}
+
+.pv-cantidad:disabled {
+  opacity: 0.4;
+}
+
+/* La flecha que abre los ajustes. Gira al abrir para que se vea que lo de
+   debajo es de esta línea y no una fila más. */
+.pv-paso-mas svg {
+  transition: transform var(--km-mov-normal) var(--km-curva);
+}
+
+.pv-ticket-linea-abierta .pv-paso-mas svg {
+  transform: rotate(180deg);
+}
+
+.pv-linea-ajustes {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 0.625rem;
+  padding: 0.625rem 0 0.125rem 2.625rem;
+  border-top: 1px dashed color-mix(in srgb, currentColor 18%, transparent);
+}
+
+.pv-ajuste {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3125rem;
+}
+
+.pv-ajuste > label {
+  font-size: 10.5px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  opacity: 0.6;
+}
+
+/* Un enlace que no grita. Para lo que casi nunca se usa pero tiene que
+   estar: el descuento del ticket. */
+.pv-quitar-linea {
+  color: var(--pv-error);
+}
+
+.pv-quitar-linea:hover:not(:disabled) {
+  border-color: color-mix(in srgb, var(--pv-error) 55%, transparent);
+  background-color: color-mix(in srgb, var(--pv-error) 12%, transparent);
+}
+
+.pv-enlace-tenue {
+  font-size: 12px;
+  font-weight: 600;
+  opacity: 0.6;
+  transition: opacity var(--km-mov-rapido) var(--km-curva);
+}
+
+.pv-enlace-tenue:hover {
+  opacity: 1;
+}
+
+.pv-ajuste-campo {
+  width: 5rem;
+  height: 1.875rem;
+  padding-block: 0;
+  text-align: right;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pv-paso-mas svg,
+  .pv-ticket-linea {
+    transition: none;
+  }
 }
 
 /*

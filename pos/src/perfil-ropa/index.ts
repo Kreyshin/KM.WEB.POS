@@ -1,4 +1,10 @@
-import type { LineaTicket, MarcaProducto, ProductoRef, Validacion } from '@pos-core/index'
+import type {
+  DatoLinea,
+  LineaTicket,
+  MarcaProducto,
+  ProductoRef,
+  Validacion,
+} from '@pos-core/index'
 import { validacionFalla, validacionOk } from '@pos-core/index'
 import type { PerfilRubroAngular } from '@pos-core-ui/index'
 import { VentaRopaPage } from './venta-ropa.page'
@@ -42,6 +48,13 @@ export const perfilRopa: PerfilRubroAngular<AtributosRopa> = {
     return detalles.length > 0
       ? `${linea.descripcion} · ${detalles.join(' · ')}`
       : linea.descripcion
+  },
+
+  detalleDeLinea(linea: LineaTicket<AtributosRopa>): readonly DatoLinea[] {
+    const datos: DatoLinea[] = []
+    if (linea.atributos.talla) datos.push({ etiqueta: 'Talla', valor: linea.atributos.talla })
+    if (linea.atributos.color) datos.push({ etiqueta: 'Color', valor: linea.atributos.color })
+    return datos
   },
 
   marcasDeProducto(producto: ProductoRef): readonly MarcaProducto[] {

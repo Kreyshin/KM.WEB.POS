@@ -1,4 +1,5 @@
 import type {
+  DatoLinea,
   CampoLinea,
   LineaTicket,
   MarcaProducto,
@@ -78,6 +79,14 @@ function exigeReceta(producto: ProductoRef): boolean {
   )
 }
 
+/** Menos de tres meses. Se sigue vendiendo, pero se mira la caja. */
+function venceCerca(vence?: string): boolean {
+  if (!vence) return false
+  const tres = new Date()
+  tres.setMonth(tres.getMonth() + 3)
+  return new Date(vence) <= tres
+}
+
 export const perfilFarmacia: PerfilRubroAngular<AtributosFarmacia> = {
   codigo: 'farmacia',
   nombre: 'Farmacia',
@@ -94,6 +103,36 @@ export const perfilFarmacia: PerfilRubroAngular<AtributosFarmacia> = {
     if (linea.atributos.lote) partes.push(`lote ${linea.atributos.lote}`)
     if (linea.atributos.numeroReceta) partes.push(`receta ${linea.atributos.numeroReceta}`)
     return partes.join(' · ')
+  },
+
+  /**
+   * Los mismos datos, sueltos, para el carrito.
+   *
+   * El lote lleva aviso si vence en menos de tres meses: no impide
+   * venderlo —sería tirar stock bueno— pero es lo que hace que el cajero
+   * mire la caja antes de entregarla, que es cuando todavía se puede
+   * cambiar por otra.
+   */
+  detalleDeLinea(linea: LineaTicket<AtributosFarmacia>): readonly DatoLinea[] {
+    const datos: DatoLinea[] = []
+    if (linea.atributos.lote) {
+      datos.push({
+        etiqueta: 'Lote',
+        valor: linea.atributos.lote,
+        tono: venceCerca(linea.atributos.vencimiento) ? 'aviso' : 'neutro',
+      })
+    }
+    if (linea.atributos.vencimiento) {
+      datos.push({
+        etiqueta: 'Vence',
+        valor: mesAnio(linea.atributos.vencimiento),
+        tono: venceCerca(linea.atributos.vencimiento) ? 'aviso' : 'neutro',
+      })
+    }
+    if (linea.atributos.numeroReceta) {
+      datos.push({ etiqueta: 'Receta', valor: linea.atributos.numeroReceta })
+    }
+    return datos
   },
 
   /**

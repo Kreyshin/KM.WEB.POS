@@ -60,6 +60,14 @@ export interface MarcaProducto {
  * El núcleo no interpreta ninguno. Los recoge y los deja en `atributos`,
  * que es justo para lo que existe.
  */
+/** Un dato del rubro en una línea del carrito. */
+export interface DatoLinea {
+  etiqueta: string
+  valor: string
+  /** `aviso` para lo que hay que mirar dos veces: un lote a punto de vencer. */
+  tono?: 'neutro' | 'aviso'
+}
+
 export interface CampoLinea {
   clave: string
   etiqueta: string
@@ -96,6 +104,18 @@ export interface PerfilRubro<A = Record<string, unknown>, TPantalla = unknown> {
   buscador?: BuscadorProductos
   /** Texto de la línea en el carrito y en el comprobante. */
   describirLinea(linea: LineaTicket<A>): string
+  /**
+   * Los datos del rubro de una línea, por separado y con su nombre.
+   *
+   * `describirLinea` compone UNA frase, y eso está bien en el recibo. En
+   * el carrito no: «Amoxicilina 500 mg · Blíster x10 · lote LT-5540 ·
+   * receta RX-7788» no cabe en una columna de 22rem y lo que se recorta es
+   * justo el lote, que es lo que el cajero contrasta contra la caja.
+   *
+   * Aquí llegan sueltos para poder pintarlos como etiquetas bajo el
+   * nombre, donde se ven enteros y se leen de un vistazo.
+   */
+  detalleDeLinea?(linea: LineaTicket<A>): readonly DatoLinea[]
   /**
    * Marcas del producto en la pantalla de venta: receta, frío, peligroso.
    * Lo que el cajero tiene que ver sin abrir la ficha.

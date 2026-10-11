@@ -1,6 +1,7 @@
 import { computed, inject, Injectable, signal } from '@angular/core'
 import type {
   CampoLinea,
+  DatoLinea,
   LineaTicket,
   MarcaProducto,
   ProductoRef,
@@ -51,6 +52,16 @@ export class PerfilService {
   /** Cómo se nombra la línea. Sin perfil, la descripción pelada. */
   describirLinea(linea: LineaTicket): string {
     return this.cargado()?.describirLinea?.(linea) ?? linea.descripcion
+  }
+
+  /**
+   * Los datos del rubro de una línea, sueltos y con su nombre.
+   *
+   * Para el carrito. `describirLinea` compone una frase que en el recibo
+   * está bien y en una columna de 22rem se recorta justo por el lote.
+   */
+  detalleDeLinea(linea: LineaTicket): readonly DatoLinea[] {
+    return this.cargado()?.detalleDeLinea?.(linea) ?? []
   }
 
   /** Qué pedir antes de agregar. Vacío es el caso normal. */

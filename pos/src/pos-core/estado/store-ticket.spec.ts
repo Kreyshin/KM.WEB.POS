@@ -194,3 +194,43 @@ describe('store del ticket', () => {
     expect(store.ticket.totales.total).toBe(15)
   })
 })
+
+describe('cambiarAtributos', () => {
+  let store: StoreTicket
+  let n: number
+
+  beforeEach(() => {
+    n = 0
+    store = new StoreTicket({ sucursalId: 'suc-1', perfil: 'farmacia', nuevoId: () => `id-${++n}` })
+  })
+
+  it('corrige el lote sin tirar la línea', () => {
+    // Quitarla y volverla a meter perdía el descuento y la mandaba al final
+    // del ticket, justo donde el cajero ya no la está mirando.
+    const linea = store.agregarLinea(entrada({ atributos: { lote: 'LT-1' } }))
+    store.aplicarDescuento(0.1, linea.id)
+
+    store.cambiarAtributos(linea.id, { lote: 'LT-2' })
+
+    expect(store.ticket.lineas).toHaveLength(1)
+    expect(store.ticket.lineas[0].atributos).toEqual({ lote: 'LT-2' })
+    expect(store.ticket.lineas[0].descuento).toBe(0.1)
+    expect(store.ticket.lineas[0].id).toBe(linea.id)
+  })
+
+  it('si el cambio la deja igual que otra, las funde', () => {
+    // Dos filas del mismo lote obligan al cajero a sumarlas de cabeza.
+    const primera = store.agregarLinea(entrada({ cantidad: 2, atributos: { lote: 'LT-1' } }))
+    const segunda = store.agregarLinea(entrada({ cantidad: 3, atributos: { lote: 'LT-2' } }))
+
+    store.cambiarAtributos(segunda.id, { lote: 'LT-1' })
+
+    expect(store.ticket.lineas).toHaveLength(1)
+    expect(store.ticket.lineas[0].id).toBe(primera.id)
+    expect(store.ticket.lineas[0].cantidad).toBe(5)
+  })
+
+  it('una línea que ya no existe no revienta', () => {
+    expect(() => store.cambiarAtributos('no-existe', { lote: 'LT-9' })).not.toThrow()
+  })
+})

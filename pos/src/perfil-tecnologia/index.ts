@@ -1,4 +1,5 @@
 import type {
+  DatoLinea,
   CampoLinea,
   LineaTicket,
   MarcaProducto,
@@ -54,6 +55,14 @@ export const perfilTecnologia: PerfilRubroAngular<AtributosTecnologia> = {
     return linea.atributos.serie
       ? `${linea.descripcion} · serie ${linea.atributos.serie}`
       : linea.descripcion
+  },
+
+  detalleDeLinea(linea: LineaTicket<AtributosTecnologia>): readonly DatoLinea[] {
+    // Un cable no lleva serie y no tiene nada que enseñar aquí: una
+    // etiqueta vacía en cada línea sería ruido en la columna más estrecha
+    // de la pantalla.
+    if (!linea.atributos.serie) return []
+    return [{ etiqueta: 'Serie', valor: linea.atributos.serie }]
   },
 
   marcasDeProducto(producto: ProductoRef): readonly MarcaProducto[] {
@@ -148,6 +157,23 @@ export const perfilTecnologia: PerfilRubroAngular<AtributosTecnologia> = {
         sinSerie.length === 1
           ? `Falta el número de serie de ${sinSerie[0].descripcion}.`
           : `Faltan los números de serie de ${sinSerie.length} equipos.`,
+      )
+    }
+
+    /*
+     * Una serie es UN aparato.
+     *
+     * Hace falta desde que la cantidad se teclea en el carrito: escribir 12
+     * sobre un televisor con su serie anotada factura doce aparatos contra
+     * un solo número, y el día de la garantía once clientes traen un papel
+     * que no corresponde a lo que tienen en casa.
+     */
+    const repetido = ticket.lineas.find(
+      (linea) => (linea.atributos as AtributosTecnologia).serie && linea.cantidad > 1,
+    )
+    if (repetido) {
+      return validacionFalla(
+        `${repetido.descripcion} lleva una serie anotada, así que son ${repetido.cantidad} líneas de uno, no una de ${repetido.cantidad}.`,
       )
     }
 

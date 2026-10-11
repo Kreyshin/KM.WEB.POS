@@ -132,6 +132,50 @@ export class StoreTicket {
   }
 
   /**
+   * Cambia lo que el rubro pidió para esta línea: el lote, la serie, la talla.
+   *
+   * Existe porque sin esto corregir un lote mal elegido era quitar la línea
+   * y volverla a meter, y con el cliente delante eso se hace mal: se pierde
+   * el descuento que ya llevaba y la línea baja al final del ticket, donde
+   * el cajero ya no la está mirando.
+   *
+   * Si el cambio deja la línea idéntica a otra, las dos se funden: es la
+   * misma regla que al agregar, y no aplicarla aquí dejaría dos filas del
+   * mismo lote que el cajero tendría que sumar de cabeza.
+   */
+  cambiarAtributos(lineaId: string, atributos: Record<string, unknown>): void {
+    this.exigirEditable()
+    const linea = this.estado.lineas.find((otra) => otra.id === lineaId)
+    if (!linea) return
+
+    const cambiada: LineaTicket = { ...linea, atributos }
+    const gemela = this.estado.lineas.find(
+      (otra) => otra.id !== lineaId && this.esLaMisma(otra, cambiada),
+    )
+
+    if (!gemela) {
+      this.reemplazarLineas(
+        this.estado.lineas.map((otra) => (otra.id === lineaId ? cambiada : otra)),
+      )
+      return
+    }
+
+    this.reemplazarLineas(
+      this.estado.lineas
+        .filter((otra) => otra.id !== lineaId)
+        .map((otra) =>
+          otra.id === gemela.id
+            ? {
+                ...gemela,
+                cantidad: gemela.cantidad + cambiada.cantidad,
+                descuento: gemela.descuento + cambiada.descuento,
+              }
+            : otra,
+        ),
+    )
+  }
+
+  /**
    * Descuento en importe, no en porcentaje.
    *
    * Sin `lineaId` se aplica al ticket entero. El importe se guarda tal cual y
@@ -208,7 +252,7 @@ export class StoreTicket {
     this.avisar()
   }
 
-  private esLaMisma(linea: LineaTicket, entrada: EntradaLinea): boolean {
+  private esLaMisma(linea: LineaTicket, entrada: Omit<EntradaLinea, 'cantidad'>): boolean {
     return (
       linea.productoId === entrada.productoId &&
       linea.unidad.codigo === entrada.unidad.codigo &&

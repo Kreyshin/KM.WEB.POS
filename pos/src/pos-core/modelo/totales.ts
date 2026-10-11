@@ -50,7 +50,22 @@ export function igvContenido(importe: number, tasa: number): number {
  */
 export function calcularTotales(lineas: readonly LineaTicket[], descuentoTicket = 0): Totales {
   const bruto = aCentimos(lineas.reduce((suma, linea) => suma + brutoLinea(linea), 0))
-  const descuentoLineas = aCentimos(lineas.reduce((suma, linea) => suma + linea.descuento, 0))
+  /*
+   * El descuento de una línea no puede pasar de lo que cuesta esa línea.
+   *
+   * `totalLinea` ya lo tope­aba a cero, pero esta suma no, así que un
+   * descuento excesivo inflaba el total descontado y podía dejar
+   * `trasLineas` en negativo y el total por los suelos. Antes no se
+   * alcanzaba porque nadie podía escribir un descuento de línea; desde que
+   * el carrito lo permite, sí: basta descontar cinco soles y luego bajar la
+   * cantidad a una tableta.
+   */
+  const descuentoLineas = aCentimos(
+    lineas.reduce(
+      (suma, linea) => suma + Math.min(Math.max(0, linea.descuento), brutoLinea(linea)),
+      0,
+    ),
+  )
 
   const trasLineas = aCentimos(bruto - descuentoLineas)
   // Un descuento de ticket mayor que lo que queda dejaría un total negativo.
