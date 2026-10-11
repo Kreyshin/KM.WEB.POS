@@ -828,17 +828,30 @@ body {
 
 /* ── A · Mostrador ─────────────────────────────────────────────────────── */
 
-.pv-escena-lienzo {
-  background-color: var(--pv-bg);
+/*
+ * Un solo fondo para toda la pantalla, no uno por mitad.
+ *
+ * Con un fondo en cada sección aparecía una costura vertical en el centro:
+ * un canto recto tan duro como el que tenía la ilustración antes de llevar
+ * desvanecido. La luz cruza de lado a lado y el papel de la comanda es lo
+ * único que se recorta contra ella.
+ *
+ * Tampoco sigue al tema. La comanda es papel claro, y papel claro sobre
+ * fondo claro deja de ser un objeto y pasa a ser una zona: la escena entera
+ * depende de que el comprobante tenga algo oscuro detrás, igual que la
+ * columna del ticket lleva carbón en los dos temas.
+ */
+.pv-acceso-lienzo {
+  background-color: #100d08;
   background-image:
     radial-gradient(
-      60rem 40rem at 30% 40%,
-      color-mix(in srgb, var(--pv-bronce-500) 16%, transparent),
+      62rem 42rem at 26% 46%,
+      color-mix(in srgb, var(--pv-bronce-500) 17%, transparent),
       transparent 70%
     ),
     radial-gradient(
-      40rem 30rem at 90% 10%,
-      color-mix(in srgb, var(--pv-bronce-700) 20%, transparent),
+      46rem 34rem at 82% 2%,
+      color-mix(in srgb, var(--pv-bronce-600) 22%, transparent),
       transparent 70%
     );
 }
@@ -950,31 +963,6 @@ body {
 
 /* ── C · Comanda ───────────────────────────────────────────────────────── */
 
-.pv-comanda-lienzo {
-  background-color: var(--pv-bg);
-  background-image: radial-gradient(
-    46rem 34rem at 50% -6rem,
-    color-mix(in srgb, var(--pv-bronce-600) 20%, transparent),
-    transparent 70%
-  );
-}
-
-/*
- * En tema claro el fondo NO sigue al tema. Es la única excepción del
- * producto y tiene un motivo: la comanda es papel claro, y papel claro sobre
- * fondo claro deja de ser un objeto y pasa a ser una zona. Toda la escena
- * depende de que el comprobante se recorte contra algo oscuro, igual que la
- * columna del ticket lleva carbón en los dos temas.
- */
-[data-theme='light'] .pv-comanda-lienzo {
-  background-color: #1a1610;
-  background-image: radial-gradient(
-    46rem 34rem at 50% -6rem,
-    color-mix(in srgb, var(--pv-bronce-500) 26%, transparent),
-    transparent 70%
-  );
-}
-
 /* Cabezal de impresión: la ranura de la que sale el papel. */
 .pv-impresora {
   position: relative;
@@ -1007,6 +995,7 @@ body {
 .pv-comanda {
   --diente: 16px;
   --diente-alto: 8px;
+  --pv-radio-control: 14px;
 
   position: relative;
   background-color: #f6efe0;
