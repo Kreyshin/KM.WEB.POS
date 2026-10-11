@@ -1080,13 +1080,6 @@ body {
  * fotograma a fotograma: queda un arrastre leve, que es lo que da sensación
  * de profundidad.
  */
-.pv-escena-img {
-  --pv-px: 0px;
-  --pv-py: 0px;
-  transform: translate3d(var(--pv-px), var(--pv-py), 0);
-  transition: transform 600ms var(--pv-salida);
-  filter: drop-shadow(0 30px 60px rgb(0 0 0 / 0.45));
-}
 
 /* ── B · Vitrina ───────────────────────────────────────────────────────── */
 
@@ -1667,8 +1660,18 @@ body {
  * vez de quedarse pequeña en medio del vacío, que era lo que hacía que el
  * panel se leyera como un hueco.
  */
+/*
+ * El panel del puesto.
+ *
+ * Tres filas: marca, escena y ficha. Lo que hacía falta arreglar es que
+ * TODO dependía del ancho de la ventana, y en un ultrapanorámico eso
+ * significa una escena de metro y medio con la marca perdida en una
+ * esquina. Ahora el contenido se topa a 58rem y se centra: el panel puede
+ * medir 1800 px y la composición sigue midiendo lo que debe.
+ */
 .pv-puesto {
   grid-template-rows: auto 1fr auto;
+  justify-items: center;
 
   /*
    * El panel es oscuro en los dos temas, así que no puede heredar --pv-text:
@@ -1687,11 +1690,64 @@ body {
   color: var(--pv-text);
 }
 
-/* La escena se sale por los lados a propósito: recortada tiene escala y
- * suelo. Centrada y entera parecía una pegatina sobre el fondo. */
+/*
+ * La composición entera, topada y centrada.
+ *
+ * El fondo del lienzo sigue llenando la pantalla —ahí el degradado hace
+ * su trabajo—, pero la escena y la comanda viven dentro de un marco con
+ * tope. Sin él, en un 3440 cada mitad se iba a un extremo con mil
+ * píxeles de negro en medio: dos cosas sueltas en vez de una pantalla.
+ */
+.pv-acceso-marco {
+  width: 100%;
+  max-width: 100rem;
+  margin-inline: auto;
+}
+
+/* El contenido del panel, topado y centrado. */
+.pv-puesto-marca,
+.pv-puesto .pv-escena-suelo,
+.pv-puesto .pv-ficha {
+  width: 100%;
+  max-width: 58rem;
+}
+
+.pv-puesto-marca {
+  padding: 2.5rem 2.5rem 0;
+}
+
+/*
+ * La escena se sale por los lados a propósito: recortada tiene escala y
+ * suelo. Centrada y entera parecía una pegatina sobre el fondo.
+ *
+ * Y se topa TAMBIÉN por alto, no solo por ancho: un ultrapanorámico suele
+ * ser corto —2000 × 700 es normal— y una escena medida solo en ancho
+ * empujaba la ficha del puesto fuera de la pantalla. Con el tope en vh,
+ * la composición entera cabe siempre.
+ */
 .pv-escena-suelo {
   margin-inline: -4%;
   mask-image: linear-gradient(to bottom, #000 72%, transparent 99%);
+  min-height: 0;
+  height: 100%;
+  overflow: hidden;
+}
+
+/*
+ * La escena ocupa EXACTAMENTE el hueco que le deja la fila elástica, con
+ * `contain` y apoyada abajo.
+ *
+ * Así no hay que adivinar un alto en vh. El primer intento lo fijaba a
+ * 44vh y en un ultrapanorámico de 700 px la escena salía diminuta con un
+ * palmo de vacío encima, mientras que en uno de 1440 se comía la ficha.
+ * Dejando que el contenedor mande, la misma regla sirve para los dos.
+ */
+.pv-escena-suelo .pv-escena-img {
+  width: 100%;
+  height: 100%;
+  max-width: 100%;
+  object-fit: contain;
+  object-position: bottom center;
 }
 
 .pv-escena-img {
@@ -1709,7 +1765,7 @@ body {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 1px;
-  margin: 0 2.5rem 2.5rem;
+  margin: 0 0 2.5rem;
   background-color: color-mix(in srgb, #ffffff 9%, transparent);
   border: 1px solid color-mix(in srgb, #ffffff 9%, transparent);
   border-radius: var(--pv-radio-panel, 14px);
@@ -2949,4 +3005,111 @@ select.pv-campo {
 
 .pv-punto-nunca {
   background-color: color-mix(in srgb, var(--pv-muted) 30%, transparent);
+}
+
+/*
+ * Pantallas bajas.
+ *
+ * Un portátil a 768 px de alto, y sobre todo un ultrapanorámico de 700,
+ * no tienen sitio para la escena a tamaño completo más la ficha. Se
+ * aprieta todo en vez de dejar que algo se salga por abajo: una ficha del
+ * puesto que no se ve es una ficha que no existe.
+ */
+@media (max-height: 820px) {
+  .pv-puesto-marca {
+    padding: 1.5rem 2.5rem 0;
+  }
+
+  .pv-ficha {
+    margin-bottom: 1.5rem;
+  }
+
+  .pv-ficha-dato {
+    padding: 0.5rem 0.75rem 0.625rem;
+  }
+
+  /* La comanda es alta: en una pantalla corta, el aire de arriba y abajo
+     es lo primero que sobra. Sin esto el papel sale cortado. */
+  .pv-acceso-columna {
+    padding-block: 1rem;
+  }
+
+  /*
+   * Y el pad se aprieta.
+   *
+   * Los 48 px son el mínimo táctil, y se respetan donde hay dedos. Una
+   * pantalla de 700 px de alto y 2000 de ancho es un monitor de
+   * escritorio con ratón: ahí 42 px es de sobra, y el papel entero a la
+   * vista vale más que cuatro píxeles por tecla.
+   */
+  .pv-tecla-pad {
+    height: 2.625rem;
+  }
+}
+
+/* Muy bajas: la escena estorba más de lo que aporta. */
+@media (max-height: 620px) {
+  .pv-escena-suelo {
+    display: none;
+  }
+}
+
+/*
+ * Monitores muy anchos.
+ *
+ * Sin tope, el lienzo reparte el ancho y la composición se deforma. Con
+ * el contenido topado y centrado, un 3440 se ve igual de proporcionado
+ * que un 1440: solo con más aire alrededor, que es lo correcto.
+ */
+@media (min-width: 110rem) {
+  .pv-acceso-columna {
+    padding-inline: 3rem;
+  }
+}
+
+/*
+ * Y en lo muy ancho, el panel respira más.
+ *
+ * Con el marco topado, lo que sobra ya no deforma nada: es aire
+ * alrededor, que es lo correcto. Pero la escena puede permitirse crecer
+ * algo más porque hay sitio de verdad.
+ */
+@media (min-width: 110rem) and (min-height: 56rem) {
+  .pv-puesto-marca,
+  .pv-puesto .pv-escena-suelo,
+  .pv-puesto .pv-ficha {
+    max-width: 68rem;
+  }
+}
+
+/*
+ * Pantallas muy bajas: 640 px de alto.
+ *
+ * Una tablet apaisada o un móvil pequeño. Con cinco turnos, el visor y
+ * cuatro filas de pad, la comanda no cabe por mucho que se recorte el
+ * aire, así que aquí se aprieta de verdad: el papel entero a la vista
+ * vale más que la holgura, porque un pie de comanda que exige
+ * desplazarse es un pie que nadie lee.
+ */
+@media (max-height: 700px) {
+  .pv-comanda {
+    padding: 1.25rem 1.25rem 1.25rem;
+  }
+
+  .pv-comanda header {
+    margin-bottom: 0.75rem;
+  }
+
+  .pv-tecla-pad {
+    height: 2.375rem;
+  }
+
+  .pv-acceso-columna {
+    padding-block: 0.5rem;
+  }
+
+  /* La impresora es decoración: lo primero que sobra cuando falta sitio. */
+  .pv-impresora {
+    display: none;
+  }
 }

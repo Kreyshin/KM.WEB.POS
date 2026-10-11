@@ -65,7 +65,10 @@ import { CamposLineaComponent } from '../perfiles/campos-linea.component'
     <div class="pv-operacion pv-fade-in flex h-full flex-col gap-3">
       <!-- Buscador y acciones -->
       <div class="flex items-center gap-2">
-        <div class="relative flex-1">
+        <!-- Topado: un campo de búsqueda de 1700 px en un monitor
+             ultrapanorámico no ayuda a nadie, y el ojo tiene que recorrerlo
+             entero para volver al primer carácter. -->
+        <div class="relative w-full max-w-[42rem] flex-1">
           <input
             #campo
             class="pv-campo pr-16 text-base"

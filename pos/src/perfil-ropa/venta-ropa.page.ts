@@ -45,7 +45,7 @@ import { MatrizVariantesComponent, type EleccionVariante } from './matriz.compon
     <div class="pv-operacion pv-fade-in grid h-full gap-3 lg:grid-cols-[1fr_22rem]">
       <!-- Catálogo -->
       <div class="flex min-h-0 flex-col gap-3">
-        <div class="relative">
+        <div class="relative w-full max-w-[42rem]">
           <input
             #campo
             class="pv-campo pr-16 text-base"
