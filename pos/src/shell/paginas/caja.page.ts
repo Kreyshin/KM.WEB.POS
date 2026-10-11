@@ -37,7 +37,7 @@ import { SesionStore } from '../sesion/sesion.store'
           </p>
 
           <label class="mt-5 block">
-            <span class="pv-etiqueta text-tenue">Fondo inicial</span>
+            <span class="pv-etiqueta-campo">Fondo inicial</span>
             <input
               class="pv-campo pv-cifra mt-1 text-right text-xl font-semibold"
               type="number"
@@ -199,7 +199,7 @@ import { SesionStore } from '../sesion/sesion.store'
           </div>
 
           <label class="block">
-            <span class="pv-etiqueta text-tenue">Concepto</span>
+            <span class="pv-etiqueta-campo">Concepto</span>
             <input
               class="pv-campo mt-1 text-sm"
               type="text"
@@ -209,7 +209,7 @@ import { SesionStore } from '../sesion/sesion.store'
           </label>
 
           <label class="mt-3 block">
-            <span class="pv-etiqueta text-tenue">Importe</span>
+            <span class="pv-etiqueta-campo">Importe</span>
             <input
               class="pv-campo pv-cifra mt-1 text-right text-lg font-semibold"
               type="number"
@@ -248,7 +248,7 @@ import { SesionStore } from '../sesion/sesion.store'
           </p>
 
           <label class="mt-4 block">
-            <span class="pv-etiqueta text-tenue">Efectivo contado</span>
+            <span class="pv-etiqueta-campo">Efectivo contado</span>
             <input
               class="pv-campo pv-cifra mt-1 text-right text-xl font-semibold"
               type="number"

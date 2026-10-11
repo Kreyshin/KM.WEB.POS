@@ -73,7 +73,7 @@ const TONOS: Record<Forma, string> = {
               stroke-width="1.8"
               stroke-linejoin="round"
             />
-            <path d="M8 14h8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+            <path d="M8 14h8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
           }
           @case ('inyectable') {
             <path
@@ -83,7 +83,7 @@ const TONOS: Record<Forma, string> = {
               stroke-linecap="round"
               stroke-linejoin="round"
             />
-            <path d="M11 11l2 2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+            <path d="M11 11l2 2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
           }
           @case ('caja') {
             <path
@@ -92,7 +92,7 @@ const TONOS: Record<Forma, string> = {
               stroke-width="1.8"
               stroke-linejoin="round"
             />
-            <path d="M3.5 7.5 12 11.5l8.5-4M12 11.5v9" stroke="currentColor" stroke-width="1.6" />
+            <path d="M3.5 7.5 12 11.5l8.5-4M12 11.5v9" stroke="currentColor" stroke-width="1.8" />
           }
           @case ('prenda') {
             <path

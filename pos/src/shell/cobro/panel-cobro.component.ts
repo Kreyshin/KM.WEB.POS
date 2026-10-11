@@ -53,7 +53,7 @@ import { IconoMedioComponent } from './icono-medio.component'
         (click)="cancelar.emit()"
       ></button>
 
-      <div class="pv-panel pv-entra pv-cobro relative">
+      <div class="pv-operacion pv-panel pv-entra pv-cobro relative">
         <header class="pv-cobro-cabecera">
           <div>
             <p class="pv-etiqueta opacity-70">Total a cobrar</p>

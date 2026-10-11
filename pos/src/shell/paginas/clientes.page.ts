@@ -126,7 +126,7 @@ import { PUERTO_CLIENTES } from '@pos-core-ui/index'
           </div>
 
           <label class="block">
-            <span class="pv-etiqueta text-tenue">Documento</span>
+            <span class="pv-etiqueta-campo">Documento</span>
             <input
               class="pv-campo pv-cifra mt-1 text-sm"
               type="text"
@@ -139,18 +139,18 @@ import { PUERTO_CLIENTES } from '@pos-core-ui/index'
           }
 
           <label class="mt-3 block">
-            <span class="pv-etiqueta text-tenue">Nombre o razón social</span>
+            <span class="pv-etiqueta-campo">Nombre o razón social</span>
             <input class="pv-campo mt-1 text-sm" type="text" [(ngModel)]="borrador.nombre" />
           </label>
 
           <label class="mt-3 block">
-            <span class="pv-etiqueta text-tenue">Teléfono</span>
+            <span class="pv-etiqueta-campo">Teléfono</span>
             <input class="pv-campo mt-1 text-sm" type="tel" [(ngModel)]="borrador.telefono" />
           </label>
 
           @if (borrador.tipoDocumento === 'RUC') {
             <label class="mt-3 block">
-              <span class="pv-etiqueta text-tenue">Dirección fiscal</span>
+              <span class="pv-etiqueta-campo">Dirección fiscal</span>
               <input class="pv-campo mt-1 text-sm" type="text" [(ngModel)]="borrador.direccion" />
             </label>
           }

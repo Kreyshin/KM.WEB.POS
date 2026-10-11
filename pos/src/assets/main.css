@@ -104,7 +104,64 @@
   --pv-rail-ancho: 76px;
   --pv-barra-alto: 56px;
   --pv-ticket-ancho: 372px;
-  --pv-toque: 42px;
+
+  /*
+   * Movimiento. Prefijo --km-, no --pv-: esto NO es de este vertical.
+   * Hotel, restaurante y taller lo declaran igual, y un control que
+   * responde distinto según el sistema Karma en el que estás se nota.
+   *
+   * Tres duraciones y no una, porque no es lo mismo contestar al dedo que
+   * mover algo por la pantalla. Por debajo de ~120 ms la respuesta se
+   * siente instantánea; por encima de 250 ms, lenta.
+   */
+  --km-mov-rapido: 110ms;
+  --km-mov-normal: 180ms;
+  --km-mov-lento: 280ms;
+  --km-curva: cubic-bezier(0.22, 0.61, 0.36, 1);
+  --km-rebote: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  /*
+   * Postura. El tamaño de un control no es una constante del kit: lo pone
+   * el cuerpo que usa la pantalla. Los componentes los leen con respaldo
+   * —var(--km-toque, 2.5rem)— así que fuera del modo operación todo se
+   * comporta como un backoffice normal.
+   *
+   * Los valores del mostrador los pone `.pv-operacion`, más abajo.
+   */
+  --km-toque: 2.5rem;
+  --km-texto: 0.875rem;
+  --km-fila: 0.875rem;
+
+  /* Alias de compatibilidad mientras quedan usos del nombre viejo. */
+  --pv-toque: var(--km-toque);
+}
+
+/*
+ * Quien pide menos movimiento no pide un poco menos: pide ninguno. Se
+ * anulan en la raíz para que ningún componente tenga que acordarse.
+ */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --km-mov-rapido: 0ms;
+    --km-mov-normal: 0ms;
+    --km-mov-lento: 0ms;
+  }
+}
+
+/*
+ * Postura del mostrador.
+ *
+ * El cajero está DE PIE, con una mano en el escáner y la otra en el
+ * teclado, y la pantalla a medio metro. No es la recepción de un hotel
+ * sentada mirando dos semanas de rack —que aprieta a 36 px— ni el pase de
+ * un restaurante a metro y medio —que se va a 52—. Queda en medio: 48 px
+ * de toque y 15 px de texto, los mismos que el taller, donde también se
+ * trabaja de pie.
+ */
+.pv-operacion {
+  --km-toque: 3rem;
+  --km-texto: 0.9375rem;
+  --km-fila: 1.125rem;
 }
 
 /*
@@ -495,28 +552,56 @@ body {
   box-shadow: var(--pv-sombra-panel);
 }
 
+/*
+ * Botón. Equivale a `KmButton` de hotel, restaurante y taller: mismas
+ * cuatro variantes, mismos tres tamaños, mismo gesto.
+ *
+ * Aquí es CSS y allí es un componente de Vue porque este repo es Angular,
+ * pero el contrato visual tiene que ser el mismo: un botón de Karma se
+ * comporta igual en todos los sistemas o deja de ser Karma.
+ *
+ * OJO con una trampa heredada: en el kit original las variantes están
+ * escritas contra tokens de UN vertical —`hover:border-acero`, `bg-ambar`,
+ * que son de taller— y por eso en hotel y en restaurante el secundario no
+ * reacciona al hover y el peligro sale sin fondo. Aquí se usan nombres
+ * semánticos (accion, error) para no repetirlo.
+ */
 .pv-boton {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  min-height: var(--pv-toque);
+  min-height: var(--km-toque, 2.5rem);
   padding: 0 1rem;
   border-radius: var(--pv-radio-control);
   border: 1px solid transparent;
-  font-size: 14px;
+  font-size: var(--km-texto, 0.875rem);
   font-weight: 600;
+  letter-spacing: 0.01em;
   cursor: pointer;
+  /*
+   * Incluye `transform`: sin el hundido al pulsar, entre el clic y la
+   * respuesta no pasa nada y la pantalla parece colgada aunque tarde
+   * 200 ms. El hundido confirma que el clic entró, y llega en el acto.
+   */
   transition:
-    background-color 0.15s ease,
-    border-color 0.15s ease,
-    color 0.15s ease;
+    background-color var(--km-mov-rapido) var(--km-curva),
+    border-color var(--km-mov-rapido) var(--km-curva),
+    color var(--km-mov-rapido) var(--km-curva),
+    transform var(--km-mov-rapido) var(--km-curva),
+    filter var(--km-mov-rapido) var(--km-curva);
+}
+
+.pv-boton:active:not(:disabled) {
+  transform: scale(0.97);
 }
 
 .pv-boton:disabled {
   opacity: 0.5;
-  cursor: not-allowed;
+  pointer-events: none;
 }
+
+/* ── Variantes ─────────────────────────────────────────────────────────── */
 
 .pv-boton-accion {
   background-color: var(--pv-accion);
@@ -528,32 +613,168 @@ body {
 }
 
 .pv-boton-tenue {
-  background-color: transparent;
+  background-color: var(--pv-surface);
   border-color: var(--pv-border);
   color: var(--pv-text);
 }
 
 .pv-boton-tenue:hover:not(:disabled) {
-  background-color: var(--pv-surface-2);
+  border-color: var(--pv-accion);
+  color: var(--pv-primary-texto);
 }
 
+/* Sin fondo ni borde: acciones secundarias que no deben competir. */
+.pv-boton-fantasma {
+  background-color: transparent;
+  color: var(--pv-muted);
+}
+
+.pv-boton-fantasma:hover:not(:disabled) {
+  background-color: var(--pv-selection);
+  color: var(--pv-text);
+}
+
+/* Anular, eliminar, cerrar caja en corto. Lo que no se deshace. */
+.pv-boton-peligro {
+  background-color: var(--pv-error);
+  color: #ffffff;
+}
+
+.pv-boton-peligro:hover:not(:disabled) {
+  filter: brightness(1.1);
+}
+
+/* ── Tamaños ───────────────────────────────────────────────────────────── */
+
+/*
+ * `sm` NO escala con la postura, y es deliberado: es el botón de una fila
+ * de tabla, no un objetivo táctil. Si una acción se va a pulsar con prisa
+ * en el mostrador, no debe ser `sm`.
+ */
+.pv-boton-sm {
+  min-height: 0;
+  gap: 0.375rem;
+  padding: 0.375rem 0.75rem;
+  font-size: 0.75rem;
+}
+
+.pv-boton-grande {
+  min-height: calc(var(--km-toque, 2.5rem) + 0.25rem);
+  padding: 0 1.5rem;
+}
+
+/* Spinner de carga. Mismo trazo 3 que en el resto del ecosistema. */
+.pv-boton-girando {
+  animation: pv-girar 0.9s linear infinite;
+}
+
+@keyframes pv-girar {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/*
+ * Campo. Equivale a `KmInput` del kit: misma altura por postura, mismo
+ * anillo de foco de 3 px al 22 %, mismo estado inválido y deshabilitado.
+ *
+ * El anillo sustituye al global de `:focus-visible` dentro del campo, para
+ * no ver dos contornos superpuestos.
+ */
 .pv-campo {
   width: 100%;
-  min-height: var(--pv-toque);
+  min-height: var(--km-toque, 2.5rem);
   padding: 0 0.75rem;
   background-color: var(--pv-surface);
   color: var(--pv-text);
   border: 1px solid var(--pv-border);
   border-radius: var(--pv-radio-control);
-  font-size: 15px;
+  font-size: var(--km-texto, 0.875rem);
+  transition:
+    border-color var(--km-mov-normal) var(--km-curva),
+    box-shadow var(--km-mov-rapido) var(--km-curva);
 }
 
 .pv-campo::placeholder {
-  color: var(--pv-muted);
+  /* Al 70 %: a igual color, el marcador compite con lo ya escrito. */
+  color: color-mix(in srgb, var(--pv-muted) 70%, transparent);
 }
 
 .pv-campo:focus {
-  border-color: var(--pv-info-500);
+  border-color: var(--pv-accion);
+}
+
+.pv-campo:focus-visible,
+.pv-campo:focus-within {
+  outline: none;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--pv-accion) 22%, transparent);
+}
+
+/*
+ * Inválido. Va por `aria-invalid` y no por una clase: así el estado visual
+ * y el que anuncia el lector de pantalla no pueden separarse.
+ */
+.pv-campo[aria-invalid='true'] {
+  border-color: var(--pv-error);
+}
+
+.pv-campo[aria-invalid='true']:focus-visible,
+.pv-campo:has([aria-invalid='true']):focus-within {
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--pv-error) 22%, transparent);
+}
+
+.pv-campo:disabled {
+  background-color: var(--pv-surface-2);
+  color: var(--pv-muted);
+  cursor: not-allowed;
+}
+
+/* Para un campo dentro de otro que ya pinta el anillo: evita doblarlo. */
+.pv-sin-anillo:focus-visible {
+  box-shadow: none;
+}
+
+/*
+ * Envoltorio de campo: etiqueta, control, y ayuda o error.
+ *
+ * El error SUSTITUYE a la ayuda, nunca se apilan: dos renglones bajo un
+ * campo hacen que no se lea ninguno.
+ */
+.pv-grupo-campo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.pv-grupo-campo > label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--pv-text);
+}
+
+.pv-requerido {
+  color: var(--pv-error);
+}
+
+.pv-ayuda-campo {
+  font-size: 0.75rem;
+  color: var(--pv-muted);
+}
+
+/*
+ * Etiqueta de un campo: 14 px en seminegrita y en caja normal, como en el
+ * resto del ecosistema.
+ *
+ * La versalita de 10 px —`.pv-etiqueta`— está reservada a cabeceras de
+ * tabla y rótulos de sección. Usarla también para etiquetar campos era lo
+ * que hacía que estos formularios se leyeran distinto a los de hotel,
+ * restaurante y taller.
+ */
+.pv-etiqueta-campo {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--pv-text);
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────
@@ -2046,11 +2267,6 @@ body {
   font-weight: 700;
   line-height: 1;
   font-variant-numeric: tabular-nums;
-}
-
-.pv-boton-grande {
-  min-height: 48px;
-  font-size: 0.9375rem;
 }
 
 .pv-error-campo {

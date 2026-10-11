@@ -83,7 +83,7 @@ import { SesionStore } from '../sesion/sesion.store'
 
               <div class="mt-auto flex gap-2">
                 <button
-                  class="pv-boton pv-boton-tenue flex-1 justify-center"
+                  class="pv-boton pv-boton-peligro flex-1 justify-center"
                   type="button"
                   (click)="descartar(ticket)"
                 >

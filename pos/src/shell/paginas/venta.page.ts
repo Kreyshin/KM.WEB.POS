@@ -48,7 +48,7 @@ import { FichaProductoComponent, type Agregado } from './ficha-producto.componen
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { '(document:keydown)': 'atajo($event)' },
   template: `
-    <div class="pv-fade-in flex h-full flex-col gap-3">
+    <div class="pv-operacion pv-fade-in flex h-full flex-col gap-3">
       <!-- Buscador y acciones -->
       <div class="flex items-center gap-2">
         <div class="relative flex-1">

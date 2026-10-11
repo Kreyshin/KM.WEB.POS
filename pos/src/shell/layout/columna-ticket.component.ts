@@ -36,7 +36,7 @@ import { ReciboComponent } from '../cobro/recibo.component'
    */
   host: { class: 'flex shrink-0' },
   template: `
-    <aside class="pv-ticket flex w-ticket flex-col" aria-label="Ticket en curso">
+    <aside class="pv-operacion pv-ticket flex w-ticket flex-col" aria-label="Ticket en curso">
       <div class="pv-firma"></div>
 
       <header class="flex items-baseline justify-between px-5 py-4">
@@ -61,7 +61,7 @@ import { ReciboComponent } from '../cobro/recibo.component'
                 <path
                   d="M3 5v14M6 5v14M9.5 5v14M13 5v14M16.5 5v14M20 5v14"
                   stroke="currentColor"
-                  stroke-width="1.6"
+                  stroke-width="1.8"
                   stroke-linecap="round"
                 />
               </svg>

@@ -66,7 +66,7 @@ const ICONOS = ['tableta', 'capsula', 'frasco', 'inyectable', 'caja', 'prenda', 
             <p class="pv-etiqueta text-tenue mb-2">Qué es</p>
             <div class="grid gap-3 sm:grid-cols-2">
               <label class="sm:col-span-2 block">
-                <span class="pv-etiqueta text-tenue">Descripción</span>
+                <span class="pv-etiqueta-campo">Descripción</span>
                 <input
                   class="pv-campo mt-1 text-sm"
                   type="text"
@@ -77,7 +77,7 @@ const ICONOS = ['tableta', 'capsula', 'frasco', 'inyectable', 'caja', 'prenda', 
               </label>
 
               <label class="block">
-                <span class="pv-etiqueta text-tenue">Código de barras</span>
+                <span class="pv-etiqueta-campo">Código de barras</span>
                 <input
                   class="pv-campo pv-cifra mt-1 text-sm"
                   type="text"
@@ -89,7 +89,7 @@ const ICONOS = ['tableta', 'capsula', 'frasco', 'inyectable', 'caja', 'prenda', 
               </label>
 
               <label class="block">
-                <span class="pv-etiqueta text-tenue">Categoría</span>
+                <span class="pv-etiqueta-campo">Categoría</span>
                 <input
                   class="pv-campo mt-1 text-sm"
                   type="text"
@@ -121,7 +121,7 @@ const ICONOS = ['tableta', 'capsula', 'frasco', 'inyectable', 'caja', 'prenda', 
             <p class="pv-etiqueta text-tenue mb-2">Cómo se guarda</p>
             <div class="grid gap-3 sm:grid-cols-2">
               <label class="block">
-                <span class="pv-etiqueta text-tenue">Unidad de almacén</span>
+                <span class="pv-etiqueta-campo">Unidad de almacén</span>
                 <select
                   class="pv-campo mt-1 text-sm"
                   [(ngModel)]="unidadAlmacen"
@@ -134,7 +134,7 @@ const ICONOS = ['tableta', 'capsula', 'frasco', 'inyectable', 'caja', 'prenda', 
               </label>
 
               <label class="block">
-                <span class="pv-etiqueta text-tenue">Existencias</span>
+                <span class="pv-etiqueta-campo">Existencias</span>
                 <input
                   class="pv-campo pv-cifra mt-1 text-right text-sm"
                   type="number"
@@ -164,7 +164,7 @@ const ICONOS = ['tableta', 'capsula', 'frasco', 'inyectable', 'caja', 'prenda', 
               @for (pres of presentaciones(); track pres.id; let i = $index) {
                 <div class="pv-presentacion-fila">
                   <label class="pv-pres-unidad">
-                    <span class="pv-etiqueta text-tenue">Unidad</span>
+                    <span class="pv-etiqueta-campo">Unidad</span>
                     <select
                       class="pv-campo mt-1 text-sm"
                       [ngModel]="pres.unidad.codigo"
@@ -177,7 +177,7 @@ const ICONOS = ['tableta', 'capsula', 'frasco', 'inyectable', 'caja', 'prenda', 
                   </label>
 
                   <label class="pv-pres-numero">
-                    <span class="pv-etiqueta text-tenue">Equivale a</span>
+                    <span class="pv-etiqueta-campo">Equivale a</span>
                     <input
                       class="pv-campo pv-cifra mt-1 text-right text-sm"
                       type="number"
@@ -189,7 +189,7 @@ const ICONOS = ['tableta', 'capsula', 'frasco', 'inyectable', 'caja', 'prenda', 
                   </label>
 
                   <label class="pv-pres-numero">
-                    <span class="pv-etiqueta text-tenue">Precio</span>
+                    <span class="pv-etiqueta-campo">Precio</span>
                     <input
                       class="pv-campo pv-cifra mt-1 text-right text-sm"
                       type="number"
@@ -284,7 +284,7 @@ const ICONOS = ['tableta', 'capsula', 'frasco', 'inyectable', 'caja', 'prenda', 
         <footer class="flex items-center gap-3 border-t border-linea p-4">
           @if (producto(); as existente) {
             <button
-              class="pv-boton pv-boton-tenue"
+              class="pv-boton pv-boton-peligro"
               type="button"
               (click)="eliminar.emit(existente.id)"
             >
