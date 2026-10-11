@@ -1,6 +1,17 @@
-import { ChangeDetectionStrategy, Component, HostListener, inject, viewChild } from '@angular/core'
+import {
+  ChangeDetectionStrategy,
+  Component,
+  HostListener,
+  inject,
+  signal,
+  viewChild,
+} from '@angular/core'
 import type { ElementRef } from '@angular/core'
-import { CarritoComponent, MonedaPipe, TicketService } from '@pos-core-ui/index'
+import type { Cobro, ComprobanteRef } from '@pos-core/index'
+import { CajaService, CarritoComponent, MonedaPipe, TicketService } from '@pos-core-ui/index'
+import { PUERTO_PAGOS } from '@pos-core-ui/index'
+import { PanelCobroComponent } from '../cobro/panel-cobro.component'
+import { ReciboComponent } from '../cobro/recibo.component'
 
 /**
  * Columna del ticket — el ancla de la pantalla de venta.
@@ -15,7 +26,7 @@ import { CarritoComponent, MonedaPipe, TicketService } from '@pos-core-ui/index'
  */
 @Component({
   selector: 'km-columna-ticket',
-  imports: [CarritoComponent, MonedaPipe],
+  imports: [CarritoComponent, MonedaPipe, PanelCobroComponent, ReciboComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   /*
    * El host es el hijo real del contenedor flex, no el <aside>. Sin esto el
@@ -111,18 +122,94 @@ import { CarritoComponent, MonedaPipe, TicketService } from '@pos-core-ui/index'
           type="button"
           [disabled]="ticket.vacio() || !ticket.editable()"
           [title]="ticket.vacio() ? 'No hay nada que cobrar' : 'Cobrar el ticket'"
+          (click)="abrirCobro()"
         >
           <span>Cobrar</span>
           <span class="text-[11px] opacity-70">Alt + C</span>
         </button>
       </div>
     </aside>
+
+    @if (cobrando()) {
+      <km-panel-cobro
+        #panel
+        [totales]="ticket.totales()"
+        (cancelar)="cobrando.set(false)"
+        (cobrado)="registrar($event)"
+      />
+    }
+
+    @if (recibo(); as hecho) {
+      <km-recibo
+        [lineas]="lineasCobradas()"
+        [totales]="totalesCobrados()"
+        [cobro]="hecho"
+        [comprobante]="comprobante()"
+        (cerrar)="siguienteVenta()"
+      />
+    }
   `,
 })
 export class ColumnaTicketComponent {
   protected readonly ticket = inject(TicketService)
+  private readonly caja = inject(CajaService)
+  private readonly pagos = inject(PUERTO_PAGOS)
 
   private readonly cobrar = viewChild<ElementRef<HTMLButtonElement>>('cobrar')
+  private readonly panel = viewChild<PanelCobroComponent>('panel')
+
+  protected readonly cobrando = signal(false)
+  protected readonly recibo = signal<Cobro | null>(null)
+  protected readonly comprobante = signal<ComprobanteRef | undefined>(undefined)
+
+  /*
+   * El ticket se vacía al cobrar, así que el comprobante no puede leerlo:
+   * se queda con una copia de lo vendido. Sin esto el recibo saldría en
+   * blanco justo cuando el cliente lo está mirando.
+   */
+  protected readonly lineasCobradas = signal<ReturnType<TicketService['lineas']>>([])
+  protected readonly totalesCobrados = signal(this.ticket.totales())
+
+  protected abrirCobro(): void {
+    if (this.ticket.vacio() || !this.ticket.editable()) return
+    this.cobrando.set(true)
+  }
+
+  protected async registrar(cobro: Cobro): Promise<void> {
+    const ticketId = this.ticket.ticket()?.id ?? ''
+    this.lineasCobradas.set(this.ticket.lineas())
+    this.totalesCobrados.set(this.ticket.totales())
+
+    try {
+      const resultado = await this.pagos.registrar(ticketId, cobro)
+      if (resultado.estado !== 'cobrado') {
+        this.panel()?.fallo('El cobro no se registró. Vuelve a intentarlo.')
+        return
+      }
+
+      this.comprobante.set(resultado.comprobante)
+      // El ciclo del ticket es borrador → por_cobrar → cobrado, y el store
+      // no deja saltarse el paso. No se envía a cobro al ABRIR el panel a
+      // propósito: si el cajero cancela, el ticket tiene que seguir siendo
+      // editable, y en «por_cobrar» ya no lo sería.
+      this.ticket.enviarACobro()
+      this.ticket.marcarCobrado()
+      // La caja solo se anota si hay turno abierto: un POS sin control de
+      // caja vende igual, y aquí no puede reventar por eso.
+      await this.caja.anotarCobro(ticketId, cobro, 'Venta en mostrador')
+
+      this.cobrando.set(false)
+      this.recibo.set(cobro)
+    } catch (error) {
+      this.panel()?.fallo(error instanceof Error ? error.message : 'No se pudo registrar el cobro.')
+    }
+  }
+
+  protected siguienteVenta(): void {
+    this.recibo.set(null)
+    this.comprobante.set(undefined)
+    this.ticket.nuevo()
+  }
 
   /**
    * Alt+C lleva el foco a Cobrar.

@@ -8,8 +8,11 @@
  */
 import { InjectionToken } from '@angular/core'
 import type {
+  PuertoCaja,
   PuertoCatalogo,
   PuertoCobro,
+  PuertoMediosPago,
+  PuertoPagos,
   PuertoPrecios,
   PuertoSesion,
   PuertoStock,
@@ -22,3 +25,6 @@ export const PUERTO_STOCK = new InjectionToken<PuertoStock>('PuertoStock')
 export const PUERTO_TICKETS = new InjectionToken<PuertoTickets>('PuertoTickets')
 export const PUERTO_COBRO = new InjectionToken<PuertoCobro>('PuertoCobro')
 export const PUERTO_SESION = new InjectionToken<PuertoSesion>('PuertoSesion')
+export const PUERTO_CAJA = new InjectionToken<PuertoCaja>('PuertoCaja')
+export const PUERTO_MEDIOS_PAGO = new InjectionToken<PuertoMediosPago>('PuertoMediosPago')
+export const PUERTO_PAGOS = new InjectionToken<PuertoPagos>('PuertoPagos')

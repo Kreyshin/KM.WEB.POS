@@ -1899,3 +1899,257 @@ body {
   font-weight: 600;
   font-variant-numeric: tabular-nums;
 }
+
+/* ══ Panel de cobro ════════════════════════════════════════════════════════ */
+
+.pv-cobro {
+  width: 100%;
+  max-width: 30rem;
+  max-height: min(92vh, 48rem);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* El total va sobre índigo sólido: es lo primero que se mira al abrir y
+ * tiene que destacar sobre todo lo demás del panel. */
+.pv-cobro-cabecera {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.125rem 1.25rem;
+  background-color: var(--pv-indigo-600);
+  color: #ffffff;
+}
+
+.pv-cobro-total {
+  font-family: var(--pv-fuente-cifra, inherit);
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+.pv-cobro-cerrar {
+  font-size: 0.8125rem;
+  opacity: 0.8;
+}
+
+.pv-cobro-cerrar:hover {
+  opacity: 1;
+}
+
+.pv-cobro-cuerpo {
+  display: flex;
+  flex-direction: column;
+  gap: 1.125rem;
+  padding: 1.125rem 1.25rem;
+  overflow: auto;
+}
+
+.pv-medios {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.375rem;
+}
+
+.pv-medio {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.625rem 0.25rem;
+  border-radius: 11px;
+  border: 1px solid var(--pv-border);
+  background-color: var(--pv-surface);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--pv-muted);
+}
+
+.pv-medio:hover {
+  border-color: var(--pv-indigo-400);
+}
+
+.pv-medio-activo {
+  border-color: var(--pv-indigo-500);
+  box-shadow: inset 0 0 0 1px var(--pv-indigo-500);
+  background-color: color-mix(in srgb, var(--pv-indigo-500) 10%, transparent);
+  color: var(--pv-primary-texto);
+}
+
+/* Billetes. Grandes y pocos: se tocan con el pulgar y con prisa. */
+.pv-sugeridos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+  margin-top: 0.5rem;
+}
+
+.pv-sugerido {
+  min-width: 4rem;
+  padding: 0.4375rem 0.75rem;
+  border-radius: 9px;
+  border: 1px dashed var(--pv-border);
+  font-size: 0.875rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.pv-sugerido:hover {
+  border-style: solid;
+  border-color: var(--pv-indigo-500);
+  color: var(--pv-primary-texto);
+}
+
+.pv-pago {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  padding: 0.4375rem 0.625rem;
+  border-radius: 9px;
+  background-color: var(--pv-surface-2);
+}
+
+.pv-cobro-pie {
+  border-top: 1px solid var(--pv-border);
+  padding: 0.875rem 1.25rem 1.125rem;
+}
+
+/* El vuelto es el número que el cajero dice en voz alta mientras cuenta.
+ * Por eso es lo más grande del panel cuando existe. */
+.pv-vuelto,
+.pv-falta {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+  padding: 0.625rem 0.875rem;
+  border-radius: 11px;
+}
+
+.pv-vuelto {
+  background-color: color-mix(in srgb, var(--pv-exito) 14%, transparent);
+  color: var(--pv-exito);
+}
+
+.pv-falta {
+  background-color: color-mix(in srgb, var(--pv-aviso) 14%, transparent);
+  color: var(--pv-aviso);
+}
+
+.pv-vuelto-cifra {
+  font-size: 1.75rem;
+  font-weight: 700;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.pv-boton-grande {
+  min-height: 48px;
+  font-size: 0.9375rem;
+}
+
+.pv-error-campo {
+  margin-top: 0.375rem;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--pv-error);
+}
+
+/* ══ Recibo ════════════════════════════════════════════════════════════════ */
+
+.pv-recibo {
+  width: 100%;
+  max-width: 22rem;
+  max-height: 92vh;
+  overflow: auto;
+}
+
+/* ══ Caja ══════════════════════════════════════════════════════════════════ */
+
+.pv-tarjetas-dato {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+  gap: 0.75rem;
+}
+
+.pv-dato {
+  padding: 0.875rem 1rem;
+  border-radius: 14px;
+  border: 1px solid var(--pv-border);
+  background-color: var(--pv-surface);
+}
+
+.pv-dato-cifra {
+  margin: 0.125rem 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+
+.pv-desglose {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr));
+  gap: 0.75rem;
+}
+
+.pv-movimiento {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 1rem;
+  border-bottom: 1px solid var(--pv-border);
+}
+
+.pv-movimiento:last-child {
+  border-bottom: 0;
+}
+
+/* El tipo del movimiento con color: en un libro de 60 líneas, distinguir un
+ * egreso de una venta por el texto obliga a leerlas todas. */
+.pv-movimiento-tipo {
+  flex-shrink: 0;
+  width: 5.25rem;
+  border-radius: 5px;
+  padding: 0.0625rem 0.375rem;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  text-align: center;
+  color: var(--pv-muted);
+  background-color: color-mix(in srgb, var(--pv-muted) 14%, transparent);
+}
+
+.pv-movimiento-tipo[data-tipo='venta'] {
+  color: var(--pv-primary-texto);
+  background-color: color-mix(in srgb, var(--pv-indigo-500) 14%, transparent);
+}
+
+.pv-movimiento-tipo[data-tipo='egreso'] {
+  color: var(--pv-error);
+  background-color: color-mix(in srgb, var(--pv-error) 14%, transparent);
+}
+
+.pv-movimiento-tipo[data-tipo='ingreso'] {
+  color: var(--pv-exito);
+  background-color: color-mix(in srgb, var(--pv-exito) 14%, transparent);
+}
+
+.pv-arqueo {
+  margin-top: 0.875rem;
+  padding: 0.75rem 0.875rem;
+  border-radius: 11px;
+  border: 1px solid color-mix(in srgb, var(--pv-error) 32%, transparent);
+  background-color: color-mix(in srgb, var(--pv-error) 8%, transparent);
+}
+
+.pv-arqueo-cuadra {
+  border-color: color-mix(in srgb, var(--pv-exito) 32%, transparent);
+  background-color: color-mix(in srgb, var(--pv-exito) 8%, transparent);
+}

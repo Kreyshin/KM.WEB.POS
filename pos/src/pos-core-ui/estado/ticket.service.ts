@@ -68,6 +68,10 @@ export class TicketService {
     this.exigirAbierto().enviarACobro()
   }
 
+  marcarCobrado(): void {
+    this.exigirAbierto().marcarCobrado()
+  }
+
   nuevo(): void {
     this.exigirAbierto().nuevo()
   }

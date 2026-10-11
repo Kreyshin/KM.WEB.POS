@@ -9,7 +9,7 @@ import {
 import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router'
 import { toSignal } from '@angular/core/rxjs-interop'
 import { filter, map } from 'rxjs'
-import { TicketService } from '@pos-core-ui/index'
+import { CajaService, TicketService } from '@pos-core-ui/index'
 import { SesionStore } from '../sesion/sesion.store'
 import { TemaService } from '../tema/tema.service'
 import { LogoPosComponent } from '../marca/marca'
@@ -186,6 +186,7 @@ export class ShellLayout {
   private readonly router = inject(Router)
   private readonly sesion = inject(SesionStore)
   private readonly ticket = inject(TicketService)
+  private readonly caja = inject(CajaService)
 
   protected readonly tema = inject(TemaService)
   protected readonly menuAbierto = signal(false)
@@ -205,12 +206,13 @@ export class ShellLayout {
   )
 
   /**
-   * Estado de la caja. Hoy siempre cerrada porque detrás no hay nadie: lo
-   * responderá `PuertoCobro.cajaAbierta()` con KARMA.LIB.CAJA, en el hito 5.
-   * Se enseña ya porque es lo primero que mira un cajero, y «cerrada» cuando
-   * no se sabe es más honesto que «abierta».
+   * Estado de la caja, lo primero que mira un cajero al llegar.
+   *
+   * Vive en `CajaService` y no aquí porque la cabecera, la pantalla de caja
+   * y el cobro tienen que ver lo mismo: dos fuentes para este dato acaban en
+   * una cabecera que dice «abierta» sobre una caja que ya se cerró.
    */
-  protected readonly cajaAbierta = signal(false)
+  protected readonly cajaAbierta = this.caja.abierta
 
   constructor() {
     /*
@@ -227,6 +229,13 @@ export class ShellLayout {
         nuevoId: () => crypto.randomUUID(),
       })
     }
+
+    // La caja se carga al entrar al shell y no al abrir su pantalla: la
+    // píldora de la cabecera tiene que decir la verdad desde el primer
+    // segundo, y el panel de cobro necesita saber si hay turno abierto
+    // aunque el cajero nunca pase por Caja.
+    const usuario = this.sesion.usuario()
+    if (sucursal && usuario) void this.caja.cargar(sucursal.id, usuario.id)
   }
 
   private readonly url = toSignal(
@@ -285,6 +294,7 @@ export class ShellLayout {
     // Un ticket a medias no sobrevive al cambio de turno: lo que vendió el
     // cajero anterior no puede acabar cobrado a nombre del siguiente.
     this.ticket.cerrar()
+    this.caja.limpiar()
     await this.sesion.cerrar()
     await this.router.navigate(['/acceso'])
   }

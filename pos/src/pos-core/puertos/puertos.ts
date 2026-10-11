@@ -10,11 +10,15 @@
  * componente usa HTTP directamente.
  */
 import type {
+  Cobro,
   ConsultaCatalogo,
   ContextoPrecio,
   CuentaPorCobrar,
+  MedioPago,
+  MovimientoCaja,
   ProductoRef,
   ResultadoCobro,
+  SesionCaja,
   Ticket,
 } from '../modelo'
 
@@ -46,4 +50,44 @@ export interface PuertoTickets {
 export interface PuertoCobro {
   cajaAbierta(): Promise<boolean>
   cobrar(cuenta: CuentaPorCobrar): Promise<ResultadoCobro>
+}
+
+/**
+ * La sesión de caja del turno.
+ *
+ * Separado de `PuertoCobro` a propósito: cobrar es del ticket y abrir caja
+ * es del turno. Un POS puede venderse sin control de caja —hay bodegas que
+ * no lo quieren— y entonces este puerto simplemente no se registra.
+ */
+export interface PuertoCaja {
+  /** La sesión abierta de este puesto, o null si nadie abrió caja. */
+  actual(sucursalId: string, usuarioId: string): Promise<SesionCaja | null>
+  abrir(
+    sucursalId: string,
+    usuario: { id: string; nombre: string },
+    monto: number,
+  ): Promise<SesionCaja>
+  registrar(sesionId: string, movimiento: Omit<MovimientoCaja, 'id' | 'en'>): Promise<SesionCaja>
+  cerrar(sesionId: string, contado: number): Promise<SesionCaja>
+}
+
+/**
+ * Los medios de pago que acepta este puesto.
+ *
+ * Es un puerto y no una constante porque la lista la decide el negocio y
+ * cambia por país: en Perú entran Yape y Plin, en otro sitio no existen.
+ */
+export interface PuertoMediosPago {
+  disponibles(sucursalId: string): Promise<readonly MedioPago[]>
+}
+
+/**
+ * Registro del cobro de un ticket.
+ *
+ * Esto es lo que hoy hace el diálogo simulado y mañana hará KARMA.LIB.CAJA
+ * detrás de `PuertoCobro`. Se declara aparte para que el día del cambio solo
+ * se sustituya el adaptador y las pantallas no se enteren.
+ */
+export interface PuertoPagos {
+  registrar(ticketId: string, cobro: Cobro): Promise<ResultadoCobro>
 }
