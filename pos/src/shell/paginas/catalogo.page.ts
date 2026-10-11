@@ -1,4 +1,11 @@
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core'
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  inject,
+  signal,
+  viewChild,
+} from '@angular/core'
 import { FormsModule } from '@angular/forms'
 import type { ProductoRef } from '@pos-core/index'
 
@@ -12,6 +19,7 @@ import { nuevoProductoId } from '@pos-adaptadores/simulado/index'
 import { SesionStore } from '../sesion/sesion.store'
 import { FichaProductoComponent } from './ficha-producto.component'
 import { EditorProductoComponent } from './editor-producto.component'
+import { CargaMasivaComponent } from './carga-masiva.component'
 
 /**
  * Catálogo.
@@ -36,6 +44,7 @@ import { EditorProductoComponent } from './editor-producto.component'
     IconoProductoComponent,
     FichaProductoComponent,
     EditorProductoComponent,
+    CargaMasivaComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -57,6 +66,9 @@ import { EditorProductoComponent } from './editor-producto.component'
             [ngModel]="texto()"
             (ngModelChange)="buscar($event)"
           />
+          <button class="pv-boton pv-boton-tenue" type="button" (click)="cargando.set(true)">
+            Carga masiva
+          </button>
           <button class="pv-boton pv-boton-accion" type="button" (click)="nuevo()">
             Nuevo producto
           </button>
@@ -158,6 +170,10 @@ import { EditorProductoComponent } from './editor-producto.component'
       <km-ficha-producto [producto]="abierto" (cerrar)="ficha.set(null)" />
     }
 
+    @if (cargando()) {
+      <km-carga-masiva #carga (cerrar)="cargando.set(false)" (importar)="importarLote($event)" />
+    }
+
     @if (editando()) {
       <km-editor-producto
         [producto]="enEdicion()"
@@ -186,6 +202,9 @@ export class CatalogoPage {
   protected readonly ficha = signal<ProductoRef | null>(null)
   protected readonly editando = signal(false)
   protected readonly enEdicion = signal<ProductoRef | null>(null)
+  protected readonly cargando = signal(false)
+
+  private readonly carga = viewChild<CargaMasivaComponent>('carga')
 
   protected readonly agotados = computed(() => this.productos().filter((p) => p.stock === 0).length)
   protected readonly porReponer = computed(
@@ -233,6 +252,27 @@ export class CatalogoPage {
     })
     this.editando.set(false)
     await this.cargar()
+  }
+
+  /**
+   * Guarda el lote completo.
+   *
+   * De uno en uno y no en paralelo: el adaptador escribe sobre la misma
+   * llave de almacenamiento, y en paralelo la última escritura pisaría a
+   * las demás. Con 500 productos sigue siendo instantáneo.
+   */
+  protected async importarLote(productos: ProductoRef[]): Promise<void> {
+    try {
+      for (const producto of productos) {
+        await this.mantenimiento.guardar(producto)
+      }
+      this.cargando.set(false)
+      await this.cargar()
+    } catch (error) {
+      this.carga()?.fallar(
+        error instanceof Error ? error.message : 'No se pudieron guardar los productos.',
+      )
+    }
   }
 
   protected async eliminarProducto(productoId: string): Promise<void> {

@@ -25,7 +25,8 @@
                 "glob": "**/*",
                 "input": "public"
               }
-            ]
+            ],
+            "allowedCommonJsDependencies": ["exceljs"]
           },
           "configurations": {
             "production": {
