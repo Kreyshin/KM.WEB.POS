@@ -36,15 +36,14 @@ export const modulos: readonly Modulo[] = [
     tecla: '3',
     roles: ['cajero', 'supervisor', 'administrador'],
   },
-  { ruta: '/catalogo', titulo: 'Catálogo', icono: 'catalogo', tecla: '4', pendiente: true },
-  { ruta: '/clientes', titulo: 'Clientes', icono: 'clientes', tecla: '5', pendiente: true },
+  { ruta: '/catalogo', titulo: 'Catálogo', icono: 'catalogo', tecla: '4' },
+  { ruta: '/clientes', titulo: 'Clientes', icono: 'clientes', tecla: '5' },
   {
     ruta: '/reportes',
     titulo: 'Reportes',
     icono: 'reportes',
     tecla: '6',
     roles: ['supervisor', 'administrador'],
-    pendiente: true,
   },
   { ruta: '/ajustes', titulo: 'Ajustes', icono: 'ajustes', tecla: '9' },
 ]

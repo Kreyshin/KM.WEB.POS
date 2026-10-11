@@ -2,16 +2,20 @@ import type { Provider } from '@angular/core'
 import {
   PUERTO_CAJA,
   PUERTO_CATALOGO,
+  PUERTO_CLIENTES,
   PUERTO_MEDIOS_PAGO,
   PUERTO_PAGOS,
   PUERTO_SESION,
+  PUERTO_TICKETS,
 } from '@pos-core-ui/index'
 import {
   CajaSimulada,
   CatalogoSimulado,
+  ClientesSimulados,
   MediosPagoSimulados,
   PagosSimulados,
   SesionSimulada,
+  TicketsSimulados,
 } from '@pos-adaptadores/simulado/index'
 
 /**
@@ -29,7 +33,9 @@ import {
 export const proveedoresSimulados: Provider[] = [
   { provide: PUERTO_SESION, useClass: SesionSimulada },
   { provide: PUERTO_CATALOGO, useClass: CatalogoSimulado },
+  { provide: PUERTO_CLIENTES, useClass: ClientesSimulados },
   { provide: PUERTO_CAJA, useClass: CajaSimulada },
   { provide: PUERTO_MEDIOS_PAGO, useClass: MediosPagoSimulados },
   { provide: PUERTO_PAGOS, useClass: PagosSimulados },
+  { provide: PUERTO_TICKETS, useClass: TicketsSimulados },
 ]

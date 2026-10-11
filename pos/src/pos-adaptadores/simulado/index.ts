@@ -1,3 +1,5 @@
 export * from './sesion-simulada'
 export * from './catalogo-simulado'
 export * from './caja-simulada'
+export * from './tickets-simulados'
+export * from './clientes-simulados'

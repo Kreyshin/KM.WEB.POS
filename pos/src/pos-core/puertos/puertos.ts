@@ -10,6 +10,7 @@
  * componente usa HTTP directamente.
  */
 import type {
+  Cliente,
   Cobro,
   ConsultaCatalogo,
   ContextoPrecio,
@@ -38,6 +39,14 @@ export interface PuertoTickets {
   guardar(ticket: Ticket): Promise<void>
   enviarACobro(ticketId: string): Promise<void>
   porCobrar(sucursalId: string): Promise<Ticket[]>
+  /**
+   * Lo saca de la lista de espera: se cobró, se anuló o se retomó.
+   *
+   * No borra la venta, que vive en el ticket: solo deja de estar pendiente.
+   * Sin esto, un ticket retomado seguiría ofreciéndose a otra caja y se
+   * cobraría dos veces.
+   */
+  quitar(ticketId: string): Promise<void>
 }
 
 /**
@@ -90,4 +99,11 @@ export interface PuertoMediosPago {
  */
 export interface PuertoPagos {
   registrar(ticketId: string, cobro: Cobro): Promise<ResultadoCobro>
+}
+
+/** Clientes del puesto. Lo mínimo para emitir y reconocer al habitual. */
+export interface PuertoClientes {
+  buscar(texto: string): Promise<readonly Cliente[]>
+  porDocumento(documento: string): Promise<Cliente | null>
+  guardar(cliente: Omit<Cliente, 'id'> & { id?: string }): Promise<Cliente>
 }

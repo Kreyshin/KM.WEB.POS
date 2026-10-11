@@ -102,6 +102,19 @@ export interface Ticket {
   lineas: LineaTicket[]
   totales: Totales
   estado: EstadoTicket
+  /**
+   * Cuándo se abrió, en ISO.
+   *
+   * Hace falta desde que los tickets se aparcan: una lista de pedidos en
+   * espera sin hora no se puede ordenar ni se ve envejecer, y un ticket de
+   * hace dos horas en esa lista casi siempre es uno que el cliente
+   * abandonó.
+   *
+   * Opcional para no romper los tickets que ya existan sin ella.
+   */
+  creadoEn?: string
+  /** Por qué se aparcó: «fue por la billetera», «espera receta». */
+  nota?: string
 }
 
 /**

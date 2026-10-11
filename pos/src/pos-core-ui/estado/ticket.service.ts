@@ -64,8 +64,17 @@ export class TicketService {
     this.exigirAbierto().aplicarDescuento(importe, lineaId)
   }
 
+  anotar(nota: string): void {
+    this.exigirAbierto().anotar(nota)
+  }
+
   enviarACobro(): void {
     this.exigirAbierto().enviarACobro()
+  }
+
+  /** Retoma un ticket aparcado para cobrarlo. */
+  cargar(ticket: Parameters<StoreTicket['cargar']>[0]): void {
+    this.exigirAbierto().cargar(ticket)
   }
 
   marcarCobrado(): void {

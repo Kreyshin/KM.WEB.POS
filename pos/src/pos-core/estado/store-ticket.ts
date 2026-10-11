@@ -197,7 +197,15 @@ export class StoreTicket {
       lineas: [],
       totales: totalesVacios,
       estado: 'borrador',
+      creadoEn: new Date().toISOString(),
     }
+  }
+
+  /** Anota por qué se aparca el ticket. Lo lee la lista de por cobrar. */
+  anotar(nota: string): void {
+    this.exigirEditable()
+    this.estado = { ...this.estado, nota: nota.trim() || undefined }
+    this.avisar()
   }
 
   private esLaMisma(linea: LineaTicket, entrada: EntradaLinea): boolean {

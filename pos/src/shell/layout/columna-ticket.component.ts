@@ -7,9 +7,10 @@ import {
   viewChild,
 } from '@angular/core'
 import type { ElementRef } from '@angular/core'
+import { FormsModule } from '@angular/forms'
 import type { Cobro, ComprobanteRef } from '@pos-core/index'
 import { CajaService, CarritoComponent, MonedaPipe, TicketService } from '@pos-core-ui/index'
-import { PUERTO_PAGOS } from '@pos-core-ui/index'
+import { PUERTO_PAGOS, PUERTO_TICKETS } from '@pos-core-ui/index'
 import { PanelCobroComponent } from '../cobro/panel-cobro.component'
 import { ReciboComponent } from '../cobro/recibo.component'
 
@@ -26,7 +27,7 @@ import { ReciboComponent } from '../cobro/recibo.component'
  */
 @Component({
   selector: 'km-columna-ticket',
-  imports: [CarritoComponent, MonedaPipe, PanelCobroComponent, ReciboComponent],
+  imports: [FormsModule, CarritoComponent, MonedaPipe, PanelCobroComponent, ReciboComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   /*
    * El host es el hijo real del contenedor flex, no el <aside>. Sin esto el
@@ -115,7 +116,7 @@ import { ReciboComponent } from '../cobro/recibo.component'
         <p class="pv-total-cifra">{{ ticket.totales().total | moneda }}</p>
       </div>
 
-      <div class="p-3">
+      <div class="flex flex-col gap-2 p-3">
         <button
           #cobrar
           class="pv-boton pv-boton-accion w-full justify-between"
@@ -127,8 +128,51 @@ import { ReciboComponent } from '../cobro/recibo.component'
           <span>Cobrar</span>
           <span class="text-[11px] opacity-70">Alt + C</span>
         </button>
+
+        <!-- Aparcar: el cliente se dejó la billetera en el carro, o el
+             pedido lo cobra otra persona en caja. Lo que no puede es
+             parar la cola. -->
+        <button
+          class="pv-boton pv-boton-tenue w-full justify-center text-xs"
+          type="button"
+          [disabled]="ticket.vacio() || !ticket.editable()"
+          (click)="aparcando.set(true)"
+        >
+          Dejar en espera
+        </button>
       </div>
     </aside>
+
+    @if (aparcando()) {
+      <div class="pv-velo" role="dialog" aria-modal="true" aria-label="Dejar el ticket en espera">
+        <button
+          class="pv-velo-cierre"
+          type="button"
+          aria-label="Cerrar"
+          (click)="aparcando.set(false)"
+        ></button>
+        <div class="pv-panel pv-entra relative w-full max-w-sm p-5">
+          <h3 class="pv-titulo-seccion">Dejar en espera</h3>
+          <p class="text-tenue mt-1 text-sm">
+            El ticket pasa a «Por cobrar» y el mostrador queda libre para el siguiente cliente.
+          </p>
+          <input
+            class="pv-campo mt-4 text-sm"
+            type="text"
+            placeholder="Por qué espera (opcional)"
+            aria-label="Motivo de la espera"
+            [(ngModel)]="nota"
+          />
+          <button
+            class="pv-boton pv-boton-accion mt-4 w-full justify-center"
+            type="button"
+            (click)="aparcar()"
+          >
+            Dejar en espera
+          </button>
+        </div>
+      </div>
+    }
 
     @if (cobrando()) {
       <km-panel-cobro
@@ -154,11 +198,14 @@ export class ColumnaTicketComponent {
   protected readonly ticket = inject(TicketService)
   private readonly caja = inject(CajaService)
   private readonly pagos = inject(PUERTO_PAGOS)
+  private readonly tickets = inject(PUERTO_TICKETS)
 
   private readonly cobrar = viewChild<ElementRef<HTMLButtonElement>>('cobrar')
   private readonly panel = viewChild<PanelCobroComponent>('panel')
 
   protected readonly cobrando = signal(false)
+  protected readonly aparcando = signal(false)
+  protected nota = ''
   protected readonly recibo = signal<Cobro | null>(null)
   protected readonly comprobante = signal<ComprobanteRef | undefined>(undefined)
 
@@ -169,6 +216,19 @@ export class ColumnaTicketComponent {
    */
   protected readonly lineasCobradas = signal<ReturnType<TicketService['lineas']>>([])
   protected readonly totalesCobrados = signal(this.ticket.totales())
+
+  protected async aparcar(): Promise<void> {
+    const actual = this.ticket.ticket()
+    if (!actual || this.ticket.vacio()) return
+    if (this.nota.trim()) this.ticket.anotar(this.nota)
+
+    // Se guarda con el estado que tendrá en la lista, no con el del store:
+    // el store se reinicia aquí mismo y su «por_cobrar» se perdería.
+    await this.tickets.guardar({ ...this.ticket.ticket()!, estado: 'por_cobrar' })
+    this.nota = ''
+    this.aparcando.set(false)
+    this.ticket.nuevo()
+  }
 
   protected abrirCobro(): void {
     if (this.ticket.vacio() || !this.ticket.editable()) return

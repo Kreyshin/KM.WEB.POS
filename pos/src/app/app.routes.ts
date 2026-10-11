@@ -35,6 +35,19 @@ export const routes: Routes = [
         loadComponent: () => import('@shell/paginas/caja.page').then((m) => m.CajaPage),
       },
       {
+        path: 'catalogo',
+        loadComponent: () => import('@shell/paginas/catalogo.page').then((m) => m.CatalogoPage),
+      },
+      {
+        path: 'clientes',
+        loadComponent: () => import('@shell/paginas/clientes.page').then((m) => m.ClientesPage),
+      },
+      {
+        path: 'reportes',
+        canActivate: [exigeRol('supervisor', 'administrador')],
+        loadComponent: () => import('@shell/paginas/reportes.page').then((m) => m.ReportesPage),
+      },
+      {
         path: 'ajustes',
         loadComponent: () => import('@shell/paginas/ajustes.page').then((m) => m.AjustesPage),
       },
