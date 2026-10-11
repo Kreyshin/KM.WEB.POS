@@ -37,11 +37,45 @@ import { CarritoComponent, MonedaPipe, TicketService } from '@pos-core-ui/index'
 
       <div class="min-h-0 flex-1 overflow-auto">
         @if (ticket.vacio()) {
-          <div class="flex h-full flex-col items-center justify-center gap-2 px-6 text-center">
-            <p class="text-sm opacity-60">Sin líneas</p>
-            <p class="text-xs opacity-40">
-              Escanea un código o busca un producto para empezar la venta.
-            </p>
+          <!--
+            El ticket vacío era medio metro de nada. Ahora enseña el gesto:
+            el escáner primero, que es lo que se usa el 90 % de las veces, y
+            debajo las teclas que evitan soltar el teclado. Un hueco así de
+            grande sin decir nada es espacio que el cajero ya ha pagado.
+          -->
+          <div class="flex h-full flex-col items-center justify-center gap-5 px-6 text-center">
+            <span class="pv-espera-icono" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" width="28" height="28">
+                <path
+                  d="M3 5v14M6 5v14M9.5 5v14M13 5v14M16.5 5v14M20 5v14"
+                  stroke="currentColor"
+                  stroke-width="1.6"
+                  stroke-linecap="round"
+                />
+              </svg>
+            </span>
+
+            <div>
+              <p class="text-sm font-semibold">Listo para escanear</p>
+              <p class="text-tenue mx-auto mt-1 max-w-[16rem] text-xs">
+                Pasa el código por el lector y la línea entra sola.
+              </p>
+            </div>
+
+            <dl class="pv-espera-teclas">
+              <div>
+                <dt>Buscar</dt>
+                <dd><kbd class="pv-kbd">/</kbd></dd>
+              </div>
+              <div>
+                <dt>Agregar</dt>
+                <dd><kbd class="pv-kbd">Enter</kbd></dd>
+              </div>
+              <div>
+                <dt>Atajos</dt>
+                <dd><kbd class="pv-kbd">?</kbd></dd>
+              </div>
+            </dl>
           </div>
         } @else {
           <km-carrito />

@@ -839,7 +839,7 @@ body {
  * columna del ticket lleva carbón en los dos temas.
  */
 .pv-acceso-lienzo {
-  background-color: #100d08;
+  background-color: #0b0d14;
   background-image:
     radial-gradient(
       62rem 42rem at 26% 46%,
@@ -969,7 +969,7 @@ body {
   max-width: 24rem;
   height: 1.5rem;
   border-radius: 0 0 10px 10px;
-  background: linear-gradient(180deg, #2a2318, #16120c);
+  background: linear-gradient(180deg, #2b2f3f, #141722);
   box-shadow: 0 6px 18px -8px rgb(0 0 0 / 0.8);
 }
 
@@ -978,7 +978,7 @@ body {
   inset: auto 1.25rem 0.3rem;
   height: 4px;
   border-radius: 2px;
-  background: #0a0806;
+  background: #06070b;
   box-shadow: inset 0 1px 2px rgb(0 0 0 / 0.9);
 }
 
@@ -995,21 +995,21 @@ body {
   --pv-radio-control: 14px;
 
   position: relative;
-  background-color: #f6efe0;
-  color: #16130d;
+  background-color: #f7f6f2;
+  color: #15161c;
 
   /*
    * El papel redefine los tokens del tema dentro de la tarjeta. Así el pad,
    * el visor y el formulario —que leen estas variables— se reciclan tal cual
    * sobre fondo claro, sin que ninguno sepa que ha cambiado de soporte.
    */
-  --pv-surface: #f6efe0;
-  --pv-surface-2: #efe6d3;
-  --pv-text: #16130d;
-  --pv-muted: #6b6153;
-  --pv-border: #ddd2bb;
-  --pv-selection: #e8d4a8;
-  --pv-primary-texto: #6b4f20;
+  --pv-surface: #f7f6f2;
+  --pv-surface-2: #eeedea;
+  --pv-text: #15161c;
+  --pv-muted: #62646f;
+  --pv-border: #dcdbd5;
+  --pv-selection: #d9d7fb;
+  --pv-primary-texto: #3f3ac4;
 
   -webkit-mask:
     conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg) bottom /
@@ -1029,12 +1029,12 @@ body {
   font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.22em;
-  color: #6b4f20;
+  color: #3f3ac4;
 }
 
 .pv-comanda-regla {
   height: 0;
-  border-top: 1.5px dashed #c8bb9f;
+  border-top: 1.5px dashed #cbcac4;
 }
 
 .pv-comanda-pie {
@@ -1042,7 +1042,7 @@ body {
   text-align: center;
   font-size: 10px;
   letter-spacing: 0.1em;
-  color: #8a7f6c;
+  color: #86888f;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1449,4 +1449,165 @@ body {
   position: absolute;
   inset: 0;
   cursor: default;
+}
+
+/* ── Pantalla de acceso: el panel del puesto ──────────────────────────────
+ *
+ * Tres filas: marca arriba, escena apoyada en el suelo y ficha del puesto
+ * abajo. La escena ocupa la fila elástica, así que crece con la ventana en
+ * vez de quedarse pequeña en medio del vacío, que era lo que hacía que el
+ * panel se leyera como un hueco.
+ */
+.pv-puesto {
+  grid-template-rows: auto 1fr auto;
+
+  /*
+   * El panel es oscuro en los dos temas, así que no puede heredar --pv-text:
+   * con el tema claro el texto salía negro sobre casi negro y la marca
+   * desaparecía. Redefine los tokens para lo que vive dentro.
+   */
+  --pv-text: #f1f2f7;
+  --pv-muted: #9aa0b4;
+  color: var(--pv-text);
+}
+
+/* Igual el pie de la columna del acceso, que va sobre el mismo lienzo. */
+.pv-acceso-columna {
+  --pv-text: #f1f2f7;
+  --pv-muted: #9aa0b4;
+  color: var(--pv-text);
+}
+
+/* La escena se sale por los lados a propósito: recortada tiene escala y
+ * suelo. Centrada y entera parecía una pegatina sobre el fondo. */
+.pv-escena-suelo {
+  margin-inline: -4%;
+  mask-image: linear-gradient(to bottom, #000 72%, transparent 99%);
+}
+
+.pv-escena-img {
+  --pv-px: 0px;
+  --pv-py: 0px;
+  transform: translate3d(var(--pv-px), var(--pv-py), 0);
+  transition: transform 600ms var(--pv-salida);
+  filter: drop-shadow(0 40px 70px rgb(0 0 0 / 0.5));
+}
+
+/* Ficha del puesto: etiqueta arriba, dato abajo, separadas por reglas
+ * verticales. Es la convención de las placas de los equipos, y aquí hace
+ * que el espacio informe en vez de sobrar. */
+.pv-ficha {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1px;
+  margin: 0 2.5rem 2.5rem;
+  background-color: color-mix(in srgb, #ffffff 9%, transparent);
+  border: 1px solid color-mix(in srgb, #ffffff 9%, transparent);
+  border-radius: var(--pv-radio-panel, 14px);
+  overflow: hidden;
+  backdrop-filter: blur(10px);
+}
+
+.pv-ficha-dato {
+  background-color: color-mix(in srgb, #0b0d14 72%, transparent);
+  padding: 0.75rem 1rem 0.875rem;
+}
+
+.pv-ficha-dato dt {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, #ffffff 44%, transparent);
+}
+
+.pv-ficha-dato dd {
+  margin-top: 0.25rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: color-mix(in srgb, #ffffff 92%, transparent);
+}
+
+/* El reloj entra en la ficha como un dato más, no como un bloque suelto a
+ * media pantalla: ahí no decía de qué era la hora. */
+.pv-ficha-reloj p:first-child {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.pv-ficha-reloj p:last-child {
+  margin-top: 0;
+  font-size: 11px;
+  font-weight: 400;
+  color: color-mix(in srgb, #ffffff 50%, transparent);
+}
+
+/* En una columna la ficha es solo sucursal y terminal, y va bajo el papel. */
+.pv-ficha-columna {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin: 1.25rem 0 0;
+}
+
+/* La ficha de la columna solo existe sin panel: con panel ya está la de
+ * abajo a la izquierda y repetirla es ruido. */
+@media (min-width: 1024px) {
+  .pv-ficha-columna {
+    display: none;
+  }
+}
+
+/* La columna del acceso se separa del panel con una línea de luz, no con un
+ * borde duro: el papel ya aporta el contraste. */
+.pv-acceso-columna {
+  box-shadow: inset 1px 0 0 color-mix(in srgb, #ffffff 7%, transparent);
+}
+
+/* Ticket en espera: el hueco entre la cabecera y los totales. */
+.pv-espera-icono {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  color: var(--pv-primary-texto);
+  background-color: color-mix(in srgb, var(--pv-indigo-500) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--pv-indigo-500) 22%, transparent);
+}
+
+.pv-espera-teclas {
+  display: flex;
+  gap: 1.25rem;
+  font-size: 11px;
+  color: var(--pv-muted);
+}
+
+.pv-espera-teclas div {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+/* Fila de resultado: icono, producto y precios. La columna de precios se
+ * fija para que los importes queden alineados entre filas; desalineados no
+ * se pueden comparar de un vistazo, que es justo lo que hace el cliente. */
+.pv-fila-rejilla {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.875rem;
+}
+
+@media (max-width: 900px) {
+  .pv-fila-rejilla {
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: start;
+  }
+
+  .pv-fila-rejilla > :last-child {
+    grid-column: 2;
+    justify-content: flex-start;
+  }
 }

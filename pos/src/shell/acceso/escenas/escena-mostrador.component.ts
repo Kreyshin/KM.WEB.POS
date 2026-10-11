@@ -7,18 +7,18 @@ import { LogoKarmaComponent, LogoPosComponent } from '../../marca/marca'
 /**
  * Pantalla de acceso.
  *
- * Pantalla partida: la escena del local a la izquierda y el acceso a la
- * derecha, impreso en una comanda que sale de la impresora.
+ * Pantalla partida: el puesto a la izquierda, el acceso a la derecha impreso
+ * en una comanda.
  *
- * La comanda no es un adorno: es el objeto que el mostrador produce, así que
- * la primera pantalla del día ya dice de qué va el sistema. Y como es un
- * envoltorio reutilizable, el mismo papel vuelve en el detalle de una venta y
- * en el arqueo de caja.
+ * La mitad izquierda NO es decoración con una ilustración centrada en el
+ * vacío. Es la ficha del puesto: la escena apoya en el suelo del panel y
+ * debajo va la banda de identificación —sucursal, terminal, fecha y enlace—,
+ * que es lo que un cajero comprueba antes de marcar. Así el espacio informa
+ * en vez de sobrar, y la pantalla se parece a un equipo y no a una portada.
  *
  * Por debajo de 1024 px la escena desaparece y queda una sola columna: la
- * ilustración mide 800 px y comprimida a 360 no se lee, además de empujar el
- * pad fuera de vista. La cabecera de marca que vive en la escena reaparece
- * entonces sobre la comanda, para que el producto siga presentándose.
+ * ilustración mide 800 px y comprimida a 360 no se lee. La marca y la banda
+ * reaparecen entonces en la columna, para no perder la identificación.
  */
 @Component({
   selector: 'km-escena-mostrador',
@@ -32,10 +32,10 @@ import { LogoKarmaComponent, LogoPosComponent } from '../../marca/marca'
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'block h-full', '(pointermove)': 'mover($event)', '(pointerleave)': 'centrar()' },
   template: `
-    <div class="pv-acceso-lienzo grid h-full lg:grid-cols-[1.08fr_minmax(26rem,0.92fr)]">
-      <!-- Escena -->
-      <section class="relative hidden flex-col justify-between overflow-hidden p-10 lg:flex">
-        <div class="relative z-10 flex items-center gap-3">
+    <div class="pv-acceso-lienzo grid h-full lg:grid-cols-[1.12fr_minmax(27rem,0.88fr)]">
+      <!-- Puesto -->
+      <section class="pv-puesto relative hidden overflow-hidden lg:grid">
+        <div class="relative z-20 flex items-center gap-3 p-10 pb-0">
           <km-logo-pos [tamano]="38" alt="" />
           <div>
             <p class="pv-etiqueta text-primario-texto">Punto de venta</p>
@@ -43,20 +43,43 @@ import { LogoKarmaComponent, LogoPosComponent } from '../../marca/marca'
           </div>
         </div>
 
-        <img
-          class="pv-escena-img pointer-events-none absolute inset-0 m-auto max-h-[64vh] w-[min(94%,52rem)] object-contain select-none"
-          [style.--pv-px]="px()"
-          [style.--pv-py]="py()"
-          src="marca/escenas/mostrador.svg"
-          alt=""
-          draggable="false"
-        />
+        <!--
+          La escena apoya abajo y se sale por los lados en vez de flotar
+          centrada: así tiene suelo y escala, y el panel deja de leerse como
+          un hueco con un dibujo pequeño en medio.
+        -->
+        <div class="pv-escena-suelo relative z-10 self-end">
+          <img
+            class="pv-escena-img block w-full max-w-none select-none"
+            [style.--pv-px]="px()"
+            [style.--pv-py]="py()"
+            src="marca/escenas/mostrador.svg"
+            alt=""
+            draggable="false"
+          />
+        </div>
 
-        <div class="relative z-10 flex items-end justify-between gap-8">
-          <h2 class="pv-titulo-pagina max-w-sm text-3xl leading-tight">
-            El mostrador, en una sola pantalla.
-          </h2>
-          <km-reloj-puesto class="shrink-0 text-right" />
+        <!-- Ficha del puesto. Lo que se comprueba antes de marcar. -->
+        <div class="pv-ficha relative z-20 self-end">
+          <div class="pv-ficha-dato">
+            <dt>Sucursal</dt>
+            <dd>Botica San Isidro</dd>
+          </div>
+          <div class="pv-ficha-dato">
+            <dt>Terminal</dt>
+            <dd class="pv-cifra">POS-01</dd>
+          </div>
+          <div class="pv-ficha-dato">
+            <dt>Fecha y hora</dt>
+            <dd><km-reloj-puesto class="pv-ficha-reloj" /></dd>
+          </div>
+          <div class="pv-ficha-dato">
+            <dt>Enlace</dt>
+            <dd class="flex items-center gap-1.5">
+              <span class="pv-pulso"></span>
+              En línea
+            </dd>
+          </div>
         </div>
       </section>
 
@@ -65,11 +88,9 @@ import { LogoKarmaComponent, LogoPosComponent } from '../../marca/marca'
         Centrado con márgenes automáticos y NO con items-center.
         Cuando la comanda es más alta que la ventana —en móvil, o en la vía
         de usuario y clave sobre una pantalla corta— items-center la recorta
-        por arriba y por abajo, y no deja desplazarse hasta los extremos. Con
-        margen automático, si no cabe se reparte a cero y la columna
-        simplemente hace scroll.
+        por arriba y por abajo, y no deja desplazarse hasta los extremos.
       -->
-      <section class="flex overflow-auto px-6 py-8">
+      <section class="pv-acceso-columna flex overflow-auto px-6 py-8">
         <div class="pv-entra m-auto w-full max-w-sm">
           <!-- En una columna la marca no tiene dónde vivir, así que vuelve aquí. -->
           <div class="mb-6 flex items-center justify-center gap-3 lg:hidden">
@@ -91,6 +112,19 @@ import { LogoKarmaComponent, LogoPosComponent } from '../../marca/marca'
           >
             <km-nucleo-acceso #nucleo />
           </km-comanda>
+
+          <!-- La identificación del puesto también en una columna: sin la
+               escena, aquí es lo único que dice dónde se está marcando. -->
+          <div class="pv-ficha pv-ficha-columna lg:hidden">
+            <div class="pv-ficha-dato">
+              <dt>Sucursal</dt>
+              <dd>Botica San Isidro</dd>
+            </div>
+            <div class="pv-ficha-dato">
+              <dt>Terminal</dt>
+              <dd class="pv-cifra">POS-01</dd>
+            </div>
+          </div>
 
           <p class="mt-5 flex justify-center opacity-60">
             <km-logo-karma />

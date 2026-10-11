@@ -110,48 +110,53 @@ import { SesionStore } from '../sesion/sesion.store'
                 [attr.aria-selected]="i === fila()"
                 (mouseenter)="fila.set(i)"
               >
-                <div class="flex gap-3">
-                  <km-icono-producto [clave]="producto.icono" [tamano]="40" />
+                <!--
+                  Dos columnas y no una. Apilado, el producto ocupaba el
+                  tercio izquierdo y el resto de la fila quedaba en blanco,
+                  y cada producto se comía el doble de alto. Con el nombre a
+                  la izquierda y los precios alineados a la derecha, la
+                  columna de precios se lee en vertical de un vistazo, que
+                  es como se compara.
+                -->
+                <div class="pv-fila-rejilla">
+                  <km-icono-producto [clave]="producto.icono" [tamano]="38" />
 
-                  <div class="min-w-0 flex-1">
-                    <div class="flex items-baseline justify-between gap-3">
-                      <p class="truncate text-sm font-semibold">{{ producto.descripcion }}</p>
-                      <p class="pv-cifra text-tenue shrink-0 text-[11px]">
-                        {{ producto.codigoBarras }}
-                      </p>
-                    </div>
-
-                    @if (producto.nota) {
-                      <p class="text-tenue truncate text-xs">
-                        {{ sinReceta(producto.nota) }}
-                        @if (exigeReceta(producto)) {
-                          <span class="pv-receta ml-1">receta</span>
-                        }
-                      </p>
-                    }
-
-                    <!-- La presentación ES el precio: elegirla es la acción,
-                         no un paso previo. Por eso va en la fila y no en un
-                         diálogo aparte. -->
-                    <div class="mt-1.5 flex flex-wrap gap-1.5">
-                      @for (pres of producto.presentaciones; track pres.id; let j = $index) {
-                        <button
-                          class="pv-pres"
-                          type="button"
-                          [class.pv-pres-activa]="i === fila() && j === presentacion()"
-                          (click)="agregar(producto, pres)"
-                          (mouseenter)="presentacion.set(j)"
-                        >
-                          <span>{{ pres.unidad.nombre }}</span>
-                          <span class="pv-cifra font-semibold">
-                            {{ pres.precio | moneda: false }}
-                          </span>
-                          @if (pres.igvTasa === 0) {
-                            <span class="pv-exonerado">exon</span>
-                          }
-                        </button>
+                  <div class="min-w-0">
+                    <p class="truncate text-sm font-semibold">{{ producto.descripcion }}</p>
+                    <p class="text-tenue flex items-center gap-1.5 truncate text-xs">
+                      @if (producto.nota) {
+                        <span class="truncate">{{ sinReceta(producto.nota) }}</span>
                       }
-                    </div>
+                      @if (exigeReceta(producto)) {
+                        <span class="pv-receta">receta</span>
+                      }
+                      <span class="pv-cifra text-[11px] opacity-60">
+                        · {{ producto.codigoBarras }}
+                      </span>
+                    </p>
+                  </div>
+
+                  <!-- La presentación ES el precio: elegirla es la acción,
+                       no un paso previo. Por eso va en la fila y no en un
+                       diálogo aparte. -->
+                  <div class="flex flex-wrap justify-end gap-1.5">
+                    @for (pres of producto.presentaciones; track pres.id; let j = $index) {
+                      <button
+                        class="pv-pres"
+                        type="button"
+                        [class.pv-pres-activa]="i === fila() && j === presentacion()"
+                        (click)="agregar(producto, pres)"
+                        (mouseenter)="presentacion.set(j)"
+                      >
+                        <span>{{ pres.unidad.nombre }}</span>
+                        <span class="pv-cifra font-semibold">
+                          {{ pres.precio | moneda: false }}
+                        </span>
+                        @if (pres.igvTasa === 0) {
+                          <span class="pv-exonerado">exon</span>
+                        }
+                      </button>
+                    }
                   </div>
                 </div>
               </li>
