@@ -1,4 +1,5 @@
 import { catalogoRopa } from './catalogo-ropa'
+import { catalogoTecnologia } from './catalogo-tecnologia'
 import {
   IGV_GENERAL,
   type CampoFicha,
@@ -338,7 +339,9 @@ function guardarPropios(lista: ProductoRef[]): void {
  * prefijo del id de sucursal, que en el back real será el rubro.
  */
 function semillaDe(sucursalId: string): ProductoRef[] {
-  return sucursalId.includes('ropa') ? catalogoRopa() : semilla
+  if (sucursalId.includes('ropa')) return catalogoRopa()
+  if (sucursalId.includes('tecnologia')) return catalogoTecnologia()
+  return semilla
 }
 
 function catalogo(sucursalId = ''): ProductoRef[] {

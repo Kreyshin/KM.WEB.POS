@@ -22,6 +22,7 @@ const zonas = [
       './src/pos-adaptadores',
       './src/perfil-ropa',
       './src/perfil-farmacia',
+      './src/perfil-tecnologia',
       './src/shell',
     ],
     message:
@@ -30,25 +31,48 @@ const zonas = [
   // La UI del núcleo solo depende del núcleo.
   {
     target: './src/pos-core-ui',
-    from: ['./src/pos-adaptadores', './src/perfil-ropa', './src/perfil-farmacia', './src/shell'],
+    from: [
+      './src/pos-adaptadores',
+      './src/perfil-ropa',
+      './src/perfil-farmacia',
+      './src/perfil-tecnologia',
+      './src/shell',
+    ],
     message: 'pos-core-ui solo puede importar pos-core.',
   },
   // Los adaptadores implementan los puertos del núcleo y nada más.
   {
     target: './src/pos-adaptadores',
-    from: ['./src/perfil-ropa', './src/perfil-farmacia', './src/shell', './src/pos-core-ui'],
+    from: [
+      './src/perfil-ropa',
+      './src/perfil-farmacia',
+      './src/perfil-tecnologia',
+      './src/shell',
+      './src/pos-core-ui',
+    ],
     message: 'pos-adaptadores solo puede importar pos-core.',
   },
   // Un perfil no conoce a otro perfil, ni a los adaptadores, ni al shell.
   {
     target: './src/perfil-ropa',
-    from: ['./src/perfil-farmacia', './src/pos-adaptadores', './src/shell'],
+    from: [
+      './src/perfil-farmacia',
+      './src/perfil-tecnologia',
+      './src/pos-adaptadores',
+      './src/shell',
+    ],
     message:
       'Un perfil solo puede importar pos-core y pos-core-ui: nunca otro perfil, los adaptadores ni el shell.',
   },
   {
     target: './src/perfil-farmacia',
-    from: ['./src/perfil-ropa', './src/pos-adaptadores', './src/shell'],
+    from: ['./src/perfil-ropa', './src/perfil-tecnologia', './src/pos-adaptadores', './src/shell'],
+    message:
+      'Un perfil solo puede importar pos-core y pos-core-ui: nunca otro perfil, los adaptadores ni el shell.',
+  },
+  {
+    target: './src/perfil-tecnologia',
+    from: ['./src/perfil-ropa', './src/perfil-farmacia', './src/pos-adaptadores', './src/shell'],
     message:
       'Un perfil solo puede importar pos-core y pos-core-ui: nunca otro perfil, los adaptadores ni el shell.',
   },
@@ -113,8 +137,10 @@ export default tseslint.config(
               group: [
                 '@perfil-ropa',
                 '@perfil-farmacia',
+                '@perfil-tecnologia',
                 '**/perfil-ropa/**',
                 '**/perfil-farmacia/**',
+                '**/perfil-tecnologia/**',
               ],
               message:
                 'Los perfiles se cargan con import() diferido desde el registro del shell, nunca con un import estático.',

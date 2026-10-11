@@ -39,12 +39,18 @@ describe('sesión simulada', () => {
     await expect(puerto.iniciar('nadie', claveDemo)).rejects.toThrow()
   })
 
-  it('cubre los dos perfiles de la primera etapa en los usuarios de ejemplo', async () => {
+  /*
+   * Que la demo pueda recorrer TODOS los perfiles no es un detalle: un
+   * rubro sin usuario de ejemplo es un rubro que nadie prueba, ni quien
+   * lo compra ni quien lo mantiene. Esta prueba falla a propósito cuando
+   * entra un perfil nuevo y nadie le dio turno.
+   */
+  it('cada perfil registrado tiene al menos un usuario de ejemplo', async () => {
     const perfiles = new Set<string>()
     for (const usuario of usuariosDemo) {
       const sesion = await puerto.iniciar(usuario.usuario, claveDemo)
       perfiles.add(sesion.sucursal.perfil)
     }
-    expect([...perfiles].sort()).toEqual(['farmacia', 'ropa'])
+    expect([...perfiles].sort()).toEqual(['farmacia', 'ropa', 'tecnologia'])
   })
 })

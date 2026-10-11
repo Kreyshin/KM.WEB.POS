@@ -70,7 +70,7 @@ import { CamposLineaComponent } from '../perfiles/campos-linea.component'
             #campo
             class="pv-campo pr-16 text-base"
             type="search"
-            placeholder="Escanea un código, o escribe nombre, principio activo o laboratorio…"
+            placeholder="Escanea un código o escribe para buscar…"
             aria-label="Buscar producto"
             autocomplete="off"
             [ngModel]="texto()"

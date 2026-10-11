@@ -22,6 +22,7 @@
       "@pos-adaptadores/*": ["src/pos-adaptadores/*"],
       "@perfil-ropa": ["src/perfil-ropa/index.ts"],
       "@perfil-farmacia": ["src/perfil-farmacia/index.ts"],
+      "@perfil-tecnologia": ["src/perfil-tecnologia/index.ts"],
       "@shell/*": ["src/shell/*"]
     }
   },

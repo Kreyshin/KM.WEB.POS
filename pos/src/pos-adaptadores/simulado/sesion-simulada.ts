@@ -21,6 +21,11 @@ const CLAVE_DEMO = 'demo'
 const sucursales: Record<string, SucursalRef> = {
   'suc-lima-ropa': { id: 'suc-lima-ropa', nombre: 'Tienda Miraflores', perfil: 'ropa' },
   'suc-lima-farmacia': { id: 'suc-lima-farmacia', nombre: 'Botica San Isidro', perfil: 'farmacia' },
+  'suc-lima-tecnologia': {
+    id: 'suc-lima-tecnologia',
+    nombre: 'TecnoCentro Wilson',
+    perfil: 'tecnologia',
+  },
 }
 
 interface UsuarioDemo {
@@ -50,6 +55,11 @@ const usuarios: UsuarioDemo[] = [
     usuario: { id: 'u-3', nombre: 'Elena Mori', usuario: 'emori', rol: 'supervisor' },
     sucursalId: 'suc-lima-farmacia',
     pin: '3333',
+  },
+  {
+    usuario: { id: 'u-5', nombre: 'Diego Paredes', usuario: 'dparedes', rol: 'vendedor' },
+    sucursalId: 'suc-lima-tecnologia',
+    pin: '5555',
   },
   {
     usuario: { id: 'u-4', nombre: 'Karma Admin', usuario: 'admin', rol: 'administrador' },

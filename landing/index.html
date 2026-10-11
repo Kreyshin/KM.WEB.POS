@@ -274,6 +274,8 @@
         <thead>
           <tr>
             <th>Turno</th>
+            <th>Rubro</th>
+            <th>Sucursal</th>
             <th>Rol</th>
             <th>PIN</th>
             <th>Usuario</th>
@@ -282,24 +284,40 @@
         <tbody>
           <tr>
             <td>Rosa Quispe</td>
+            <td><strong>Ropa</strong></td>
+            <td>Tienda Miraflores</td>
             <td>Cajero</td>
             <td><code>1111</code></td>
             <td><code>rquispe</code></td>
           </tr>
           <tr>
             <td>Luis Tirado</td>
+            <td><strong>Ropa</strong></td>
+            <td>Tienda Miraflores</td>
             <td>Vendedor</td>
             <td><code>2222</code></td>
             <td><code>ltirado</code></td>
           </tr>
           <tr>
             <td>Elena Mori</td>
+            <td><strong>Farmacia</strong></td>
+            <td>Botica San Isidro</td>
             <td>Supervisor</td>
             <td><code>3333</code></td>
             <td><code>emori</code></td>
           </tr>
           <tr>
+            <td>Diego Paredes</td>
+            <td><strong>Tecnología</strong></td>
+            <td>TecnoCentro Wilson</td>
+            <td>Vendedor</td>
+            <td><code>5555</code></td>
+            <td><code>dparedes</code></td>
+          </tr>
+          <tr>
             <td>Karma Admin</td>
+            <td><strong>Farmacia</strong></td>
+            <td>Botica San Isidro</td>
             <td>Administrador</td>
             <td><code>4444</code></td>
             <td><code>admin</code></td>
@@ -310,6 +328,31 @@
         La clave de todos los usuarios es <code>demo</code>. Solo existen en la
         demo: fuera de ella no se construyen ni viajan en el paquete.
       </p>
+
+      <h3 style="margin-top: 1.5rem">Los dos rubros son pantallas distintas</h3>
+      <p style="color: var(--muted); font-size: 0.9375rem">
+        No es el mismo mostrador con otros productos: cada perfil trae su propia
+        forma de vender, y se carga solo al entrar.
+      </p>
+      <ul style="color: var(--muted); font-size: 0.9375rem; line-height: 1.7">
+        <li>
+          <strong>Entra con 1111 (ropa)</strong> y verás el perchero con la
+          matriz de talla y color: qué hay en tienda, qué está agotado y qué
+          combinaciones no se trabajan. Elige una celda y mira cómo la línea del
+          ticket queda como «Camisa Oxford · XL · Blanco».
+        </li>
+        <li>
+          <strong>Entra con 3333 (farmacia)</strong> y verás la rejilla con
+          filtros por laboratorio y condición de venta, la ficha del producto y
+          el fraccionamiento. Agrega la amoxicilina: al exigir receta, pide el
+          número antes de entrar al ticket.
+        </li>
+        <li>
+          <strong>Entra con 5555 (tecnología)</strong> y agrega el televisor:
+          pide el número de serie, porque la garantía va contra él. El cable
+          HDMI entra de un toque, sin preguntar nada.
+        </li>
+      </ul>
 
       <h2>Plan por hitos</h2>
       <table>

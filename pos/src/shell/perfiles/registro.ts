@@ -19,6 +19,7 @@ import type { CargadorPerfilAngular } from '@pos-core-ui/index'
 export const PERFILES: Record<string, CargadorPerfilAngular> = {
   farmacia: () => import('@perfil-farmacia').then((m) => m.perfilFarmacia),
   ropa: () => import('@perfil-ropa').then((m) => m.perfilRopa),
+  tecnologia: () => import('@perfil-tecnologia').then((m) => m.perfilTecnologia),
 }
 
 export function perfilRegistrado(codigo: string | null): boolean {

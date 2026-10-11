@@ -82,6 +82,7 @@ pos/src/
 │   └── http/           Implementaciones reales (hito 6)
 │   └── hoja/           Lectura y plantilla .xlsx del catálogo
 ├── perfil-ropa/        Matriz de talla y color, pantalla de venta propia
+├── perfil-tecnologia/  Serie e IMEI por ejemplar, sin pantalla propia
 ├── perfil-farmacia/    Marcas, reglas y atributos de botica
 ├── shell/              Layout, sesión, tema, guardas, pantallas comunes
 │   ├── perfiles/       Registro con import() diferido y PerfilService
