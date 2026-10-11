@@ -13,6 +13,7 @@ import { SesionStore } from '../sesion/sesion.store'
 import { TemaService } from '../tema/tema.service'
 import { LogoPosComponent } from '../marca/marca'
 import { ColumnaTicketComponent } from './columna-ticket.component'
+import { TicketService } from '@pos-core-ui/index'
 import { destinoDeRuta, destinoDeTecla, destinos } from './navegacion'
 
 /**
@@ -159,7 +160,25 @@ export class ShellLayout {
   private readonly sesion = inject(SesionStore)
 
   protected readonly tema = inject(TemaService)
+  private readonly ticket = inject(TicketService)
   protected readonly menuAbierto = signal(false)
+
+  constructor() {
+    /*
+     * El mostrador se abre aquí y no en el servicio porque el store necesita
+     * sucursal y perfil, que los trae la sesión; y `pos-core-ui` no puede
+     * importar el shell, que es donde vive la sesión. El shell, que conoce a
+     * los dos, hace de puente.
+     */
+    const sucursal = this.sesion.sucursal()
+    if (sucursal) {
+      this.ticket.abrir({
+        sucursalId: sucursal.id,
+        perfil: sucursal.perfil,
+        nuevoId: () => crypto.randomUUID(),
+      })
+    }
+  }
 
   protected readonly usuario = this.sesion.usuario
   protected readonly sucursal = this.sesion.sucursal
@@ -214,6 +233,9 @@ export class ShellLayout {
 
   protected async salir(): Promise<void> {
     this.menuAbierto.set(false)
+    // Un ticket a medias no sobrevive al cambio de turno: lo que vendió el
+    // cajero anterior no puede acabar cobrado a nombre del siguiente.
+    this.ticket.cerrar()
     await this.sesion.cerrar()
     await this.router.navigate(['/acceso'])
   }

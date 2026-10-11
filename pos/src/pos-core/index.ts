@@ -8,4 +8,5 @@
  */
 export * from './modelo'
 export * from './puertos'
+export * from './estado/store-ticket'
 export * from './perfil'

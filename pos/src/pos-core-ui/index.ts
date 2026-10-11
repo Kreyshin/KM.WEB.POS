@@ -1,2 +1,5 @@
 export * from './perfil/perfil-angular'
 export * from './puertos/tokens'
+export * from './estado/ticket.service'
+export * from './ui/moneda.pipe'
+export * from './ui/carrito.component'

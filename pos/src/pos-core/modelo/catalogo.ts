@@ -1,9 +1,13 @@
 /** Referencias de catálogo que viajan entre el buscador de un perfil y el carrito. */
+import type { PresentacionVenta, UnidadMedida } from './unidades'
 
 export interface ProductoRef {
   id: string
   descripcion: string
-  precio: number
+  /** En la que el almacén lleva la cuenta. Las ventas se convierten a ella. */
+  unidadAlmacen: UnidadMedida
+  /** Al menos una. La primera es la que se ofrece por defecto. */
+  presentaciones: PresentacionVenta[]
   codigoBarras?: string
 }
 

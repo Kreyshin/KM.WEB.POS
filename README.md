@@ -68,14 +68,15 @@ y nunca al revés.
 ```
 pos/src/
 ├── pos-core/           TypeScript PURO, sin framework
-│   ├── modelo/         Ticket, LineaTicket, CuentaPorCobrar
+│   ├── modelo/         Ticket, línea, unidades, totales con IGV
 │   ├── puertos/        Interfaces hacia el back y hacia el cobro
 │   ├── perfil/         Contrato PerfilRubro
-│   └── estado/         Store del ticket en curso (hito 2)
+│   └── estado/         Store del ticket: las cinco operaciones
 ├── pos-core-ui/        La capa Angular del núcleo
 │   ├── perfil/         PerfilRubroAngular: aquí la pantalla pasa a ser Type<unknown>
 │   ├── puertos/        Tokens de inyección de los puertos
-│   └── ui/             Carrito, totales, zona de cobro (hito 2)
+│   ├── estado/         El store envuelto en señales
+│   └── ui/             Carrito y formato de moneda
 ├── pos-adaptadores/
 │   ├── simulado/       Implementaciones en memoria
 │   └── http/           Implementaciones reales (hito 6)
@@ -111,6 +112,41 @@ rm src/pos-core/_prueba.ts
 
 Los perfiles se cargan solo con `import()` diferido, desde
 `src/shell/perfiles/registro.ts`, que es el único archivo exento de esa regla.
+
+## Unidades de medida
+
+Un producto se compra, se guarda y se vende en unidades distintas: una botica
+compra una caja de 100 blísteres, la guarda por blíster y vende la tableta
+suelta.
+
+La unidad vive en el **núcleo**, no en `atributos`. `atributos` es para lo que
+el núcleo debe guardar sin entender; la unidad tiene que entenderla, porque de
+ella dependen el total que se cobra y las unidades que se descuentan del stock.
+Y no es de un rubro: una ferretería vende por metro y por rollo, una bodega por
+caja y por unidad. La ropa, donde las tres coinciden, es la excepción.
+
+El mostrador solo usa dos de las tres: la de **venta**, en la que se cobra, y la
+de **almacén**, en la que se descuenta. La de compra es del módulo de almacén
+del ERP, que es quien recibe la mercadería.
+
+## Totales: el IGV va incluido, no se suma
+
+En el comercio minorista peruano el precio de la etiqueta ya incluye el IGV: lo
+que el cliente ve es lo que paga. Así que el impuesto **se extrae del total**,
+no se añade:
+
+```
+bruto − descuento = total
+total = valorVenta + igv
+```
+
+No vale `subtotal + impuesto = total`. Esa fórmula habría cobrado un 18 % de
+más. Cada línea lleva su propia tasa, porque hay medicamentos exonerados
+—oncológicos, diabetes, VIH— y una boleta que los grave está mal emitida.
+
+El descuento de ticket se reparte entre las líneas en proporción a su importe,
+y no se resta al final en bloque: con tasas distintas por línea, restarlo en
+bloque desglosa mal el impuesto.
 
 ## Reglas que no se rompen
 

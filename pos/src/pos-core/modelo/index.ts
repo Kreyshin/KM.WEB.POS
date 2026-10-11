@@ -1,3 +1,5 @@
+export * from './unidades'
 export * from './ticket'
+export * from './totales'
 export * from './cuenta-por-cobrar'
 export * from './catalogo'

@@ -1077,3 +1077,48 @@ body {
     animation: none;
   }
 }
+
+/* Botón de paso del carrito: sumar, restar y quitar una línea.
+ * Redondo y de 30 px: se pulsa muchas veces seguidas y con prisa. */
+.pv-paso {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.875rem;
+  height: 1.875rem;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, currentColor 24%, transparent);
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+  transition:
+    background-color var(--pv-rapido) var(--pv-suave),
+    transform var(--pv-rapido) var(--pv-rebote);
+}
+
+.pv-paso:hover:not(:disabled) {
+  background-color: color-mix(in srgb, currentColor 12%, transparent);
+}
+
+.pv-paso:active:not(:disabled) {
+  transform: scale(0.9);
+}
+
+.pv-paso:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.pv-paso-quitar:hover:not(:disabled) {
+  background-color: color-mix(in srgb, var(--pv-rojo) 22%, transparent);
+  border-color: color-mix(in srgb, var(--pv-rojo) 50%, transparent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pv-paso {
+    transition: none;
+  }
+  .pv-paso:active:not(:disabled) {
+    transform: none;
+  }
+}
