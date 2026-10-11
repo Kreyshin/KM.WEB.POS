@@ -28,9 +28,21 @@ npm install
 npm run dev       # http://localhost:4200
 ```
 
-El acceso es un pad numérico: se elige el turno y se marca el PIN (`1111` a
-`4444` en la demo). Debajo, plegado, hay entrada por **usuario y clave**
-(`rquispe`, `ltirado`, `emori`, `admin`; clave `demo`).
+El acceso es un pad numérico: se elige el turno y se marca su PIN. La otra vía
+es **usuario y clave**, y se conmuta con ella, no se despliega debajo.
+
+La pantalla **no enseña las credenciales**: un login que publica las claves
+junto al nombre enseña a operar mal y queda impresentable delante de un
+cliente. Las de la demo son:
+
+| Turno       | Rol           | PIN    | Usuario   |
+| ----------- | ------------- | ------ | --------- |
+| Rosa Quispe | Cajero        | `1111` | `rquispe` |
+| Luis Tirado | Vendedor      | `2222` | `ltirado` |
+| Elena Mori  | Supervisor    | `3333` | `emori`   |
+| Karma Admin | Administrador | `4444` | `admin`   |
+
+La clave de todos es `demo`.
 
 No hay campo de correo en ninguna parte, y no debe haberlo: en un mostrador el
 cajero no tiene cuenta de correo de la empresa, y escribir una dirección con el

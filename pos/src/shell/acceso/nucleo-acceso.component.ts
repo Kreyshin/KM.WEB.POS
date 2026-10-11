@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@a
 import { Router } from '@angular/router'
 import { SesionStore } from '../sesion/sesion.store'
 import { FormularioAccesoComponent } from './formulario-acceso.component'
-import { AtajosDemoComponent, type TurnoDemo } from './atajos-demo.component'
+import { TurnosComponent } from './turnos.component'
 
 /**
  * El acceso, sin escenografía.
@@ -26,7 +26,7 @@ type Modo = 'pin' | 'clave'
 
 @Component({
   selector: 'km-nucleo-acceso',
-  imports: [FormularioAccesoComponent, AtajosDemoComponent],
+  imports: [FormularioAccesoComponent, TurnosComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { '(document:keydown)': 'tecla($event)' },
   template: `
@@ -37,7 +37,7 @@ type Modo = 'pin' | 'clave'
           <div class="overflow-hidden">
             @defer (when demo) {
               <div class="mb-5">
-                <km-atajos-demo [elegido]="turno()" (elegir)="elegirTurno($event)" />
+                <km-turnos [elegido]="turno()" (elegir)="elegirTurno($event)" />
               </div>
             }
 
@@ -170,8 +170,8 @@ export class NucleoAccesoComponent {
     this.sesion.limpiarError()
   }
 
-  protected elegirTurno(turno: TurnoDemo): void {
-    this.turno.set(turno.usuario)
+  protected elegirTurno(usuario: string): void {
+    this.turno.set(usuario)
     this.pin.set('')
   }
 

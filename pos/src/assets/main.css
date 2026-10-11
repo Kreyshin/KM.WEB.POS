@@ -788,7 +788,7 @@ body {
   transform: rotate(180deg);
 }
 
-/* Turno elegido en los atajos. */
+/* Turno elegido en la lista. */
 .pv-turno-elegido {
   background-color: color-mix(in srgb, var(--pv-bronce-500) 16%, var(--pv-surface));
   border-color: color-mix(in srgb, var(--pv-bronce-500) 55%, var(--pv-border));
