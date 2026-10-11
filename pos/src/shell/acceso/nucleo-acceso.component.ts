@@ -45,14 +45,20 @@ type Modo = 'pin' | 'clave'
               class="mb-4 flex min-h-toque items-center justify-center gap-2.5 rounded-control border border-linea bg-panel-2"
               [class.pv-sacude]="sacude()"
               role="status"
-              [attr.aria-label]="'Dígitos marcados: ' + marcados()"
+              [attr.aria-label]="
+                turno() ? 'Dígitos marcados: ' + marcados() : 'Elige un turno antes de marcar'
+              "
             >
-              @for (punto of ranura; track $index) {
-                <span
-                  class="pv-punto"
-                  [class.pv-punto-lleno]="$index < marcados()"
-                  aria-hidden="true"
-                ></span>
+              @if (turno()) {
+                @for (punto of ranura; track $index) {
+                  <span
+                    class="pv-punto"
+                    [class.pv-punto-lleno]="$index < marcados()"
+                    aria-hidden="true"
+                  ></span>
+                }
+              } @else {
+                <span class="text-tenue text-sm">Elige tu turno</span>
               }
             </div>
 
@@ -61,7 +67,7 @@ type Modo = 'pin' | 'clave'
                 <button
                   class="pv-tecla-pad pv-cifra"
                   type="button"
-                  [disabled]="sesion.cargando()"
+                  [disabled]="!listoParaMarcar()"
                   (click)="marcar(tecla)"
                 >
                   {{ tecla }}
@@ -78,7 +84,7 @@ type Modo = 'pin' | 'clave'
               <button
                 class="pv-tecla-pad pv-cifra"
                 type="button"
-                [disabled]="sesion.cargando()"
+                [disabled]="!listoParaMarcar()"
                 (click)="marcar('0')"
               >
                 0
@@ -135,14 +141,27 @@ export class NucleoAccesoComponent {
   protected readonly teclas = ['1', '2', '3', '4', '5', '6', '7', '8', '9']
   protected readonly ranura = Array.from({ length: LARGO_PIN })
 
-  /** Pública para que la escena ajuste el encabezado de la comanda. */
-  readonly modo = signal<Modo>('pin')
+  /**
+   * Vía activa. Pública para que la escena ajuste el encabezado.
+   *
+   * Arranca en el pad solo si hay turnos que elegir. Hoy la lista viene de
+   * los usuarios de ejemplo, así que fuera de la demo no hay ninguno y el pad
+   * sería un callejón sin salida: se marcarían cuatro dígitos sin que exista
+   * un turno al que asociarlos. En el hito 6, cuando los turnos vengan de un
+   * puerto, esta condición pasa a ser «¿devolvió turnos la sucursal?».
+   */
+  readonly modo = signal<Modo>(KM_DEMO ? 'pin' : 'clave')
   readonly turno = signal<string | null>(null)
   readonly pin = signal('')
   /** Sacudida del visor cuando la clave no entra. Se apaga sola. */
   protected readonly sacude = signal(false)
 
   readonly marcados = computed(() => this.pin().length)
+
+  /** El pad solo acepta dígitos cuando hay a quién atribuirlos. */
+  protected readonly listoParaMarcar = computed(
+    () => this.turno() !== null && !this.sesion.cargando(),
+  )
 
   protected conmutar(): void {
     this.modo.update((actual) => (actual === 'pin' ? 'clave' : 'pin'))
@@ -157,7 +176,7 @@ export class NucleoAccesoComponent {
   }
 
   protected marcar(digito: string): void {
-    if (this.marcados() >= LARGO_PIN) return
+    if (!this.listoParaMarcar() || this.marcados() >= LARGO_PIN) return
     this.pin.update((actual) => actual + digito)
     // Con el PIN completo se entra solo: en una caja nadie pulsa «Entrar»
     // después de marcar cuatro dígitos.
@@ -170,7 +189,14 @@ export class NucleoAccesoComponent {
 
   protected async entrar(): Promise<void> {
     const usuario = this.turno()
-    if (!usuario || this.marcados() === 0) return
+    if (!usuario) {
+      // Defensivo: con el pad inhabilitado no debería llegarse aquí, pero
+      // callar sería peor que avisar. Antes esto era un `return` mudo y
+      // dejaba la pantalla sin responder ni explicar por qué.
+      this.sesion.fijarError('Elige tu turno antes de marcar la clave.')
+      return
+    }
+    if (this.marcados() === 0) return
 
     const ok = await this.sesion.iniciar(usuario, this.pin())
     if (ok) {

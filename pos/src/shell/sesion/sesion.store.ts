@@ -45,6 +45,11 @@ export class SesionStore {
     return actual !== null && roles.includes(actual)
   }
 
+  /** Muestra un error que no viene del puerto, sino de la propia pantalla. */
+  fijarError(mensaje: string): void {
+    this._error.set(mensaje)
+  }
+
   /** Borra el último error. Lo usa el acceso al cambiar de vía de entrada. */
   limpiarError(): void {
     this._error.set(null)
