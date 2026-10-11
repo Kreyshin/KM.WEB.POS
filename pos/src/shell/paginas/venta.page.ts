@@ -8,15 +8,18 @@ import {
 } from '@angular/core'
 import { FormsModule } from '@angular/forms'
 import type { ElementRef } from '@angular/core'
+import { cuantosFiltros } from '@pos-core/index'
 import type {
   CampoLinea,
   Faceta,
+  FiltrosCatalogo,
   GrupoCategoria,
   OrdenCatalogo,
   PresentacionVenta,
   ProductoRef,
 } from '@pos-core/index'
 import {
+  FiltrosComponent,
   IconoProductoComponent,
   MonedaPipe,
   PUERTO_CATALOGO,
@@ -56,6 +59,7 @@ import { CamposLineaComponent } from '../perfiles/campos-linea.component'
     FormsModule,
     MonedaPipe,
     IconoProductoComponent,
+    FiltrosComponent,
     FichaProductoComponent,
     CamposLineaComponent,
   ],
@@ -85,13 +89,13 @@ import { CamposLineaComponent } from '../perfiles/campos-linea.component'
         <button
           class="pv-boton pv-boton-tenue"
           type="button"
-          [class.pv-boton-marcado]="filtrosAbiertos() || cuantosFiltros() > 0"
+          [class.pv-boton-marcado]="filtrosAbiertos() || cuantos() > 0"
           [attr.aria-expanded]="filtrosAbiertos()"
           (click)="filtrosAbiertos.set(!filtrosAbiertos())"
         >
           Filtros
-          @if (cuantosFiltros() > 0) {
-            <span class="pv-chip-cuenta">{{ cuantosFiltros() }}</span>
+          @if (cuantos() > 0) {
+            <span class="pv-chip-cuenta">{{ cuantos() }}</span>
           }
         </button>
 
@@ -122,52 +126,17 @@ import { CamposLineaComponent } from '../perfiles/campos-linea.component'
         }
       </div>
 
-      <!-- Filtros avanzados. Plegados por defecto: el 90 % de las ventas es
-           escanear, y una barra permanente robaría dos filas de catálogo. -->
-      @if (filtrosAbiertos()) {
-        <div class="pv-filtros pv-entra">
-          @for (faceta of facetas(); track faceta.clave) {
-            <div class="pv-filtro">
-              <p class="pv-etiqueta text-tenue mb-1.5">{{ faceta.etiqueta }}</p>
-              <div class="flex flex-wrap gap-1">
-                @for (opcion of faceta.opciones; track opcion.valor) {
-                  <button
-                    class="pv-filtro-opcion"
-                    type="button"
-                    [class.pv-filtro-marcada]="filtros()[faceta.clave] === opcion.valor"
-                    (click)="alternar(faceta.clave, opcion.valor)"
-                  >
-                    {{ opcion.etiqueta }}
-                    <span class="opacity-50">{{ opcion.cuantos }}</span>
-                  </button>
-                }
-              </div>
-            </div>
-          }
-
-          <div class="pv-filtro">
-            <p class="pv-etiqueta text-tenue mb-1.5">Ordenar por</p>
-            <div class="flex flex-wrap gap-1">
-              @for (opcion of ordenes; track opcion.valor) {
-                <button
-                  class="pv-filtro-opcion"
-                  type="button"
-                  [class.pv-filtro-marcada]="orden() === opcion.valor"
-                  (click)="ordenarPor(opcion.valor)"
-                >
-                  {{ opcion.etiqueta }}
-                </button>
-              }
-            </div>
-          </div>
-
-          @if (cuantosFiltros() > 0) {
-            <button class="pv-limpiar" type="button" (click)="limpiarFiltros()">
-              Quitar los {{ cuantosFiltros() }} filtros
-            </button>
-          }
-        </div>
-      }
+      <!--
+        Los filtros son una pieza del kit, no de esta pantalla: la de ropa
+        necesita los mismos y antes se quedó con un campo de texto. Lo puesto
+        se enseña SIEMPRE, encima del panel; el panel se pliega.
+      -->
+      <km-filtros
+        [facetas]="facetas()"
+        [(filtros)]="filtros"
+        [(abierto)]="filtrosAbiertos"
+        (cambio)="refiltrar()"
+      />
 
       <!-- Rejilla -->
       <div class="pv-panel flex min-h-0 flex-1 flex-col overflow-hidden">
@@ -183,11 +152,30 @@ import { CamposLineaComponent } from '../perfiles/campos-linea.component'
             }
           </div>
         } @else {
-          <div class="flex shrink-0 items-baseline justify-between border-b border-linea px-4 py-2">
+          <div
+            class="flex shrink-0 items-center justify-between gap-3 border-b border-linea px-4 py-2"
+          >
             <p class="pv-etiqueta text-tenue">
-              {{ texto() || cuantosFiltros() ? 'Resultados' : 'Frecuentes' }}
+              {{ texto() || cuantos() ? 'Resultados' : 'Frecuentes' }}
+              <span class="pv-cifra ml-1 font-normal opacity-60">{{ resultados().length }}</span>
             </p>
-            <p class="text-tenue text-[11px]">{{ resultados().length }} productos</p>
+
+            <!-- El orden va aquí y no dentro del panel de filtros: ordenar no
+                 es filtrar —no quita nada de la pantalla— y se cambia mirando
+                 la lista que ordena, no un panel aparte. -->
+            <div class="flex shrink-0 items-center gap-1">
+              @for (opcion of ordenes; track opcion.valor) {
+                <button
+                  class="pv-orden"
+                  type="button"
+                  [class.pv-orden-activo]="orden() === opcion.valor"
+                  [attr.aria-pressed]="orden() === opcion.valor"
+                  (click)="ordenarPor(opcion.valor)"
+                >
+                  {{ opcion.etiqueta }}
+                </button>
+              }
+            </div>
           </div>
 
           <ul class="pv-rejilla" role="listbox" aria-label="Productos">
@@ -316,7 +304,7 @@ export class VentaPage {
 
   protected readonly texto = signal('')
   protected readonly categoria = signal<string | null>(null)
-  protected readonly filtros = signal<Record<string, string>>({})
+  protected readonly filtros = signal<FiltrosCatalogo>({})
   protected readonly orden = signal<OrdenCatalogo>('relevancia')
   protected readonly filtrosAbiertos = signal(false)
   protected readonly resultados = signal<ProductoRef[]>([])
@@ -333,7 +321,7 @@ export class VentaPage {
   protected readonly fila = signal(0)
   protected readonly presentacion = signal(0)
 
-  protected readonly cuantosFiltros = computed(() => Object.keys(this.filtros()).length)
+  protected readonly cuantos = computed(() => cuantosFiltros(this.filtros()))
   private readonly activo = computed(() => this.resultados()[this.fila()] ?? null)
 
   /** Marca la búsqueda en curso: si llega tarde, su respuesta se descarta. */
@@ -349,14 +337,8 @@ export class VentaPage {
 
   private async arrancar(): Promise<void> {
     const sucursalId = this.sesion.sucursal()?.id ?? ''
-    const [categorias, facetas] = await Promise.all([
-      this.catalogo.categorias(sucursalId),
-      this.catalogo.facetas(sucursalId),
-    ])
-    this.categorias.set(categorias)
-    // La categoría ya tiene su fila de pastillas: repetirla como faceta
-    // sería dos mandos para lo mismo.
-    this.facetas.set(facetas.filter((faceta) => faceta.clave !== 'categoria'))
+    this.categorias.set(await this.catalogo.categorias(sucursalId))
+    // Las facetas las trae `buscar`, que es quien conoce el contexto.
     await this.buscar('')
   }
 
@@ -366,19 +348,28 @@ export class VentaPage {
     this.buscando.set(true)
 
     const sucursalId = this.sesion.sucursal()?.id ?? ''
-    const hallados = await this.catalogo.buscar({
+    const contexto = {
       texto,
-      sucursalId,
       categoria: this.categoria() ?? undefined,
       filtros: this.filtros(),
-      orden: this.orden(),
-      limite: 24,
-    })
+    }
+
+    // Las facetas se vuelven a contar con CADA búsqueda, no una vez al
+    // arrancar. Una cuenta fija sobre el catálogo entero prometía «Genfar 4»
+    // con «metformina» escrito, y al pulsar dejaba la pantalla vacía: el
+    // número estorbaba más que no poner número.
+    const [hallados, facetas] = await Promise.all([
+      this.catalogo.buscar({ ...contexto, sucursalId, orden: this.orden(), limite: 24 }),
+      this.catalogo.facetas(sucursalId, contexto),
+    ])
 
     // Escribir rápido lanza varias búsquedas y no llegan en orden: sin esto,
     // una respuesta lenta de «para» pisaría la de «paracetamol».
     if (mia !== this.ultimaBusqueda) return
 
+    // La categoría ya tiene su fila de pastillas: repetirla como faceta
+    // sería dos mandos para lo mismo.
+    this.facetas.set(facetas.filter((faceta) => faceta.clave !== 'categoria'))
     this.resultados.set(hallados)
     this.fila.set(0)
     this.presentacion.set(0)
@@ -397,14 +388,8 @@ export class VentaPage {
     void this.buscar(this.texto())
   }
 
-  /** Un segundo toque en la misma opción la quita: es un filtro, no un radio. */
-  protected alternar(clave: string, valor: string): void {
-    this.filtros.update((actuales) => {
-      const siguiente = { ...actuales }
-      if (siguiente[clave] === valor) delete siguiente[clave]
-      else siguiente[clave] = valor
-      return siguiente
-    })
+  /** El componente de filtros ya cambió el estado; aquí solo se re-busca. */
+  protected refiltrar(): void {
     void this.buscar(this.texto())
   }
 

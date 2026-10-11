@@ -36,8 +36,19 @@ export interface PuertoCatalogo {
    * las categorías de la demo el día que entre el back de verdad.
    */
   categorias(sucursalId: string): Promise<readonly GrupoCategoria[]>
-  /** Los filtros avanzados que el catálogo publica. */
-  facetas(sucursalId: string): Promise<readonly Faceta[]>
+  /**
+   * Los filtros avanzados que el catálogo publica, contados contra la
+   * búsqueda que hay puesta.
+   *
+   * La consulta llega porque una cuenta que no mira los demás filtros
+   * miente: promete «Portugal 1» y al pulsar deja la pantalla vacía. Es
+   * opcional para que un catálogo que no sepa contar en contexto siga
+   * cumpliendo el puerto.
+   */
+  facetas(
+    sucursalId: string,
+    consulta?: Pick<ConsultaCatalogo, 'texto' | 'filtros' | 'categoria'>,
+  ): Promise<readonly Faceta[]>
 }
 
 export interface GrupoCategoria {

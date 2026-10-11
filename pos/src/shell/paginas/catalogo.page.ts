@@ -216,8 +216,8 @@ export class CatalogoPage {
   }
 
   private async cargar(): Promise<void> {
-    const filtros: Record<string, string> = {}
-    if (this.estado()) filtros['disponibilidad'] = this.estado()
+    const filtros: Record<string, readonly string[]> = {}
+    if (this.estado()) filtros['disponibilidad'] = [this.estado()]
     this.productos.set(
       await this.catalogo.buscar({
         texto: this.texto(),

@@ -1,4 +1,5 @@
 /** Referencias de catálogo que viajan entre el buscador de un perfil y el carrito. */
+import type { FiltrosCatalogo } from './filtros'
 import type { PresentacionVenta, UnidadMedida } from './unidades'
 
 export interface ProductoRef {
@@ -175,6 +176,16 @@ export interface CampoFicha {
   etiqueta: string
   valor: string
   destacado?: boolean
+  /**
+   * Además de contarse, este dato FILTRA.
+   *
+   * Lo marca el catálogo porque solo él sabe cuáles de sus datos son
+   * vocabulario cerrado. «Marca: Hisense» agrupa productos y es una faceta
+   * excelente; «Composición: 95 % algodón, 5 % elastano» es prosa, y como
+   * faceta daría una pastilla por producto, que es ruido con forma de
+   * filtro.
+   */
+  faceta?: boolean
 }
 
 export interface CategoriaRef {
@@ -199,33 +210,16 @@ export interface ConsultaCatalogo {
    * «condición de venta». Las claves salen de las facetas que publica el
    * propio catálogo, así que un rubro puede filtrar por talla y otro por
    * laboratorio sin tocar este contrato ni la pantalla.
+   *
+   * Varios valores por clave: O dentro de una faceta, Y entre facetas.
    */
-  filtros?: Readonly<Record<string, string>>
+  filtros?: FiltrosCatalogo
   orden?: OrdenCatalogo
   sucursalId: string
   limite?: number
 }
 
 export type OrdenCatalogo = 'relevancia' | 'nombre' | 'precio-asc' | 'precio-desc'
-
-/**
- * Un filtro que el catálogo publica para que la pantalla lo dibuje.
- *
- * La pantalla de venta pinta las facetas que reciba, con sus cuentas, sin
- * conocer ninguna. Es lo que permite tener filtros de verdad sin meter
- * farmacia en el shell.
- */
-export interface Faceta {
-  clave: string
-  etiqueta: string
-  opciones: readonly OpcionFaceta[]
-}
-
-export interface OpcionFaceta {
-  valor: string
-  etiqueta: string
-  cuantos: number
-}
 
 export interface ContextoPrecio {
   sucursalId: string

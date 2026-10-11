@@ -8,9 +8,10 @@ import {
 } from '@angular/core'
 import { FormsModule } from '@angular/forms'
 import type { ElementRef } from '@angular/core'
-import type { ProductoRef } from '@pos-core/index'
+import type { Faceta, FiltrosCatalogo, ProductoRef } from '@pos-core/index'
 import {
   ContextoVenta,
+  FiltrosComponent,
   IconoProductoComponent,
   MonedaPipe,
   PUERTO_CATALOGO,
@@ -31,14 +32,23 @@ import { MatrizVariantesComponent, type EleccionVariante } from './matriz.compon
  * derecha, siempre visible. El vendedor contesta «en M solo queda blanca»
  * mirando, sin tocar nada.
  *
- * Y de ahí lo que NO tiene: ni filtros avanzados plegados ni ficha en un
- * diálogo aparte. La composición y los cuidados van bajo la matriz,
- * porque en ropa esa pregunta se hace en el 100 % de las ventas y
- * esconderla tras un botón es hacerla cara.
+ * Y de ahí la forma de los filtros: ABIERTOS, no tras un botón. La talla y
+ * el color no son un refinamiento de la búsqueda, son la búsqueda, y el
+ * panel plegado de la pantalla genérica aquí sería esconder la pantalla.
+ *
+ * Lo que NO tiene es ficha en un diálogo aparte. La composición y los
+ * cuidados van bajo la matriz, porque en ropa esa pregunta se hace en el
+ * 100 % de las ventas y esconderla tras un botón es hacerla cara.
  */
 @Component({
   selector: 'km-venta-ropa-page',
-  imports: [FormsModule, MonedaPipe, IconoProductoComponent, MatrizVariantesComponent],
+  imports: [
+    FormsModule,
+    MonedaPipe,
+    IconoProductoComponent,
+    FiltrosComponent,
+    MatrizVariantesComponent,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { '(document:keydown)': 'atajo($event)' },
   template: `
@@ -58,6 +68,23 @@ import { MatrizVariantesComponent, type EleccionVariante } from './matriz.compon
           />
           <kbd class="pv-kbd absolute top-1/2 right-3 -translate-y-1/2" aria-hidden="true">/</kbd>
         </div>
+
+        <!--
+          Los filtros van ABIERTOS, no plegados, y es la diferencia con la
+          pantalla genérica. En una botica el 90 % es escanear y el panel
+          estorba; aquí la pregunta del cliente ES el filtro —«¿hay en M?»,
+          «¿lo tienen en negro?»—, así que esconderlo tras un botón sería
+          esconder la pantalla.
+
+          Antes esta pantalla no tenía ninguno: solo un campo de texto, y
+          buscar «M» en una tienda de ropa no encuentra nada.
+        -->
+        <km-filtros
+          [facetas]="facetas()"
+          [(filtros)]="filtros"
+          [plegable]="false"
+          (cambio)="refiltrar()"
+        />
 
         <div class="pv-panel flex min-h-0 flex-1 flex-col overflow-hidden">
           @if (resultados().length === 0) {
@@ -165,6 +192,8 @@ export class VentaRopaPage {
   private readonly campo = viewChild<ElementRef<HTMLInputElement>>('campo')
 
   protected readonly texto = signal('')
+  protected readonly filtros = signal<FiltrosCatalogo>({})
+  protected readonly facetas = signal<readonly Faceta[]>([])
   protected readonly resultados = signal<ProductoRef[]>([])
   protected readonly buscando = signal(false)
   protected readonly elegido = signal<ProductoRef | null>(null)
@@ -182,19 +211,25 @@ export class VentaRopaPage {
     const mia = ++this.ultimaBusqueda
     this.buscando.set(true)
 
-    const hallados = await this.catalogo.buscar({
-      texto,
-      sucursalId: this.contexto.sucursalId(),
-      limite: 40,
-    })
+    const sucursalId = this.contexto.sucursalId()
+    const contexto = { texto, filtros: this.filtros() }
+    const [hallados, facetas] = await Promise.all([
+      this.catalogo.buscar({ ...contexto, sucursalId, limite: 40 }),
+      this.catalogo.facetas(sucursalId, contexto),
+    ])
     if (mia !== this.ultimaBusqueda) return
 
+    this.facetas.set(facetas)
     this.resultados.set(hallados)
     this.buscando.set(false)
 
     // La primera prenda queda elegida: con la matriz vacía la mitad
     // derecha no dice nada, y en una tienda eso es media pantalla muerta.
     this.elegido.set(hallados[0] ?? null)
+  }
+
+  protected refiltrar(): void {
+    void this.buscar(this.texto())
   }
 
   protected abrir(producto: ProductoRef): void {

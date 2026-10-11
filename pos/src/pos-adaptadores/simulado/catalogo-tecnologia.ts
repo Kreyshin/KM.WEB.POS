@@ -36,9 +36,9 @@ const productos: ProductoRef[] = [
       { codigo: 'HS55-2402-01155', cantidad: 1 },
     ],
     ficha: [
-      { etiqueta: 'Marca', valor: 'Hisense', destacado: true },
+      { etiqueta: 'Marca', valor: 'Hisense', destacado: true, faceta: true },
       { etiqueta: 'Pantalla', valor: '55" 4K UHD', destacado: true },
-      { etiqueta: 'Garantía', valor: '12 meses de fábrica' },
+      { etiqueta: 'Garantía', valor: '12 meses', faceta: true },
       { etiqueta: 'Incluye', valor: 'Control remoto, base y cable de poder' },
     ],
   },
@@ -68,9 +68,9 @@ const productos: ProductoRef[] = [
       { codigo: '356938035690120', cantidad: 1, varianteId: 't2-azul' },
     ],
     ficha: [
-      { etiqueta: 'Marca', valor: 'Motorola', destacado: true },
+      { etiqueta: 'Marca', valor: 'Motorola', destacado: true, faceta: true },
       { etiqueta: 'Memoria', valor: '128 GB / 6 GB RAM', destacado: true },
-      { etiqueta: 'Garantía', valor: '12 meses' },
+      { etiqueta: 'Garantía', valor: '12 meses', faceta: true },
     ],
   },
   {
@@ -90,9 +90,9 @@ const productos: ProductoRef[] = [
       { codigo: 'LNV-82X3-01287', cantidad: 1 },
     ],
     ficha: [
-      { etiqueta: 'Marca', valor: 'Lenovo', destacado: true },
+      { etiqueta: 'Marca', valor: 'Lenovo', destacado: true, faceta: true },
       { etiqueta: 'Procesador', valor: 'Core i5 de 12.ª gen.', destacado: true },
-      { etiqueta: 'Garantía', valor: '12 meses' },
+      { etiqueta: 'Garantía', valor: '12 meses', faceta: true },
     ],
   },
   {
@@ -108,7 +108,11 @@ const productos: ProductoRef[] = [
     presentaciones: [
       { id: 't4-und', unidad: UND, factorAlmacen: 1, precio: 29, igvTasa: IGV_GENERAL },
     ],
-    ficha: [{ etiqueta: 'Versión', valor: 'HDMI 2.1', destacado: true }],
+    ficha: [
+      { etiqueta: 'Marca', valor: 'Genérico', destacado: true, faceta: true },
+      { etiqueta: 'Versión', valor: 'HDMI 2.1', destacado: true },
+      { etiqueta: 'Garantía', valor: '3 meses', faceta: true },
+    ],
   },
   {
     id: 't-mouse',
@@ -121,7 +125,93 @@ const productos: ProductoRef[] = [
     presentaciones: [
       { id: 't5-und', unidad: UND, factorAlmacen: 1, precio: 59, igvTasa: IGV_GENERAL },
     ],
-    ficha: [{ etiqueta: 'Conexión', valor: 'USB 2.4 GHz', destacado: true }],
+    ficha: [
+      { etiqueta: 'Marca', valor: 'Logitech', destacado: true, faceta: true },
+      { etiqueta: 'Conexión', valor: 'USB 2.4 GHz', destacado: true },
+      { etiqueta: 'Garantía', valor: '12 meses', faceta: true },
+    ],
+  },
+  {
+    id: 't-monitor-24',
+    categoria: { codigo: 'COMPU', nombre: 'Cómputo' },
+    icono: 'caja',
+    descripcion: 'Monitor 24" IPS 100 Hz',
+    codigoBarras: '7752000100066',
+    unidadAlmacen: UND,
+    stock: 6,
+    presentaciones: [
+      { id: 't6-und', unidad: UND, factorAlmacen: 1, precio: 549, igvTasa: IGV_GENERAL },
+    ],
+    ejemplares: [
+      { codigo: 'LNV-M24-07741', cantidad: 1 },
+      { codigo: 'LNV-M24-07742', cantidad: 1 },
+      { codigo: 'LNV-M24-07758', cantidad: 1 },
+    ],
+    ficha: [
+      { etiqueta: 'Marca', valor: 'Lenovo', destacado: true, faceta: true },
+      { etiqueta: 'Pantalla', valor: '24" IPS 100 Hz', destacado: true },
+      { etiqueta: 'Garantía', valor: '12 meses', faceta: true },
+    ],
+  },
+  {
+    /* Vendido sin serie registrada a propósito: es lo que la faceta
+       «Sin serie» tiene que sacar a la luz, porque es la garantía que
+       mañana no se podrá tramitar. */
+    id: 't-audifonos-bt',
+    categoria: { codigo: 'ACCES', nombre: 'Accesorios' },
+    icono: 'generico',
+    descripcion: 'Audífonos Bluetooth',
+    codigoBarras: '7752000100073',
+    unidadAlmacen: UND,
+    stock: 14,
+    presentaciones: [
+      { id: 't7-und', unidad: UND, factorAlmacen: 1, precio: 149, igvTasa: IGV_GENERAL },
+    ],
+    ficha: [
+      { etiqueta: 'Marca', valor: 'Logitech', destacado: true, faceta: true },
+      { etiqueta: 'Autonomía', valor: '30 h con estuche', destacado: true },
+      { etiqueta: 'Garantía', valor: '12 meses', faceta: true },
+    ],
+  },
+  {
+    id: 't-tv-43',
+    categoria: { codigo: 'TELEV', nombre: 'Televisores' },
+    icono: 'caja',
+    descripcion: 'Televisor LED 43" Full HD',
+    codigoBarras: '7752000100080',
+    unidadAlmacen: UND,
+    stock: 2,
+    presentaciones: [
+      { id: 't8-und', unidad: UND, factorAlmacen: 1, precio: 899, igvTasa: IGV_GENERAL },
+    ],
+    ejemplares: [
+      { codigo: 'HS43-2403-00210', cantidad: 1 },
+      { codigo: 'HS43-2403-00214', cantidad: 1 },
+    ],
+    ficha: [
+      { etiqueta: 'Marca', valor: 'Hisense', destacado: true, faceta: true },
+      { etiqueta: 'Pantalla', valor: '43" Full HD', destacado: true },
+      { etiqueta: 'Garantía', valor: '12 meses', faceta: true },
+    ],
+  },
+  {
+    /* Agotado: la faceta de stock tiene que tener algo que enseñar, y un
+       catálogo donde todo está disponible es un catálogo de folleto. */
+    id: 't-teclado-mec',
+    categoria: { codigo: 'ACCES', nombre: 'Accesorios' },
+    icono: 'generico',
+    descripcion: 'Teclado mecánico retroiluminado',
+    codigoBarras: '7752000100097',
+    unidadAlmacen: UND,
+    stock: 0,
+    presentaciones: [
+      { id: 't9-und', unidad: UND, factorAlmacen: 1, precio: 229, igvTasa: IGV_GENERAL },
+    ],
+    ficha: [
+      { etiqueta: 'Marca', valor: 'Logitech', destacado: true, faceta: true },
+      { etiqueta: 'Interruptores', valor: 'Rojos lineales', destacado: true },
+      { etiqueta: 'Garantía', valor: '12 meses', faceta: true },
+    ],
   },
 ]
 

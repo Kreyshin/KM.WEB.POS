@@ -1,15 +1,22 @@
 import { catalogoRopa } from './catalogo-ropa'
 import { catalogoTecnologia } from './catalogo-tecnologia'
 import {
+  contarFaceta,
+  cumpleFiltros,
+  ejemplaresDisponibles,
   IGV_GENERAL,
+  tramoDe,
+  tramosDePrecio,
   type CampoFicha,
   type CategoriaRef,
   type ConsultaCatalogo,
+  type EjeVariante,
   type Faceta,
   type OrdenCatalogo,
   type ProductoRef,
   type PuertoCatalogo,
   type PuertoMantenimientoCatalogo,
+  type TramoPrecio,
 } from '@pos-core/index'
 
 /**
@@ -423,194 +430,286 @@ export function categoriasDelCatalogo(
 }
 
 /**
- * Facetas del catálogo.
+ * QUÉ VALORES tiene un producto en una faceta.
  *
- * Las publica el adaptador, no la pantalla: ella solo dibuja lo que reciba
- * con sus cuentas. Cambiar de rubro cambia estas facetas y la pantalla
- * sigue igual, que es la razón de que el filtro sea genérico.
+ * Es la única función que sabe de rubros, y está aquí —en el adaptador— a
+ * propósito: el día que entre el back real, esto se cae y lo contesta él.
+ * Devuelve una LISTA porque un producto puede tener varios valores en la
+ * misma faceta: una camisa está en talla S y en M a la vez, y filtrando por
+ * M tiene que salir.
  */
-export function facetasDelCatalogo(sucursalId = ''): readonly Faceta[] {
-  // En ropa se filtra por lo que el cliente pide —«una talla M azul»—, no
-  // por laboratorio. Las facetas salen de los EJES del catálogo, así que
-  // el día que entre calzado aparecerán las suyas sin tocar nada.
-  if (sucursalId.includes('ropa')) return facetasPorEjes(catalogo(sucursalId))
+function valoresDe(producto: ProductoRef, clave: string, sucursalId = ''): readonly string[] {
+  const detalle = detalleFarmacia[producto.id]
 
-  const contar = (de: (p: ProductoRef) => { valor: string; etiqueta: string } | null) => {
-    const cuenta = new Map<string, OpcionFacetaMutable>()
-    for (const producto of catalogo(sucursalId)) {
-      const clave = de(producto)
-      if (!clave) continue
-      const previo = cuenta.get(clave.valor)
-      if (previo) previo.cuantos += 1
-      else cuenta.set(clave.valor, { ...clave, cuantos: 1 })
+  switch (clave) {
+    case 'categoria':
+      return producto.categoria ? [producto.categoria.codigo] : []
+
+    case 'precio': {
+      // TODAS las presentaciones, no solo la más barata.
+      //
+      // En una botica la más barata es siempre la pastilla suelta, así que
+      // el catálogo entero caía en el primer tramo y la faceta quedaba en
+      // «Hasta S/ 1» y «Más de S/ 1»: dos pastillas que no separan nada.
+      //
+      // Y un producto puede caer en varios tramos a la vez, que es lo
+      // correcto: un paracetamol es una compra de S/ 0.50 y también una de
+      // S/ 38, según lo que se lleve el cliente.
+      const tramos = tramosDe(sucursalId)
+      const caen = new Set<string>()
+      for (const presentacion of producto.presentaciones) {
+        const tramo = tramoDe(presentacion.precio, tramos)
+        if (tramo) caen.add(tramo.valor)
+      }
+      return [...caen]
     }
-    return [...cuenta.values()].sort((a, b) => a.etiqueta.localeCompare(b.etiqueta, 'es'))
-  }
 
-  return [
-    {
-      clave: 'categoria',
-      etiqueta: 'Categoría',
-      opciones: contar((p) =>
-        p.categoria ? { valor: p.categoria.codigo, etiqueta: p.categoria.nombre } : null,
-      ),
-    },
-    {
-      clave: 'laboratorio',
-      etiqueta: 'Laboratorio',
-      opciones: contar((p) => {
-        const lab = detalleFarmacia[p.id]?.laboratorio
-        return lab ? { valor: lab, etiqueta: lab } : null
-      }),
-    },
-    {
-      clave: 'condicion',
-      etiqueta: 'Condición de venta',
-      opciones: contar((p) => {
-        const d = detalleFarmacia[p.id]
-        if (!d) return null
-        return d.exigeReceta
-          ? { valor: 'receta', etiqueta: 'Con receta' }
-          : { valor: 'libre', etiqueta: 'Venta libre' }
-      }),
-    },
-    {
-      clave: 'afectacion',
-      etiqueta: 'IGV',
-      opciones: contar((p) =>
-        p.presentaciones.some((v) => v.igvTasa === 0)
-          ? { valor: 'exonerado', etiqueta: 'Exonerado' }
-          : { valor: 'gravado', etiqueta: 'Gravado' },
-      ),
-    },
-    {
-      clave: 'fraccion',
-      etiqueta: 'Fraccionamiento',
-      opciones: contar((p) =>
-        p.presentaciones.some((v) => v.fraccionada)
-          ? { valor: 'si', etiqueta: 'Se vende suelto' }
-          : { valor: 'no', etiqueta: 'Solo envase' },
-      ),
-    },
-    {
-      clave: 'disponibilidad',
-      etiqueta: 'Stock',
-      opciones: contar((p) => {
-        const hay = existencias[p.id] ?? 0
-        if (hay === 0) return { valor: 'agotado', etiqueta: 'Agotado' }
-        if (hay <= 20) return { valor: 'bajo', etiqueta: 'Por reponer' }
-        return { valor: 'ok', etiqueta: 'Disponible' }
-      }),
-    },
-  ]
+    case 'disponibilidad': {
+      const hay = producto.stock ?? existencias[producto.id] ?? 0
+      if (hay === 0) return ['agotado']
+      return hay <= 20 ? ['bajo'] : ['ok']
+    }
+
+    case 'afectacion':
+      return producto.presentaciones.some((v) => v.igvTasa === 0) ? ['exonerado'] : ['gravado']
+
+    case 'fraccion':
+      return producto.presentaciones.some((v) => v.fraccionada) ? ['si'] : ['no']
+
+    case 'identificado':
+      // Si hay serie o lote registrado se puede decir QUÉ se entrega. En
+      // tecnología eso decide si la garantía se podrá tramitar después.
+      return ejemplaresDisponibles(producto).length > 0 ? ['si'] : ['no']
+
+    case 'laboratorio':
+      return detalle?.laboratorio ? [detalle.laboratorio] : []
+
+    case 'condicion':
+      if (!detalle) return []
+      return [detalle.exigeReceta ? 'receta' : 'libre']
+
+    default: {
+      // Un eje de variante: «talla M», «color Azul». Solo las combinaciones
+      // CON existencias, porque ofrecer un filtro que deja la pantalla
+      // vacía es peor que no ofrecerlo.
+      if (producto.ejes?.some((eje) => eje.clave === clave)) {
+        const valores = new Set<string>()
+        for (const variante of producto.variantes ?? []) {
+          const valor = variante.atributos[clave]
+          if (valor && (variante.stock ?? 0) > 0) valores.add(valor)
+        }
+        return [...valores]
+      }
+
+      // Un dato de la ficha que el catálogo marcó como filtrable.
+      if (clave.startsWith('ficha:')) {
+        const etiqueta = clave.slice('ficha:'.length)
+        return (producto.ficha ?? [])
+          .filter((campo) => campo.faceta && campo.etiqueta === etiqueta)
+          .map((campo) => campo.valor)
+      }
+
+      return []
+    }
+  }
+}
+
+/** Las claves de ficha que el catálogo de esta sucursal declara filtrables. */
+function clavesDeFicha(productos: readonly ProductoRef[]): readonly string[] {
+  const claves = new Map<string, number>()
+  for (const producto of productos) {
+    for (const campo of producto.ficha ?? []) {
+      if (campo.faceta) claves.set(campo.etiqueta, (claves.get(campo.etiqueta) ?? 0) + 1)
+    }
+  }
+  // Una faceta con un solo producto no es un filtro, es un atajo a ese
+  // producto: el buscador ya lo hace mejor.
+  return [...claves.entries()].filter(([, cuantos]) => cuantos > 1).map(([etiqueta]) => etiqueta)
+}
+
+/** Los ejes de variante que aparecen en el catálogo, en su orden declarado. */
+function ejesDelCatalogo(productos: readonly ProductoRef[]): readonly EjeVariante[] {
+  const porClave = new Map<string, EjeVariante>()
+  for (const producto of productos) {
+    for (const eje of producto.ejes ?? []) {
+      const previo = porClave.get(eje.clave)
+      if (!previo) {
+        porClave.set(eje.clave, eje)
+        continue
+      }
+      // Dos productos con el mismo eje y valores distintos: se unen
+      // respetando el orden en que vienen, que es el bueno (S, M, L, XL).
+      const valores = [...previo.valores]
+      for (const valor of eje.valores) if (!valores.includes(valor)) valores.push(valor)
+      porClave.set(eje.clave, { ...previo, valores })
+    }
+  }
+  return [...porClave.values()]
+}
+
+/*
+ * Los tramos de precio se guardan entre llamadas: cada faceta los consulta
+ * una vez por producto, y recorrer el catálogo entero cada vez se nota al
+ * teclear. `olvidarTramos` los tira cuando el catálogo cambia.
+ */
+const tramosPorSucursal = new Map<string, readonly TramoPrecio[]>()
+
+function tramosDe(sucursalId: string): readonly TramoPrecio[] {
+  const guardado = tramosPorSucursal.get(sucursalId)
+  if (guardado) return guardado
+  const tramos = tramosDePrecio(
+    catalogo(sucursalId).flatMap((producto) => producto.presentaciones.map((v) => v.precio)),
+  )
+  tramosPorSucursal.set(sucursalId, tramos)
+  return tramos
+}
+
+/** Se llama al dar de alta o editar un producto: los tramos ya no valen. */
+export function olvidarTramos(): void {
+  tramosPorSucursal.clear()
+}
+
+/** ¿Encaja el producto con lo escrito? Lo comparten el buscador y las cuentas. */
+function coincideTexto(producto: ProductoRef, texto: string): boolean {
+  const buscado = normalizar(texto)
+  if (buscado.length === 0) return true
+  const detalle = detalleFarmacia[producto.id]
+  return (
+    normalizar(producto.descripcion).includes(buscado) ||
+    normalizar(producto.nota ?? '').includes(buscado) ||
+    (detalle ? normalizar(detalle.principioActivo).includes(buscado) : false) ||
+    (detalle ? normalizar(detalle.laboratorio).includes(buscado) : false) ||
+    producto.codigoBarras?.includes(buscado) === true ||
+    // Por serie o por lote: con una garantía en la mano, el número del
+    // aparato es lo único que el cliente trae.
+    (producto.ejemplares ?? []).some((ejemplar) => normalizar(ejemplar.codigo).includes(buscado)) ||
+    // Y por los datos de la ficha que el catálogo declara filtrables:
+    // escribir «Hisense» tiene que encontrar el televisor.
+    (producto.ficha ?? []).some(
+      (campo) => campo.faceta === true && normalizar(campo.valor).includes(buscado),
+    )
+  )
 }
 
 /**
- * Facetas tejidas desde los ejes de variante del propio catálogo.
+ * Facetas del catálogo, CONTADAS CONTRA LA BÚSQUEDA ACTUAL.
  *
- * Genérico de verdad: no sabe qué es una talla. Recorre los ejes que los
- * productos declaren y cuenta cuántos tienen cada valor con stock. Sirve
- * igual para talla y color en ropa que para capacidad y color en
- * teléfonos.
+ * Reciben los filtros puestos y el texto escrito porque una cuenta que no
+ * los mira miente: con «solo con receta» puesto, prometía «Portugal 1» y al
+ * pulsar dejaba la pantalla vacía. Un número que miente estorba más que no
+ * poner número.
+ *
+ * Qué facetas hay lo decide el RUBRO, y las publica el adaptador: la
+ * pantalla las pinta sin conocer ninguna. Antes todo rubro que no fuera
+ * ropa recibía las de farmacia, así que una tienda de tecnología filtraba
+ * por laboratorio y por condición de venta, y las dos salían vacías. Eso es
+ * buena parte de por qué los filtros parecían de adorno.
  */
-function facetasPorEjes(productos: readonly ProductoRef[]): readonly Faceta[] {
-  const porEje = new Map<string, { etiqueta: string; valores: Map<string, number> }>()
+export function facetasDelCatalogo(
+  sucursalId = '',
+  consulta: Pick<ConsultaCatalogo, 'texto' | 'filtros' | 'categoria'> = {},
+): readonly Faceta[] {
+  const productos = catalogo(sucursalId)
 
-  for (const producto of productos) {
-    for (const eje of producto.ejes ?? []) {
-      const entrada = porEje.get(eje.clave) ?? { etiqueta: eje.etiqueta, valores: new Map() }
-      for (const valor of eje.valores) {
-        // Solo cuenta si hay existencias: ofrecer un filtro que deja la
-        // pantalla vacía es peor que no ofrecerlo.
-        const hay = producto.variantes?.some(
-          (variante) => variante.atributos[eje.clave] === valor && (variante.stock ?? 0) > 0,
-        )
-        if (hay) entrada.valores.set(valor, (entrada.valores.get(valor) ?? 0) + 1)
-      }
-      porEje.set(eje.clave, entrada)
-    }
-  }
+  // El universo es lo que el TEXTO y la CATEGORÍA dejan pasar; los filtros
+  // de faceta los aplica `contarFaceta`, que sabe ignorar la suya propia.
+  const universo = productos.filter(
+    (producto) =>
+      coincideTexto(producto, consulta.texto ?? '') &&
+      (!consulta.categoria || producto.categoria?.codigo === consulta.categoria),
+  )
+  const filtros = consulta.filtros ?? {}
 
-  const facetas: Faceta[] = []
-  for (const [clave, { etiqueta, valores }] of porEje) {
-    facetas.push({
+  const faceta = (
+    clave: string,
+    etiqueta: string,
+    etiquetaDe?: (valor: string) => string,
+    opciones?: { orden?: boolean | readonly string[]; forma?: Faceta['forma'] },
+  ): Faceta => ({
+    clave,
+    etiqueta,
+    forma: opciones?.forma,
+    opciones: contarFaceta(
+      universo,
+      filtros,
       clave,
-      etiqueta,
-      // Sin ordenar: el orden de los ejes ya es el bueno (S, M, L, XL),
-      // y alfabetizarlo lo rompería.
-      opciones: [...valores.entries()].map(([valor, cuantos]) => ({
-        valor,
-        etiqueta: valor,
-        cuantos,
-      })),
-    })
-  }
-
-  facetas.push({
-    clave: 'disponibilidad',
-    etiqueta: 'Stock',
-    opciones: [
-      {
-        valor: 'ok',
-        etiqueta: 'Disponible',
-        cuantos: productos.filter((p) => (p.stock ?? 0) > 0).length,
-      },
-      {
-        valor: 'agotado',
-        etiqueta: 'Agotado',
-        cuantos: productos.filter((p) => (p.stock ?? 0) === 0).length,
-      },
-    ].filter((opcion) => opcion.cuantos > 0),
+      (producto, otra) => valoresDe(producto, otra, sucursalId),
+      etiquetaDe,
+      opciones?.orden ?? true,
+    ),
   })
 
-  return facetas
-}
+  const facetas: Faceta[] = []
 
-interface OpcionFacetaMutable {
-  valor: string
-  etiqueta: string
-  cuantos: number
-}
-
-/** Decide si un producto pasa un filtro de faceta. */
-function cumple(producto: ProductoRef, clave: string, valor: string): boolean {
-  const d = detalleFarmacia[producto.id]
-  switch (clave) {
-    case 'categoria':
-      return producto.categoria?.codigo === valor
-    case 'laboratorio':
-      return d?.laboratorio === valor
-    case 'condicion':
-      return d ? (valor === 'receta') === d.exigeReceta : false
-    case 'afectacion': {
-      const exonerado = producto.presentaciones.some((v) => v.igvTasa === 0)
-      return (valor === 'exonerado') === exonerado
-    }
-    case 'fraccion': {
-      const suelto = producto.presentaciones.some((v) => v.fraccionada)
-      return (valor === 'si') === suelto
-    }
-    case 'disponibilidad': {
-      const hay = existencias[producto.id] ?? 0
-      if (valor === 'agotado') return hay === 0
-      if (valor === 'bajo') return hay > 0 && hay <= 20
-      return hay > 20
-    }
-    default: {
-      // Puede ser un eje de variante: «talla M», «color Azul». Pasa el
-      // producto que tenga esa combinación con existencias.
-      if (producto.ejes?.some((eje) => eje.clave === clave)) {
-        return (
-          producto.variantes?.some(
-            (variante) => variante.atributos[clave] === valor && (variante.stock ?? 0) > 0,
-          ) === true
-        )
-      }
-      // Una faceta desconocida no filtra nada: más vale enseñar de más que
-      // vaciar la pantalla por una clave que el adaptador ya no publica.
-      return true
-    }
+  // Los ejes van PRIMEROS donde existen: en ropa y en celulares la talla y
+  // el color son la pregunta del cliente, no un refinamiento.
+  for (const eje of ejesDelCatalogo(productos)) {
+    // Sin ordenar: el orden declarado es S, M, L, XL, y alfabetizarlo
+    // pondría L antes de M.
+    // El orden declarado es S, M, L, XL. Sin pasarlo, el orden salía del de
+    // los productos y la L caía antes de la M.
+    facetas.push(faceta(eje.clave, eje.etiqueta, undefined, { orden: eje.valores }))
   }
+
+  for (const etiqueta of clavesDeFicha(productos)) {
+    facetas.push(faceta(`ficha:${etiqueta}`, etiqueta))
+  }
+
+  // Laboratorio y receta solo donde existen: en una tienda de ropa eran dos
+  // facetas con cero opciones ocupando dos filas.
+  const esBotica = !sucursalId.includes('ropa') && !sucursalId.includes('tecnologia')
+  if (esBotica) {
+    facetas.push(faceta('laboratorio', 'Laboratorio'))
+    facetas.push(
+      faceta('condicion', 'Condición de venta', (valor) =>
+        valor === 'receta' ? 'Con receta' : 'Venta libre',
+      ),
+    )
+    facetas.push(
+      faceta('fraccion', 'Fraccionamiento', (valor) =>
+        valor === 'si' ? 'Se vende suelto' : 'Solo envase',
+      ),
+    )
+    facetas.push(
+      faceta('afectacion', 'IGV', (valor) => (valor === 'exonerado' ? 'Exonerado' : 'Gravado')),
+    )
+  }
+
+  // El precio filtra en todo rubro: «¿qué tiene hasta cincuenta soles?» es
+  // la pregunta más común del mostrador, y no se podía contestar.
+  const tramos = tramosDe(sucursalId)
+  if (tramos.length > 0) {
+    facetas.push(
+      faceta(
+        'precio',
+        'Precio',
+        (valor) => tramos.find((t) => t.valor === valor)?.etiqueta ?? valor,
+        // De menor a mayor: una tira de precios que no sube no se lee.
+        { orden: tramos.map((tramo) => tramo.valor), forma: 'tramos' },
+      ),
+    )
+  }
+
+  if (sucursalId.includes('tecnologia')) {
+    // Vender un aparato sin serie registrada es la garantía que no se podrá
+    // tramitar después. Poder listarlos es lo que permite arreglarlo HOY.
+    facetas.push(
+      faceta('identificado', 'Serie registrada', (valor) =>
+        valor === 'si' ? 'Con serie' : 'Sin serie',
+      ),
+    )
+  }
+
+  facetas.push(
+    faceta('disponibilidad', 'Stock', (valor) =>
+      valor === 'agotado' ? 'Agotado' : valor === 'bajo' ? 'Por reponer' : 'Disponible',
+    ),
+  )
+
+  // Una faceta con una sola opción no decide nada: pulsarla deja la pantalla
+  // igual. Ocupaba una fila entera por nada, y es parte de por qué el panel
+  // de filtros parecía relleno.
+  return facetas.filter((f) => f.opciones.length > 1)
 }
 
 /** Precio de la presentación más barata: es por el que se ordena. */
@@ -636,8 +735,11 @@ export class CatalogoSimulado implements PuertoCatalogo {
     return categoriasDelCatalogo(sucursalId)
   }
 
-  async facetas(sucursalId: string) {
-    return facetasDelCatalogo(sucursalId)
+  async facetas(
+    sucursalId: string,
+    consulta?: Pick<ConsultaCatalogo, 'texto' | 'filtros' | 'categoria'>,
+  ) {
+    return facetasDelCatalogo(sucursalId, consulta)
   }
 
   async buscar(consulta: ConsultaCatalogo): Promise<ProductoRef[]> {
@@ -652,32 +754,16 @@ export class CatalogoSimulado implements PuertoCatalogo {
 
     // `categoria` sigue llegando aparte porque es la fila de pastillas, que
     // no es un filtro más: es la navegación del catálogo.
-    const filtros = { ...consulta.filtros }
-    if (consulta.categoria) filtros['categoria'] = consulta.categoria
+    const filtros: Record<string, readonly string[]> = { ...consulta.filtros }
+    if (consulta.categoria) filtros['categoria'] = [consulta.categoria]
 
-    const filtrados = catalogo(consulta.sucursalId).filter((producto) =>
-      Object.entries(filtros).every(([clave, valor]) => cumple(producto, clave, valor)),
+    // El mismo motor que cuenta las facetas decide quién pasa, así que la
+    // cuenta de una pastilla y lo que sale al pulsarla no pueden discrepar.
+    const hallados = catalogo(consulta.sucursalId).filter(
+      (producto) =>
+        coincideTexto(producto, consulta.texto ?? '') &&
+        cumpleFiltros(filtros, (clave) => valoresDe(producto, clave, consulta.sucursalId)),
     )
-
-    const texto = normalizar(consulta.texto ?? '')
-    if (texto.length === 0) {
-      return ordenar(filtrados, consulta.orden)
-        .slice(0, consulta.limite ?? 24)
-        .map(enriquecer)
-    }
-
-    // Busca por descripción y también por principio activo: en una botica se
-    // pide tanto «Panadol» como «paracetamol», y a veces el cliente solo
-    // recuerda uno de los dos.
-    const hallados = filtrados.filter((producto) => {
-      const detalle = detalleFarmacia[producto.id]
-      return (
-        normalizar(producto.descripcion).includes(texto) ||
-        (detalle ? normalizar(detalle.principioActivo).includes(texto) : false) ||
-        (detalle ? normalizar(detalle.laboratorio).includes(texto) : false) ||
-        producto.codigoBarras?.includes(texto) === true
-      )
-    })
 
     return ordenar(hallados, consulta.orden)
       .slice(0, consulta.limite ?? 24)
@@ -702,6 +788,7 @@ export class MantenimientoCatalogoSimulado implements PuertoMantenimientoCatalog
     if (indice === -1) lista.push(producto)
     else lista[indice] = producto
     guardarPropios(lista)
+    olvidarTramos()
     return producto
   }
 
@@ -715,6 +802,7 @@ export class MantenimientoCatalogoSimulado implements PuertoMantenimientoCatalog
       return
     }
     guardarPropios(propios().filter((producto) => producto.id !== productoId))
+    olvidarTramos()
   }
 
   async ajustarStock(productoId: string, unidades: number): Promise<void> {

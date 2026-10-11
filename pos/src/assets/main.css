@@ -2049,12 +2049,112 @@ body {
   font-weight: 600;
 }
 
-.pv-limpiar {
-  align-self: end;
-  justify-self: start;
+/* Lo puesto, siempre a la vista. Un filtro que no se ve es un filtro que
+   nadie sabe que hay que quitar. */
+.pv-activos {
+  display: flex;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+.pv-activo {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  border-radius: 999px;
+  border: 1px solid var(--pv-info-500);
+  background-color: color-mix(in srgb, var(--pv-info-500) 12%, transparent);
+  padding: 0.1875rem 0.5rem 0.1875rem 0.5625rem;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--pv-primary-texto);
+  transition: background-color var(--km-mov-rapido) var(--km-curva);
+}
+
+.pv-activo:hover {
+  background-color: color-mix(in srgb, var(--pv-error) 14%, transparent);
+  border-color: var(--pv-error);
+}
+
+/* El nombre de la faceta en pequeño: «Laboratorio Genfar» se lee solo, y
+   «Genfar» a secas obliga a abrir el panel para saber de qué filtro es. */
+.pv-activo-faceta {
+  font-weight: 500;
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  opacity: 0.6;
+}
+
+.pv-activo-x {
+  font-size: 14px;
+  line-height: 1;
+  opacity: 0.55;
+}
+
+.pv-activo:hover .pv-activo-x {
+  opacity: 1;
+}
+
+.pv-activo-todo {
   font-size: 12px;
   font-weight: 600;
   color: var(--pv-error);
+  padding-inline: 0.25rem;
+}
+
+.pv-filtro-cuenta {
+  font-variant-numeric: tabular-nums;
+  font-size: 10.5px;
+  font-weight: 600;
+  opacity: 0.5;
+}
+
+/* Apagada, no escondida: esconder la opción que daría cero movería las
+   pastillas de sitio a cada clic y el ojo perdería la que iba a pulsar. */
+.pv-filtro-opcion:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+  text-decoration: line-through;
+  text-decoration-thickness: 1px;
+}
+
+.pv-filtro-opcion:disabled:hover {
+  border-color: var(--pv-border);
+}
+
+.pv-orden {
+  border-radius: 6px;
+  padding: 0.125rem 0.4375rem;
+  font-size: 11px;
+  color: var(--pv-texto-tenue);
+  transition: color var(--km-mov-rapido) var(--km-curva);
+}
+
+.pv-orden:hover {
+  color: var(--pv-texto);
+}
+
+.pv-orden-activo {
+  background-color: color-mix(in srgb, var(--pv-info-500) 14%, transparent);
+  color: var(--pv-primary-texto);
+  font-weight: 600;
+}
+
+.pv-filtro-limpia {
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--pv-error);
+}
+
+/* Los tramos de precio son excluyentes y contiguos: se ven como una tira,
+   no como etiquetas sueltas. */
+.pv-tramos .pv-filtro-opcion {
+  flex: 1 1 auto;
+  justify-content: center;
+  white-space: nowrap;
 }
 
 .pv-boton-marcado {

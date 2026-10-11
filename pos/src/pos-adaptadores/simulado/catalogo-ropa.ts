@@ -78,7 +78,7 @@ const productos: ProductoRef[] = [
     }),
     ficha: [
       { etiqueta: 'Composición', valor: '100 % algodón', destacado: true },
-      { etiqueta: 'Corte', valor: 'Regular fit', destacado: true },
+      { etiqueta: 'Corte', valor: 'Regular fit', destacado: true, faceta: true },
       { etiqueta: 'Cuidados', valor: 'Lavar a 30 °C. No usar lejía.' },
       { etiqueta: 'Origen', valor: 'Perú' },
     ],
@@ -100,7 +100,7 @@ const productos: ProductoRef[] = [
     }),
     ficha: [
       { etiqueta: 'Composición', valor: '95 % algodón, 5 % elastano', destacado: true },
-      { etiqueta: 'Corte', valor: 'Slim fit', destacado: true },
+      { etiqueta: 'Corte', valor: 'Slim fit', destacado: true, faceta: true },
       { etiqueta: 'Cuidados', valor: 'Lavar del revés.' },
     ],
   },
@@ -122,7 +122,7 @@ const productos: ProductoRef[] = [
     }),
     ficha: [
       { etiqueta: 'Composición', valor: '98 % algodón, 2 % elastano', destacado: true },
-      { etiqueta: 'Corte', valor: 'Recto', destacado: true },
+      { etiqueta: 'Corte', valor: 'Recto', destacado: true, faceta: true },
       { etiqueta: 'Tiro', valor: 'Medio' },
     ],
   },
