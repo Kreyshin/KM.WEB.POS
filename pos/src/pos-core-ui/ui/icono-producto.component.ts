@@ -8,20 +8,20 @@ import { ChangeDetectionStrategy, Component, computed, input } from '@angular/co
  * qué vende la tienda. Si llega una clave desconocida, cae en el genérico.
  *
  * Cada icono lleva su propio tono, y eso es lo que da vida a una lista que
- * si no sería un muro de texto. El tono NO es el color de marca: el bronce
+ * si no sería un muro de texto. El tono NO es el color de marca: el índigo
  * sigue reservado al dinero, y estos son fríos y apagados a propósito para
  * no competir con el total ni con el botón de cobrar.
  */
 type Forma = 'tableta' | 'capsula' | 'frasco' | 'inyectable' | 'caja' | 'prenda' | 'generico'
 
 const TONOS: Record<Forma, string> = {
-  tableta: '#5a7fb8',
-  capsula: '#6a6fb0',
-  frasco: '#4f8b91',
-  inyectable: '#6b7a8f',
-  caja: '#8a5f7a',
-  prenda: '#a3705a',
-  generico: '#6b7280',
+  tableta: '#2f6fb0',
+  capsula: '#7a52c9',
+  frasco: '#0f8a8a',
+  inyectable: '#4a6b8a',
+  caja: '#b05a8a',
+  prenda: '#b5703f',
+  generico: '#6e7487',
 }
 
 @Component({

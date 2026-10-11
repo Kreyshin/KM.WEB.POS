@@ -1,11 +1,11 @@
 <!doctype html>
-<html lang="es" data-theme="dark">
+<html lang="es" data-theme="light">
   <head>
     <meta charset="utf-8" />
     <title>Punto de venta · Karma Systems</title>
     <base href="/" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <meta name="color-scheme" content="dark light" />
+    <meta name="color-scheme" content="light dark" />
     <meta
       name="description"
       content="Aplicación de venta de mostrador de la suite Karma Systems."
@@ -15,16 +15,16 @@
       /*
        * Tema antes del primer pintado.
        *
-       * El atributo ya viene en `dark` en el HTML, que es el tema de producto;
-       * esto solo lo corrige a `light` si este puesto lo pidió alguna vez. Va
+       * El atributo ya viene en `light` en el HTML, que es el tema de
+       * producto; esto solo lo corrige a `dark` si el puesto lo pidió. Va
        * en línea y sin diferir a propósito: cualquier otra opción produce un
-       * destello claro al abrir la caja.
+       * destello al abrir el sistema.
        *
        * La clave y la regla son las mismas que usa `TemaService`.
        */
       try {
-        if (localStorage.getItem('km.pos.tema') === 'claro') {
-          document.documentElement.setAttribute('data-theme', 'light')
+        if (localStorage.getItem('km.pos.tema') === 'oscuro') {
+          document.documentElement.setAttribute('data-theme', 'dark')
         }
       } catch (e) {
         /* Sin almacenamiento: queda el tema de producto. */

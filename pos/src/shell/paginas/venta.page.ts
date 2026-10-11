@@ -52,16 +52,9 @@ import { SesionStore } from '../sesion/sesion.store'
             [ngModel]="texto()"
             (ngModelChange)="buscar($event)"
           />
-          <span
-            class="pv-tecla absolute right-3 top-1/2 -translate-y-1/2 text-tenue"
-            aria-hidden="true"
-            >F2</span
-          >
+          <kbd class="pv-kbd absolute right-3 top-1/2 -translate-y-1/2" aria-hidden="true">/</kbd>
         </div>
-        <button class="pv-boton pv-boton-tenue" type="button" disabled>
-          Cliente
-          <span class="pv-tecla">F6</span>
-        </button>
+        <button class="pv-boton pv-boton-tenue" type="button" disabled>Cliente</button>
       </div>
 
       <!-- Categorías. Filtran de verdad, así que son botones y no adorno. -->
@@ -165,13 +158,15 @@ import { SesionStore } from '../sesion/sesion.store'
             }
           </ul>
 
-          <!-- Las teclas, a la vista. Un atajo que no se enseña no se usa. -->
+          <!-- Las teclas van en el panel de «?», no repetidas en cada
+               pantalla: con siete módulos, imprimirlas en todas es ruido. -->
           <div
             class="text-tenue flex shrink-0 items-center gap-4 border-t border-linea px-4 py-2 text-[11px]"
           >
-            <span><span class="pv-tecla">↑↓</span> producto</span>
-            <span><span class="pv-tecla">←→</span> presentación</span>
-            <span><span class="pv-tecla">⏎</span> agregar</span>
+            <span><kbd class="pv-kbd">↑</kbd><kbd class="pv-kbd">↓</kbd> producto</span>
+            <span><kbd class="pv-kbd">←</kbd><kbd class="pv-kbd">→</kbd> presentación</span>
+            <span><kbd class="pv-kbd">Enter</kbd> agregar</span>
+            <span class="ml-auto"><kbd class="pv-kbd">?</kbd> atajos</span>
           </div>
         }
       </div>
@@ -273,7 +268,9 @@ export class VentaPage {
    * recorrer, y sí una lista.
    */
   protected atajo(evento: KeyboardEvent): void {
-    if (evento.key === 'F2') {
+    // «/» enfoca el buscador, como en tantas herramientas. Las teclas de
+    // función las intercepta el navegador antes de que lleguen aquí.
+    if (evento.key === '/' && !this.enCampo(evento)) {
       evento.preventDefault()
       this.enfocar()
       return
@@ -312,6 +309,11 @@ export class VentaPage {
         this.limpiar()
         break
     }
+  }
+
+  private enCampo(evento: KeyboardEvent): boolean {
+    const destino = evento.target as HTMLElement | null
+    return destino?.matches('input, textarea, select') === true
   }
 
   private moverFila(paso: number): void {

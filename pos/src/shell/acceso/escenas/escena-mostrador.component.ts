@@ -38,7 +38,7 @@ import { LogoKarmaComponent, LogoPosComponent } from '../../marca/marca'
         <div class="relative z-10 flex items-center gap-3">
           <km-logo-pos [tamano]="38" alt="" />
           <div>
-            <p class="pv-etiqueta text-bronce-texto">Punto de venta</p>
+            <p class="pv-etiqueta text-primario-texto">Punto de venta</p>
             <p class="text-sm font-semibold">Karma Novum</p>
           </div>
         </div>
@@ -75,7 +75,7 @@ import { LogoKarmaComponent, LogoPosComponent } from '../../marca/marca'
           <div class="mb-6 flex items-center justify-center gap-3 lg:hidden">
             <km-logo-pos [tamano]="40" alt="" />
             <div>
-              <p class="pv-etiqueta text-bronce-texto">Punto de venta</p>
+              <p class="pv-etiqueta text-primario-texto">Punto de venta</p>
               <p class="text-sm font-semibold">Karma Novum</p>
             </div>
           </div>

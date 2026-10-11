@@ -1,4 +1,5 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core'
+import { ChangeDetectionStrategy, Component, HostListener, inject, viewChild } from '@angular/core'
+import type { ElementRef } from '@angular/core'
 import { CarritoComponent, MonedaPipe, TicketService } from '@pos-core-ui/index'
 
 /**
@@ -71,13 +72,14 @@ import { CarritoComponent, MonedaPipe, TicketService } from '@pos-core-ui/index'
 
       <div class="p-3">
         <button
+          #cobrar
           class="pv-boton pv-boton-accion w-full justify-between"
           type="button"
           [disabled]="ticket.vacio() || !ticket.editable()"
           [title]="ticket.vacio() ? 'No hay nada que cobrar' : 'Cobrar el ticket'"
         >
           <span>Cobrar</span>
-          <span class="pv-tecla">F12</span>
+          <span class="text-[11px] opacity-70">Alt + C</span>
         </button>
       </div>
     </aside>
@@ -85,4 +87,23 @@ import { CarritoComponent, MonedaPipe, TicketService } from '@pos-core-ui/index'
 })
 export class ColumnaTicketComponent {
   protected readonly ticket = inject(TicketService)
+
+  private readonly cobrar = viewChild<ElementRef<HTMLButtonElement>>('cobrar')
+
+  /**
+   * Alt+C lleva el foco a Cobrar.
+   *
+   * No lo pulsa: el cobro es irreversible y confirmarlo con una sola tecla
+   * desde cualquier sitio de la pantalla es cómo se cobran tickets a medias.
+   * Deja el dedo en el botón y es Entrar quien decide.
+   */
+  @HostListener('document:keydown', ['$event'])
+  protected atajo(evento: KeyboardEvent): void {
+    if (evento.key.toLowerCase() !== 'c' || !evento.altKey) return
+    if (evento.ctrlKey || evento.metaKey) return
+    const boton = this.cobrar()?.nativeElement
+    if (!boton || boton.disabled) return
+    evento.preventDefault()
+    boton.focus()
+  }
 }

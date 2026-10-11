@@ -3,10 +3,10 @@ import { Injectable, signal } from '@angular/core'
 /**
  * Tema claro / oscuro.
  *
- * El POS arranca en OSCURO. No es una preferencia heredada del sistema: es la
- * decisión de producto, porque la caja está en interior y la pantalla queda
- * encendida toda la jornada. El claro existe y se recuerda, pero hay que
- * pedirlo.
+ * El sistema arranca en CLARO. Es un cambio: antes partía de oscuro pensando
+ * en la caja en interior, pero esto no es solo una caja —es un sistema de
+ * gestión que también se proyecta en reuniones y se enseña en capturas—. El
+ * oscuro queda para el turno de noche y se recuerda por puesto.
  *
  * El atributo `data-theme` ya viene puesto en `index.html`, antes de que
  * Angular arranque, para que no haya un destello claro en el primer pintado.
@@ -16,7 +16,7 @@ export const temas = ['oscuro', 'claro'] as const
 
 export type Tema = (typeof temas)[number]
 
-export const temaPorDefecto: Tema = 'oscuro'
+export const temaPorDefecto: Tema = 'claro'
 
 const CLAVE_TEMA = 'km.pos.tema'
 

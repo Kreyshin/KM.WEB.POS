@@ -6,14 +6,14 @@ describe('tema', () => {
     localStorage.clear()
   })
 
-  it('arranca en oscuro, que es la decisión de producto del POS', () => {
-    expect(temaPorDefecto).toBe('oscuro')
-    expect(temaGuardado()).toBe('oscuro')
+  it('arranca en claro, que es la decisión de producto del sistema', () => {
+    expect(temaPorDefecto).toBe('claro')
+    expect(temaGuardado()).toBe('claro')
   })
 
   it('respeta la elección guardada en el puesto', () => {
-    localStorage.setItem('km.pos.tema', 'claro')
-    expect(temaGuardado()).toBe('claro')
+    localStorage.setItem('km.pos.tema', 'oscuro')
+    expect(temaGuardado()).toBe('oscuro')
   })
 
   it('ignora un valor guardado que no es un tema', () => {
