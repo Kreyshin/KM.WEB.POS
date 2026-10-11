@@ -6,7 +6,12 @@ import type {
   Ticket,
   Validacion,
 } from '@pos-core/index'
-import { validacionFalla, validacionOk } from '@pos-core/index'
+import {
+  ejemplaresDisponibles,
+  porVencimiento,
+  validacionFalla,
+  validacionOk,
+} from '@pos-core/index'
 import type { PerfilRubroAngular } from '@pos-core-ui/index'
 
 /**
@@ -58,6 +63,13 @@ export interface AtributosFarmacia extends Record<string, unknown> {
  * microservicio mande una bandera propia, se cambia esta función y nadie
  * más se entera.
  */
+/** «03/2027». El día no importa para decidir qué caja sacar. */
+function mesAnio(iso?: string): string {
+  if (!iso) return 'sin fecha'
+  const fecha = new Date(iso)
+  return `${String(fecha.getMonth() + 1).padStart(2, '0')}/${fecha.getFullYear()}`
+}
+
 function exigeReceta(producto: ProductoRef): boolean {
   return (
     producto.ficha?.some(
@@ -70,10 +82,17 @@ export const perfilFarmacia: PerfilRubroAngular<AtributosFarmacia> = {
   codigo: 'farmacia',
   nombre: 'Farmacia',
 
+  /*
+   * El lote va PRIMERO entre los detalles, antes que la receta.
+   *
+   * Es lo que el cajero contrasta contra la caja que tiene en la mano
+   * mientras la línea está en pantalla, y lo que permite rastrear una
+   * alerta sanitaria después. La receta ya la tiene delante en papel.
+   */
   describirLinea(linea: LineaTicket<AtributosFarmacia>): string {
     const partes = [linea.descripcion, linea.unidad.nombre]
-    if (linea.atributos.numeroReceta) partes.push(`receta ${linea.atributos.numeroReceta}`)
     if (linea.atributos.lote) partes.push(`lote ${linea.atributos.lote}`)
+    if (linea.atributos.numeroReceta) partes.push(`receta ${linea.atributos.numeroReceta}`)
     return partes.join(' · ')
   },
 
@@ -87,21 +106,57 @@ export const perfilFarmacia: PerfilRubroAngular<AtributosFarmacia> = {
   /* Se estampa en la línea para que la comprobación previa al cobro no
      tenga que volver al catálogo a preguntar qué era cada producto. */
   atributosIniciales(producto: ProductoRef): Record<string, unknown> {
-    return exigeReceta(producto) ? { exigeReceta: true } : {}
+    const iniciales: Record<string, unknown> = {}
+    if (exigeReceta(producto)) iniciales['exigeReceta'] = true
+
+    // El vencimiento del lote se copia a la línea: así `validarLinea`
+    // puede comprobarlo sin volver al catálogo, y queda registrado qué se
+    // entregó aunque el lote se agote después.
+    const lotes = porVencimiento(ejemplaresDisponibles(producto))
+    if (lotes.length > 0) iniciales['vencimientoLote'] = lotes[0].vence
+    return iniciales
   },
 
   camposDeLinea(producto: ProductoRef): readonly CampoLinea[] {
-    if (!exigeReceta(producto)) return []
-    return [
-      {
+    const campos: CampoLinea[] = []
+
+    /*
+     * El LOTE se elige de los que hay, ordenados por vencimiento.
+     *
+     * FEFO —primero el que antes caduca— no es una preferencia: es la
+     * forma de no comerse el stock. Y los vencidos no aparecen, porque
+     * venderlos es la infracción que cierra una botica. El primero de la
+     * lista es siempre el que toca sacar.
+     */
+    const lotes = porVencimiento(ejemplaresDisponibles(producto))
+    if (lotes.length > 0) {
+      campos.push({
+        clave: 'lote',
+        etiqueta: 'Lote que se entrega',
+        tipo: 'opcion',
+        requerido: true,
+        opciones: lotes.map((lote, indice) => ({
+          valor: lote.codigo,
+          etiqueta: `${lote.codigo} · vence ${mesAnio(lote.vence)}${
+            indice === 0 ? ' · sacar este' : ''
+          }`,
+        })),
+        ayuda: 'Sale primero el que antes vence. Comprueba que coincide con la caja.',
+      })
+    }
+
+    if (exigeReceta(producto)) {
+      campos.push({
         clave: 'numeroReceta',
         etiqueta: 'Número de receta',
         tipo: 'texto',
         requerido: true,
         modo: 'numerico',
         ayuda: 'El número impreso en la receta médica.',
-      },
-    ]
+      })
+    }
+
+    return campos
   },
 
   marcasDeProducto(producto: ProductoRef): readonly MarcaProducto[] {

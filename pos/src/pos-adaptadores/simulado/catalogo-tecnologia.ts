@@ -27,6 +27,14 @@ const productos: ProductoRef[] = [
     presentaciones: [
       { id: 't1-und', unidad: UND, factorAlmacen: 1, precio: 1899, igvTasa: IGV_GENERAL },
     ],
+    // Las series que están en tienda ahora mismo. Cantidad 1 porque una
+    // serie es, por definición, un aparato.
+    ejemplares: [
+      { codigo: 'HS55-2401-00871', cantidad: 1 },
+      { codigo: 'HS55-2401-00872', cantidad: 1 },
+      { codigo: 'HS55-2402-01140', cantidad: 1 },
+      { codigo: 'HS55-2402-01155', cantidad: 1 },
+    ],
     ficha: [
       { etiqueta: 'Marca', valor: 'Hisense', destacado: true },
       { etiqueta: 'Pantalla', valor: '55" 4K UHD', destacado: true },
@@ -41,14 +49,23 @@ const productos: ProductoRef[] = [
     descripcion: 'Smartphone 128 GB',
     codigoBarras: '7752000100028',
     unidadAlmacen: UND,
-    stock: 11,
+    stock: 5,
     presentaciones: [
       { id: 't2-und', unidad: UND, factorAlmacen: 1, precio: 999, igvTasa: IGV_GENERAL },
     ],
     ejes: [{ clave: 'color', etiqueta: 'Color', valores: ['Negro', 'Azul'] }],
     variantes: [
-      { id: 't2-negro', atributos: { color: 'Negro' }, stock: 7 },
-      { id: 't2-azul', atributos: { color: 'Azul' }, stock: 4 },
+      { id: 't2-negro', atributos: { color: 'Negro' }, stock: 3 },
+      { id: 't2-azul', atributos: { color: 'Azul' }, stock: 2 },
+    ],
+    /* Un IMEI pertenece a un color concreto: no se puede entregar el
+       negro y anotar la serie de uno azul. Por eso llevan `varianteId`. */
+    ejemplares: [
+      { codigo: '356938035643809', cantidad: 1, varianteId: 't2-negro' },
+      { codigo: '356938035643817', cantidad: 1, varianteId: 't2-negro' },
+      { codigo: '356938035643825', cantidad: 1, varianteId: 't2-negro' },
+      { codigo: '356938035690112', cantidad: 1, varianteId: 't2-azul' },
+      { codigo: '356938035690120', cantidad: 1, varianteId: 't2-azul' },
     ],
     ficha: [
       { etiqueta: 'Marca', valor: 'Motorola', destacado: true },
@@ -66,6 +83,11 @@ const productos: ProductoRef[] = [
     stock: 3,
     presentaciones: [
       { id: 't3-und', unidad: UND, factorAlmacen: 1, precio: 2790, igvTasa: IGV_GENERAL },
+    ],
+    ejemplares: [
+      { codigo: 'LNV-82X1-00455', cantidad: 1 },
+      { codigo: 'LNV-82X1-00456', cantidad: 1 },
+      { codigo: 'LNV-82X3-01287', cantidad: 1 },
     ],
     ficha: [
       { etiqueta: 'Marca', valor: 'Lenovo', destacado: true },

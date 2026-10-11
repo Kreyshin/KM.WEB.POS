@@ -68,6 +68,75 @@ export interface ProductoRef {
    */
   ejes?: readonly EjeVariante[]
   variantes?: readonly VarianteProducto[]
+  /**
+   * Los ejemplares identificados que hay en stock.
+   *
+   * Existe porque sin esto el mostrador no sabe QUÉ está entregando. El
+   * primer intento pedía la serie como texto libre, y eso acepta
+   * cualquier cosa: un número que la tienda no tiene, una errata, o el
+   * mismo televisor vendido dos veces. Con la garantía de por medio, eso
+   * se descubre meses después y ya no se puede corregir.
+   *
+   * Sirve para las dos formas de identificar que existen en retail, que
+   * son la misma idea con otro nombre:
+   *
+   *   SERIE   un ejemplar concreto: una serie, un IMEI. Cantidad 1.
+   *   LOTE    un grupo que comparte origen y vencimiento. Cantidad N.
+   *
+   * El núcleo no distingue entre las dos: las transporta y el perfil
+   * decide cómo se llaman y en qué orden se ofrecen.
+   */
+  ejemplares?: readonly EjemplarProducto[]
+}
+
+export interface EjemplarProducto {
+  /** La serie, el IMEI o el número de lote. Es lo que se imprime. */
+  codigo: string
+  /** Cuándo vence, si aplica. ISO. Lo usa el orden FEFO de una botica. */
+  vence?: string
+  /**
+   * Cuántas unidades quedan de este ejemplar.
+   *
+   * Una serie siempre es 1 —por definición es un aparato—; un lote son
+   * las que queden de ese lote.
+   */
+  cantidad: number
+  /** Si la variante importa: la serie de la camisa M azul. */
+  varianteId?: string
+}
+
+/**
+ * Los ejemplares que se pueden vender ahora.
+ *
+ * Descarta los que están en cero y los vencidos. Un lote vencido sigue
+ * en el sistema porque hay que darlo de baja y eso deja rastro, pero no
+ * puede ofrecerse: venderlo es la infracción que cierra una botica.
+ */
+export function ejemplaresDisponibles(
+  producto: ProductoRef,
+  ahora = new Date(),
+): readonly EjemplarProducto[] {
+  return (producto.ejemplares ?? []).filter((ejemplar) => {
+    if (ejemplar.cantidad <= 0) return false
+    return !ejemplar.vence || new Date(ejemplar.vence) >= ahora
+  })
+}
+
+/**
+ * Ordena por vencimiento: lo que antes caduca, primero.
+ *
+ * FEFO, que en una botica no es una preferencia sino la forma de no
+ * comerse el stock. Los que no vencen van al final, en su orden.
+ */
+export function porVencimiento(
+  ejemplares: readonly EjemplarProducto[],
+): readonly EjemplarProducto[] {
+  return [...ejemplares].sort((a, b) => {
+    if (!a.vence && !b.vence) return 0
+    if (!a.vence) return 1
+    if (!b.vence) return -1
+    return a.vence.localeCompare(b.vence)
+  })
 }
 
 export interface EjeVariante {

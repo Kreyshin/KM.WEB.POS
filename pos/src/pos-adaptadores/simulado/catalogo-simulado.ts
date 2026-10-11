@@ -259,6 +259,39 @@ export const detalleFarmacia: Record<string, DetalleFarmacia> = {
   },
 }
 
+/** Una fecha a N días de hoy, en ISO. La demo no puede envejecer. */
+function enDias(dias: number): string {
+  const fecha = new Date()
+  fecha.setDate(fecha.getDate() + dias)
+  return fecha.toISOString().slice(0, 10)
+}
+
+/**
+ * Lotes en stock, con su vencimiento.
+ *
+ * Mezcla deliberada: lotes largos, uno a punto de vencer y uno YA
+ * vencido. El vencido sigue en los datos porque en una botica real está
+ * en el estante hasta que alguien lo da de baja; lo que no puede es
+ * ofrecerse para vender, y eso lo filtra `ejemplaresDisponibles`.
+ */
+const lotes: Record<string, { codigo: string; vence?: string; cantidad: number }[]> = {
+  'f-paracetamol-500': [
+    { codigo: 'LT-8841', vence: enDias(430), cantidad: 260 },
+    { codigo: 'LT-9023', vence: enDias(220), cantidad: 160 },
+  ],
+  'f-ibuprofeno-400': [{ codigo: 'LT-7712', vence: enDias(300), cantidad: 180 }],
+  'f-amoxicilina-500': [
+    { codigo: 'LT-5540', vence: enDias(24), cantidad: 20 },
+    { codigo: 'LT-6102', vence: enDias(380), cantidad: 40 },
+  ],
+  'f-metformina-850': [
+    { codigo: 'LT-3321', vence: enDias(-15), cantidad: 60 },
+    { codigo: 'LT-4450', vence: enDias(510), cantidad: 180 },
+  ],
+  'f-loratadina-10': [{ codigo: 'LT-2201', vence: enDias(640), cantidad: 95 }],
+  'f-alcohol-70': [{ codigo: 'LT-1109', vence: enDias(900), cantidad: 14 }],
+}
+
 /** Existencias en unidad de almacén. Stock simple, el del POS sin ERP. */
 const existencias: Record<string, number> = {
   'f-paracetamol-500': 420,
@@ -371,6 +404,7 @@ function enriquecer(producto: ProductoRef): ProductoRef {
     nota: producto.nota ?? partes.join(' · '),
     ficha: producto.ficha ?? fichaDe(producto),
     stock: producto.stock ?? existencias[producto.id],
+    ejemplares: producto.ejemplares ?? lotes[producto.id],
   }
 }
 

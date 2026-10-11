@@ -5,7 +5,7 @@ import type {
   ProductoRef,
   Validacion,
 } from '@pos-core/index'
-import { validacionFalla, validacionOk } from '@pos-core/index'
+import { ejemplaresDisponibles, validacionFalla, validacionOk } from '@pos-core/index'
 import type { PerfilRubroAngular } from '@pos-core-ui/index'
 
 /**
@@ -76,21 +76,48 @@ export const perfilTecnologia: PerfilRubroAngular<AtributosTecnologia> = {
   },
 
   /**
-   * La serie, y solo a lo que la lleva.
+   * La serie SE ELIGE de las que hay, no se teclea.
    *
-   * Un cable HDMI entra de un toque. Pedir número de serie a todo sería
-   * la forma más rápida de que el vendedor deje de registrarla, y
-   * entonces no la tendría justo cuando hace falta.
+   * Tecleada a mano acepta cualquier cosa: un número que la tienda no
+   * tiene, una errata de un dígito, o el mismo televisor vendido dos
+   * veces. Con la garantía de por medio eso se descubre meses después,
+   * cuando el cliente reclama y la serie de su factura no existe en el
+   * sistema. Eligiendo de la lista, el error no se puede cometer.
+   *
+   * Y solo a lo que la lleva: un cable HDMI entra de un toque. Pedir
+   * serie a todo es la forma más rápida de que el vendedor deje de
+   * registrarla, y entonces no la tendría justo cuando hace falta.
    */
   camposDeLinea(producto: ProductoRef): readonly CampoLinea[] {
     if (!llevaSerie(producto)) return []
+
+    const disponibles = ejemplaresDisponibles(producto)
+    if (disponibles.length === 0) {
+      // Sin series registradas, pedirlas de la lista es imposible. Se
+      // acepta tecleada antes que bloquear una venta: el dato a medias
+      // vale más que no vender.
+      return [
+        {
+          clave: 'serie',
+          etiqueta: 'Número de serie o IMEI',
+          tipo: 'texto',
+          requerido: true,
+          ayuda: 'No hay series registradas de este equipo: escríbela de la caja.',
+        },
+      ]
+    }
+
     return [
       {
         clave: 'serie',
-        etiqueta: 'Número de serie o IMEI',
-        tipo: 'texto',
+        etiqueta: 'Equipo que se entrega',
+        tipo: 'opcion',
         requerido: true,
-        ayuda: 'El de la caja del equipo que se entrega. Va al comprobante.',
+        opciones: disponibles.map((ejemplar) => ({
+          valor: ejemplar.codigo,
+          etiqueta: ejemplar.codigo,
+        })),
+        ayuda: `${disponibles.length} en tienda. La serie va al comprobante y es con la que se reclama la garantía.`,
       },
     ]
   },
@@ -116,11 +143,31 @@ export const perfilTecnologia: PerfilRubroAngular<AtributosTecnologia> = {
       const atributos = linea.atributos as AtributosTecnologia
       return atributos['exigeSerie'] === true && !atributos.serie
     })
-    if (sinSerie.length === 0) return validacionOk
-    return validacionFalla(
-      sinSerie.length === 1
-        ? `Falta el número de serie de ${sinSerie[0].descripcion}.`
-        : `Faltan los números de serie de ${sinSerie.length} equipos.`,
-    )
+    if (sinSerie.length > 0) {
+      return validacionFalla(
+        sinSerie.length === 1
+          ? `Falta el número de serie de ${sinSerie[0].descripcion}.`
+          : `Faltan los números de serie de ${sinSerie.length} equipos.`,
+      )
+    }
+
+    /*
+     * Y ninguna serie repetida.
+     *
+     * Dos líneas con el mismo número son dos aparatos vendidos y uno
+     * entregado, o el mismo contado dos veces. Las dos acaban en una
+     * garantía que no se puede atender.
+     */
+    const vistas = new Set<string>()
+    for (const linea of ticket.lineas) {
+      const serie = (linea.atributos as AtributosTecnologia).serie
+      if (!serie) continue
+      if (vistas.has(serie)) {
+        return validacionFalla(`La serie ${serie} está dos veces en el ticket.`)
+      }
+      vistas.add(serie)
+    }
+
+    return validacionOk
   },
 }
