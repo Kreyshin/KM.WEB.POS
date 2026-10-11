@@ -138,17 +138,26 @@ function normalizar(texto: string): string {
   return texto.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').trim()
 }
 
+/** Compone la línea de contexto que la lista enseña bajo el nombre. */
+function conNota(producto: ProductoRef): ProductoRef {
+  const detalle = detalleFarmacia[producto.id]
+  if (!detalle) return producto
+  const partes = [detalle.principioActivo, detalle.laboratorio]
+  if (detalle.exigeReceta) partes.push('exige receta')
+  return { ...producto, nota: partes.join(' · ') }
+}
+
 export class CatalogoSimulado implements PuertoCatalogo {
   async buscar(consulta: ConsultaCatalogo): Promise<ProductoRef[]> {
     await new Promise((listo) => setTimeout(listo, 90))
 
     if (consulta.codigoBarras) {
       const exacto = productos.find((p) => p.codigoBarras === consulta.codigoBarras)
-      return exacto ? [exacto] : []
+      return exacto ? [conNota(exacto)] : []
     }
 
     const texto = normalizar(consulta.texto ?? '')
-    if (texto.length === 0) return productos.slice(0, consulta.limite ?? 8)
+    if (texto.length === 0) return productos.slice(0, consulta.limite ?? 8).map(conNota)
 
     // Busca por descripción y también por principio activo: en una botica se
     // pide tanto «Panadol» como «paracetamol», y a veces el cliente solo
@@ -162,6 +171,6 @@ export class CatalogoSimulado implements PuertoCatalogo {
       )
     })
 
-    return hallados.slice(0, consulta.limite ?? 8)
+    return hallados.slice(0, consulta.limite ?? 8).map(conNota)
   }
 }

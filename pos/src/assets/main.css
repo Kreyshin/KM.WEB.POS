@@ -1122,3 +1122,90 @@ body {
     transform: none;
   }
 }
+
+/* ─────────────────────────────────────────────────────────────────────────────
+ * Lista densa de la zona de venta
+ *
+ * Una fila por producto y dos renglones. Entra el doble de catálogo en la
+ * misma pantalla que con tarjetas, y en una botica el catálogo es largo.
+ * ────────────────────────────────────────────────────────────────────────────*/
+
+.pv-fila {
+  padding: 0.625rem 1rem;
+  border-bottom: 1px solid var(--pv-border);
+  border-left: 3px solid transparent;
+  cursor: default;
+  transition:
+    background-color var(--pv-rapido) var(--pv-suave),
+    border-left-color var(--pv-rapido) var(--pv-suave);
+}
+
+/*
+ * La fila activa se marca con un filo a la izquierda, no con un fondo fuerte.
+ * Con las flechas el resaltado se mueve constantemente; un fondo saturado
+ * parpadeando a ese ritmo cansa en una jornada de ocho horas.
+ */
+.pv-fila-activa {
+  background-color: var(--pv-surface-2);
+  border-left-color: var(--pv-bronce-500);
+}
+
+/* Presentación: la unidad y su precio, juntos, porque elegir una ES elegir
+ * el otro. Separarlos en dos pasos es inventar un paso. */
+.pv-pres {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 2rem;
+  padding: 0 0.625rem;
+  border-radius: var(--pv-radio-control);
+  border: 1px solid var(--pv-border);
+  background-color: var(--pv-surface);
+  color: var(--pv-text);
+  font-size: 12px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition:
+    background-color var(--pv-rapido) var(--pv-suave),
+    border-color var(--pv-rapido) var(--pv-suave),
+    transform var(--pv-rapido) var(--pv-rebote);
+}
+
+.pv-pres:hover {
+  border-color: color-mix(in srgb, var(--pv-bronce-500) 50%, var(--pv-border));
+}
+
+.pv-pres:active {
+  transform: scale(0.96);
+}
+
+.pv-pres-activa {
+  background-color: color-mix(in srgb, var(--pv-bronce-500) 16%, var(--pv-surface));
+  border-color: var(--pv-bronce-500);
+  color: var(--pv-bronce-texto);
+}
+
+/* Marca de exonerado. Va en la presentación y no en el producto porque la
+ * exoneración es del precio: el mismo producto puede tener presentaciones
+ * con distinta afectación. */
+.pv-exonerado {
+  padding: 0 0.3rem;
+  border-radius: 4px;
+  background-color: color-mix(in srgb, var(--pv-indigo) 24%, transparent);
+  color: var(--pv-text);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  opacity: 0.85;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pv-fila,
+  .pv-pres {
+    transition: none;
+  }
+  .pv-pres:active {
+    transform: none;
+  }
+}

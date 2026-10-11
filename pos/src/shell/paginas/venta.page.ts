@@ -1,5 +1,13 @@
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core'
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  inject,
+  signal,
+  viewChild,
+} from '@angular/core'
 import { FormsModule } from '@angular/forms'
+import type { ElementRef } from '@angular/core'
 import type { PresentacionVenta, ProductoRef } from '@pos-core/index'
 import { MonedaPipe, PUERTO_CATALOGO, TicketService } from '@pos-core-ui/index'
 import { SesionStore } from '../sesion/sesion.store'
@@ -10,11 +18,14 @@ import { SesionStore } from '../sesion/sesion.store'
  * La mitad izquierda del mostrador: buscar y elegir. La derecha —ticket,
  * totales y cobro— la pone el shell y es igual para todos los rubros.
  *
- * El buscador vive aquí, y no dentro del perfil, porque el gesto es el mismo
- * en ropa y en farmacia: escanear o escribir. Lo que cambia por rubro es qué
- * se busca y cómo se presentan los resultados, y eso lo aportará el perfil en
- * el hito 3 a través de `BuscadorProductos` y `pantallaVenta`. Hasta
- * entonces, esta lista genérica es suficiente para probar el núcleo.
+ * Está pensada para MANOS EN EL TECLADO, que es como se opera una caja con
+ * cola: se escribe en el buscador y nunca se sale de él. Las flechas mueven
+ * por producto y por presentación, y Entrar agrega. Soltar el escáner para
+ * buscar el ratón es lo que hace lenta una venta.
+ *
+ * Es deliberadamente genérica: en el hito 3 cada perfil la reemplaza por la
+ * suya —tarjetas con foto y matriz de talla en ropa, sustitutos y lote en
+ * farmacia—. Lo que no cambia es el gesto: escanear o escribir.
  */
 @Component({
   selector: 'km-venta-page',
@@ -22,12 +33,12 @@ import { SesionStore } from '../sesion/sesion.store'
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { '(document:keydown)': 'atajo($event)' },
   template: `
-    <div class="pv-fade-in flex h-full flex-col gap-4">
+    <div class="pv-fade-in flex h-full flex-col gap-3">
       <div class="flex items-center gap-2">
         <div class="relative flex-1">
           <input
-            #buscador
-            class="pv-campo pr-16"
+            #campo
+            class="pv-campo pr-16 text-base"
             type="search"
             placeholder="Escanea un código o escribe para buscar…"
             aria-label="Buscar producto"
@@ -38,9 +49,8 @@ import { SesionStore } from '../sesion/sesion.store'
           <span
             class="pv-tecla absolute right-3 top-1/2 -translate-y-1/2 text-tenue"
             aria-hidden="true"
+            >F2</span
           >
-            F2
-          </span>
         </div>
         <button class="pv-boton pv-boton-tenue" type="button" disabled>
           Cliente
@@ -48,49 +58,76 @@ import { SesionStore } from '../sesion/sesion.store'
         </button>
       </div>
 
-      <div class="pv-panel min-h-0 flex-1 overflow-auto">
-        @if (buscando()) {
-          <p class="text-tenue p-8 text-center text-sm">Buscando…</p>
-        } @else if (resultados().length === 0) {
-          <div class="flex h-full flex-col items-center justify-center gap-2 p-8 text-center">
+      <div class="pv-panel flex min-h-0 flex-1 flex-col overflow-hidden">
+        @if (resultados().length === 0) {
+          <div class="flex flex-1 flex-col items-center justify-center gap-2 p-8 text-center">
             <p class="text-tenue text-sm">
-              {{
-                texto() ? 'Sin resultados para «' + texto() + '»' : 'Busca un producto para empezar'
-              }}
+              {{ buscando() ? 'Buscando…' : 'Sin resultados para «' + texto() + '»' }}
             </p>
-            <p class="text-tenue text-xs">Prueba con «paracetamol», «ibu» o un código de barras.</p>
+            @if (!buscando()) {
+              <p class="text-tenue text-xs">
+                Prueba con «paracetamol», «ibu» o un código de barras.
+              </p>
+            }
           </div>
         } @else {
-          <ul class="divide-y divide-linea">
-            @for (producto of resultados(); track producto.id) {
-              <li class="p-4">
-                <div class="mb-2 flex items-baseline justify-between gap-3">
-                  <p class="truncate font-semibold">{{ producto.descripcion }}</p>
-                  <p class="pv-cifra text-tenue shrink-0 text-xs">{{ producto.codigoBarras }}</p>
-                </div>
+          @if (!texto()) {
+            <p class="pv-etiqueta text-tenue border-b border-linea px-4 py-2">Frecuentes</p>
+          }
 
-                <!-- Una presentación, un botón. Elegir la unidad ES elegir el
-                     precio, así que no se separan en dos pasos. -->
-                <div class="flex flex-wrap gap-2">
-                  @for (presentacion of producto.presentaciones; track presentacion.id) {
+          <!-- Lista densa: una fila por producto, dos renglones. Entra el
+               doble de catálogo en la misma pantalla que con tarjetas, y en
+               una botica el catálogo es largo. -->
+          <ul class="min-h-0 flex-1 overflow-auto" role="listbox" aria-label="Resultados">
+            @for (producto of resultados(); track producto.id; let i = $index) {
+              <li
+                class="pv-fila"
+                role="option"
+                [class.pv-fila-activa]="i === fila()"
+                [attr.aria-selected]="i === fila()"
+                (mouseenter)="fila.set(i)"
+              >
+                <div class="flex items-baseline justify-between gap-3">
+                  <p class="truncate text-sm font-semibold">{{ producto.descripcion }}</p>
+                  <p class="pv-cifra text-tenue shrink-0 text-[11px]">
+                    {{ producto.codigoBarras }}
+                  </p>
+                </div>
+                @if (producto.nota) {
+                  <p class="text-tenue truncate text-xs">{{ producto.nota }}</p>
+                }
+
+                <!-- La presentación ES el precio: elegirla es la acción, no
+                     un paso previo. Por eso va en la fila y no en un diálogo. -->
+                <div class="mt-1.5 flex flex-wrap gap-1.5">
+                  @for (pres of producto.presentaciones; track pres.id; let j = $index) {
                     <button
-                      class="pv-boton pv-boton-tenue flex-col items-start gap-0 px-3 py-2 text-xs"
+                      class="pv-pres"
                       type="button"
-                      (click)="agregar(producto, presentacion)"
+                      [class.pv-pres-activa]="i === fila() && j === presentacion()"
+                      (click)="agregar(producto, pres)"
+                      (mouseenter)="presentacion.set(j)"
                     >
-                      <span class="font-semibold">{{ presentacion.unidad.nombre }}</span>
-                      <span class="pv-cifra text-tenue text-[11px] font-normal">
-                        {{ presentacion.precio | moneda }}
-                        @if (presentacion.igvTasa === 0) {
-                          · exonerado
-                        }
-                      </span>
+                      <span>{{ pres.unidad.nombre }}</span>
+                      <span class="pv-cifra font-semibold">{{ pres.precio | moneda: false }}</span>
+                      @if (pres.igvTasa === 0) {
+                        <span class="pv-exonerado">exon</span>
+                      }
                     </button>
                   }
                 </div>
               </li>
             }
           </ul>
+
+          <!-- Las teclas, a la vista. Un atajo que no se enseña no se usa. -->
+          <div
+            class="text-tenue flex shrink-0 items-center gap-4 border-t border-linea px-4 py-2 text-[11px]"
+          >
+            <span><span class="pv-tecla">↑↓</span> producto</span>
+            <span><span class="pv-tecla">←→</span> presentación</span>
+            <span><span class="pv-tecla">⏎</span> agregar</span>
+          </div>
         }
       </div>
     </div>
@@ -101,9 +138,17 @@ export class VentaPage {
   private readonly sesion = inject(SesionStore)
   private readonly ticket = inject(TicketService)
 
+  private readonly campo = viewChild<ElementRef<HTMLInputElement>>('campo')
+
   protected readonly texto = signal('')
   protected readonly resultados = signal<ProductoRef[]>([])
   protected readonly buscando = signal(false)
+
+  /** Fila y presentación resaltadas. Las mueven las flechas y el puntero. */
+  protected readonly fila = signal(0)
+  protected readonly presentacion = signal(0)
+
+  private readonly activo = computed(() => this.resultados()[this.fila()] ?? null)
 
   /** Marca la búsqueda en curso: si llega tarde, su respuesta se descarta. */
   private ultimaBusqueda = 0
@@ -118,32 +163,116 @@ export class VentaPage {
     this.buscando.set(true)
 
     const sucursalId = this.sesion.sucursal()?.id ?? ''
-    const hallados = await this.catalogo.buscar({ texto, sucursalId, limite: 8 })
+    const hallados = await this.catalogo.buscar({ texto, sucursalId, limite: 12 })
 
     // Escribir rápido lanza varias búsquedas y no llegan en orden: sin esto,
     // una respuesta lenta de «para» pisaría la de «paracetamol».
     if (mia !== this.ultimaBusqueda) return
 
     this.resultados.set(hallados)
+    this.fila.set(0)
+    this.presentacion.set(0)
     this.buscando.set(false)
+
+    // Un código de barras devuelve un único producto: se agrega solo. El
+    // escáner ya es la confirmación; pedir otra sobra.
+    if (hallados.length === 1 && /^\d{8,}$/.test(texto.trim())) {
+      this.agregar(hallados[0], hallados[0].presentaciones[0])
+      this.limpiar()
+    }
   }
 
-  protected agregar(producto: ProductoRef, presentacion: PresentacionVenta): void {
+  protected agregar(producto: ProductoRef, pres: PresentacionVenta): void {
     this.ticket.agregarLinea({
       productoId: producto.id,
       descripcion: producto.descripcion,
-      unidad: presentacion.unidad,
-      factorAlmacen: presentacion.factorAlmacen,
+      unidad: pres.unidad,
+      factorAlmacen: pres.factorAlmacen,
       cantidad: 1,
-      precioUnitario: presentacion.precio,
-      igvTasa: presentacion.igvTasa,
+      precioUnitario: pres.precio,
+      igvTasa: pres.igvTasa,
       atributos: {},
     })
   }
 
+  /**
+   * Teclado.
+   *
+   * Se captura en el documento y no en el campo porque el foco puede haberse
+   * ido a un botón tras un clic, y el cajero sigue escribiendo igual. Las
+   * flechas no mueven el cursor dentro del buscador: ahí no hay nada que
+   * recorrer, y sí una lista.
+   */
   protected atajo(evento: KeyboardEvent): void {
-    if (evento.key !== 'F2') return
-    evento.preventDefault()
-    document.querySelector<HTMLInputElement>('input[type="search"]')?.focus()
+    if (evento.key === 'F2') {
+      evento.preventDefault()
+      this.enfocar()
+      return
+    }
+
+    const total = this.resultados().length
+    if (total === 0) return
+
+    switch (evento.key) {
+      case 'ArrowDown':
+        evento.preventDefault()
+        this.moverFila(1)
+        break
+      case 'ArrowUp':
+        evento.preventDefault()
+        this.moverFila(-1)
+        break
+      case 'ArrowRight':
+        evento.preventDefault()
+        this.moverPresentacion(1)
+        break
+      case 'ArrowLeft':
+        evento.preventDefault()
+        this.moverPresentacion(-1)
+        break
+      case 'Enter': {
+        const producto = this.activo()
+        const pres = producto?.presentaciones[this.presentacion()]
+        if (!producto || !pres) return
+        evento.preventDefault()
+        this.agregar(producto, pres)
+        break
+      }
+      case 'Escape':
+        evento.preventDefault()
+        this.limpiar()
+        break
+    }
+  }
+
+  private moverFila(paso: number): void {
+    const total = this.resultados().length
+    this.fila.update((actual) => (actual + paso + total) % total)
+    this.presentacion.set(0)
+    this.desplazarAVista()
+  }
+
+  private moverPresentacion(paso: number): void {
+    const total = this.activo()?.presentaciones.length ?? 0
+    if (total === 0) return
+    this.presentacion.update((actual) => (actual + paso + total) % total)
+  }
+
+  private desplazarAVista(): void {
+    queueMicrotask(() => {
+      document
+        .querySelector('.pv-fila-activa')
+        ?.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
+    })
+  }
+
+  private limpiar(): void {
+    void this.buscar('')
+    this.enfocar()
+  }
+
+  private enfocar(): void {
+    this.campo()?.nativeElement.focus()
+    this.campo()?.nativeElement.select()
   }
 }

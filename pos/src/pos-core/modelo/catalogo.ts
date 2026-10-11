@@ -9,6 +9,13 @@ export interface ProductoRef {
   /** Al menos una. La primera es la que se ofrece por defecto. */
   presentaciones: PresentacionVenta[]
   codigoBarras?: string
+  /**
+   * Una línea de contexto que compone el adaptador y nadie más interpreta:
+   * «Paracetamol · Genfar» en una botica, «Algodón · Slim fit» en una tienda
+   * de ropa. Permite que la lista genérica diga algo útil sin que el shell
+   * sepa de rubros.
+   */
+  nota?: string
 }
 
 export interface ResultadoBusqueda extends ProductoRef {
