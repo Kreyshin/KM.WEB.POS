@@ -818,3 +818,237 @@ body {
     transform: none;
   }
 }
+
+/* ─────────────────────────────────────────────────────────────────────────────
+ * Escenografía del acceso
+ *
+ * Tres puestas en escena sobre el mismo núcleo de acceso. Solo visten; el pad,
+ * el visor y el formulario son los mismos en las tres.
+ * ────────────────────────────────────────────────────────────────────────────*/
+
+/* ── A · Mostrador ─────────────────────────────────────────────────────── */
+
+.pv-escena-lienzo {
+  background-color: var(--pv-bg);
+  background-image:
+    radial-gradient(
+      60rem 40rem at 30% 40%,
+      color-mix(in srgb, var(--pv-bronce-500) 16%, transparent),
+      transparent 70%
+    ),
+    radial-gradient(
+      40rem 30rem at 90% 10%,
+      color-mix(in srgb, var(--pv-bronce-700) 20%, transparent),
+      transparent 70%
+    );
+}
+
+/*
+ * Paralaje de la ilustración. El desplazamiento llega por variables desde el
+ * componente, así que la transición lo suaviza en vez de seguir al puntero
+ * fotograma a fotograma: queda un arrastre leve, que es lo que da sensación
+ * de profundidad.
+ */
+.pv-escena-img {
+  --pv-px: 0px;
+  --pv-py: 0px;
+  transform: translate3d(var(--pv-px), var(--pv-py), 0);
+  transition: transform 600ms var(--pv-salida);
+  filter: drop-shadow(0 30px 60px rgb(0 0 0 / 0.45));
+}
+
+/* ── B · Vitrina ───────────────────────────────────────────────────────── */
+
+.pv-vitrina {
+  background-color: var(--pv-bg);
+}
+
+.pv-mancha {
+  position: absolute;
+  border-radius: 999px;
+  filter: blur(80px);
+  opacity: 0.5;
+  pointer-events: none;
+  will-change: transform;
+}
+
+.pv-mancha-1 {
+  width: 40rem;
+  height: 40rem;
+  top: -12rem;
+  left: -10rem;
+  background: var(--pv-bronce-600);
+  opacity: 0.62;
+  animation: pv-deriva-1 26s ease-in-out infinite alternate;
+}
+
+.pv-mancha-2 {
+  width: 34rem;
+  height: 34rem;
+  bottom: -12rem;
+  right: -8rem;
+  background: var(--pv-bronce-700);
+  opacity: 0.58;
+  animation: pv-deriva-2 32s ease-in-out infinite alternate;
+}
+
+/*
+ * Esta va DETRÁS de la tarjeta, no en una esquina, y es la más clara de las
+ * tres. Sin luz al otro lado no hay nada que difuminar y el vidrio se lee
+ * como un panel opaco: el efecto depende de que la lámina tenga algo
+ * brillante que recoger, no del desenfoque.
+ */
+.pv-mancha-3 {
+  width: 32rem;
+  height: 32rem;
+  top: 50%;
+  left: 50%;
+  margin: -16rem 0 0 -16rem;
+  background: var(--pv-bronce-400);
+  opacity: 0.62;
+  filter: blur(70px);
+  animation: pv-deriva-3 38s ease-in-out infinite alternate;
+}
+
+@keyframes pv-deriva-1 {
+  to {
+    transform: translate3d(6rem, 4rem, 0) scale(1.15);
+  }
+}
+@keyframes pv-deriva-2 {
+  to {
+    transform: translate3d(-5rem, -3rem, 0) scale(1.1);
+  }
+}
+@keyframes pv-deriva-3 {
+  to {
+    transform: translate3d(-4rem, 3rem, 0) scale(1.2);
+  }
+}
+
+/*
+ * Vidrio. El borde claro de arriba y el oscuro de abajo son lo que hace que
+ * se lea como un panel con grosor y no como un rectángulo translúcido.
+ */
+.pv-vidrio {
+  background-color: color-mix(in srgb, var(--pv-surface) 58%, transparent);
+  backdrop-filter: blur(26px) saturate(150%);
+  -webkit-backdrop-filter: blur(22px) saturate(140%);
+  border: 1px solid color-mix(in srgb, #ffffff 14%, transparent);
+  border-top-color: color-mix(in srgb, #ffffff 24%, transparent);
+  border-radius: var(--pv-radio-overlay);
+  box-shadow:
+    0 24px 70px -20px rgb(0 0 0 / 0.6),
+    inset 0 1px 0 color-mix(in srgb, #ffffff 10%, transparent);
+}
+
+[data-theme='light'] .pv-vidrio {
+  background-color: color-mix(in srgb, #ffffff 62%, transparent);
+  border-color: color-mix(in srgb, #ffffff 70%, transparent);
+  box-shadow: 0 24px 70px -22px rgb(22 19 13 / 0.3);
+}
+
+/* ── C · Comanda ───────────────────────────────────────────────────────── */
+
+.pv-comanda-lienzo {
+  background-color: var(--pv-bg);
+  background-image: radial-gradient(
+    46rem 34rem at 50% -6rem,
+    color-mix(in srgb, var(--pv-bronce-600) 20%, transparent),
+    transparent 70%
+  );
+}
+
+/* Cabezal de impresión: la ranura de la que sale el papel. */
+.pv-impresora {
+  position: relative;
+  margin: 0 auto;
+  top: 0;
+  width: calc(100% + 2.5rem);
+  max-width: 24rem;
+  height: 1.5rem;
+  border-radius: 0 0 10px 10px;
+  background: linear-gradient(180deg, #2a2318, #16120c);
+  box-shadow: 0 6px 18px -8px rgb(0 0 0 / 0.8);
+}
+
+.pv-impresora-ranura {
+  position: absolute;
+  inset: auto 1.25rem 0.3rem;
+  height: 4px;
+  border-radius: 2px;
+  background: #0a0806;
+  box-shadow: inset 0 1px 2px rgb(0 0 0 / 0.9);
+}
+
+/* La máscara de los dientes recorta también la sombra, así que la pone esta
+ * capa de detrás, desplazada y desenfocada. */
+.pv-comanda-sombra {
+  position: relative;
+  filter: drop-shadow(0 22px 34px rgb(0 0 0 / 0.5));
+}
+
+.pv-comanda {
+  --diente: 16px;
+  --diente-alto: 8px;
+
+  position: relative;
+  background-color: #f6efe0;
+  color: #16130d;
+
+  /*
+   * El papel redefine los tokens del tema dentro de la tarjeta. Así el pad,
+   * el visor y el formulario —que leen estas variables— se reciclan tal cual
+   * sobre fondo claro, sin que ninguno sepa que ha cambiado de soporte.
+   */
+  --pv-surface: #f6efe0;
+  --pv-surface-2: #efe6d3;
+  --pv-text: #16130d;
+  --pv-muted: #6b6153;
+  --pv-border: #ddd2bb;
+  --pv-selection: #e8d4a8;
+  --pv-bronce-texto: #6b4f20;
+
+  -webkit-mask:
+    conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg) bottom /
+      var(--diente) var(--diente-alto) repeat-x,
+    conic-gradient(from 135deg at top, #0000, #000 1deg 89deg, #0000 90deg) top / var(--diente)
+      var(--diente-alto) repeat-x,
+    linear-gradient(#000 0 0) center / 100% calc(100% - 2 * var(--diente-alto)) no-repeat;
+  mask:
+    conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg) bottom /
+      var(--diente) var(--diente-alto) repeat-x,
+    conic-gradient(from 135deg at top, #0000, #000 1deg 89deg, #0000 90deg) top / var(--diente)
+      var(--diente-alto) repeat-x,
+    linear-gradient(#000 0 0) center / 100% calc(100% - 2 * var(--diente-alto)) no-repeat;
+}
+
+.pv-comanda-marca {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  color: #6b4f20;
+}
+
+.pv-comanda-regla {
+  height: 0;
+  border-top: 1.5px dashed #c8bb9f;
+}
+
+.pv-comanda-pie {
+  margin-top: 0.75rem;
+  text-align: center;
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  color: #8a7f6c;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pv-escena-img {
+    transition: none;
+    transform: none;
+  }
+  .pv-mancha {
+    animation: none;
+  }
+}
