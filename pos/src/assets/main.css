@@ -738,33 +738,53 @@ body {
   transform: scale(1.25);
 }
 
-/* ── Plegable ──────────────────────────────────────────────────────────── */
+/* ── Conmutador de vía de entrada ──────────────────────────────────────── */
 
 /*
- * Se anima `grid-template-rows` de 0fr a 1fr. Es la única forma de ir de cero
- * a «lo que mida el contenido» sin fijar una altura en píxeles que se rompa
- * cuando el contenido cambie.
+ * Dos paneles excluyentes que animan a la vez entre 0fr y 1fr. El que entra
+ * crece mientras el que sale encoge, así que la comanda se estira o se
+ * recoge en lugar de dar un salto, que es lo que pasaría con un @if seco.
+ *
+ * Es la misma técnica del plegable al que sustituye: `grid-template-rows` es
+ * lo único que va de cero a «lo que mida el contenido» sin fijar píxeles.
  */
-.pv-plegable {
+.pv-conmuta {
+  display: flex;
+  flex-direction: column;
+}
+
+.pv-conmuta-panel {
   display: grid;
-  grid-template-rows: 0fr;
-  opacity: 0;
+  grid-template-rows: 1fr;
+  opacity: 1;
   transition:
-    grid-template-rows var(--pv-entrada) var(--pv-salida),
+    grid-template-rows 340ms var(--pv-salida),
     opacity 200ms var(--pv-suave);
 }
 
-.pv-plegable-abierto {
+/* Por defecto manda el PIN: el segundo panel llega recogido. */
+.pv-conmuta > .pv-conmuta-panel:nth-child(2) {
+  grid-template-rows: 0fr;
+  opacity: 0;
+}
+
+.pv-conmuta-clave > .pv-conmuta-panel:nth-child(1) {
+  grid-template-rows: 0fr;
+  opacity: 0;
+}
+
+.pv-conmuta-clave > .pv-conmuta-panel:nth-child(2) {
   grid-template-rows: 1fr;
   opacity: 1;
 }
 
-.pv-chevron {
+/* La flecha gira media vuelta: dice que esto va y vuelve, no que despliega. */
+.pv-flecha {
   display: inline-block;
-  transition: transform var(--pv-entrada) var(--pv-salida);
+  transition: transform 340ms var(--pv-salida);
 }
 
-.pv-chevron-abierto {
+.pv-flecha-vuelta {
   transform: rotate(180deg);
 }
 
@@ -787,8 +807,8 @@ body {
   .pv-boton,
   .pv-tecla-pad,
   .pv-punto,
-  .pv-plegable,
-  .pv-chevron {
+  .pv-conmuta-panel,
+  .pv-flecha {
     transition: none;
   }
   .pv-tecla-pad:active:not(:disabled) {

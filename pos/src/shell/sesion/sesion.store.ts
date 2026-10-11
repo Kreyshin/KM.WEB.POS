@@ -45,6 +45,11 @@ export class SesionStore {
     return actual !== null && roles.includes(actual)
   }
 
+  /** Borra el último error. Lo usa el acceso al cambiar de vía de entrada. */
+  limpiarError(): void {
+    this._error.set(null)
+  }
+
   /** Rehidrata la sesión guardada. Se llama una vez, al arrancar la app. */
   restaurar(): void {
     try {

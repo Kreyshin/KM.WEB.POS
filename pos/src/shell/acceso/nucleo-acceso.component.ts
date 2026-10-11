@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, inject, input, signal } from '@angular/core'
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core'
 import { Router } from '@angular/router'
 import { SesionStore } from '../sesion/sesion.store'
 import { FormularioAccesoComponent } from './formulario-acceso.component'
@@ -7,15 +7,22 @@ import { AtajosDemoComponent, type TurnoDemo } from './atajos-demo.component'
 /**
  * El acceso, sin escenografía.
  *
- * Contiene todo lo que hace falta para entrar —turnos, pad, visor y el
- * formulario plegado de usuario y clave— y nada de cómo se ve la pantalla
- * alrededor. Las variantes de puesta en escena lo montan y ponen el decorado.
+ * Dos vías excluyentes, no una desplegada bajo la otra:
+ *   - PIN: el turno del día. Se elige quién eres y se marca con el pulgar.
+ *   - Usuario y clave: quien entra fuera de turno, un supervisor que pasa.
  *
- * Es la misma regla que ya seguían las variantes anteriores: la autenticación
- * vive en un solo sitio. Si mañana hay que añadir un segundo factor, se toca
- * este archivo y las tres escenas lo heredan.
+ * Se conmutan: la que no está en uso se oculta y queda inerte, para que el
+ * tabulador y el lector de pantalla no la encuentren. El cambio no es un
+ * corte: los dos paneles animan a la vez `grid-template-rows` entre 0fr y
+ * 1fr, así que la comanda crece o encoge en lugar de dar un salto.
+ *
+ * Contiene todo lo necesario para entrar y nada de cómo se ve la pantalla
+ * alrededor. La escena solo pone el decorado, y la autenticación vive aquí:
+ * si mañana hay un segundo factor, se toca este archivo y nada más.
  */
 const LARGO_PIN = 4
+
+type Modo = 'pin' | 'clave'
 
 @Component({
   selector: 'km-nucleo-acceso',
@@ -24,103 +31,103 @@ const LARGO_PIN = 4
   host: { '(document:keydown)': 'tecla($event)' },
   template: `
     <div class="flex flex-col">
-      @defer (when demo) {
-        <div class="mb-5">
-          <km-atajos-demo [elegido]="turno()" (elegir)="elegirTurno($event)" />
-        </div>
-      }
+      <div class="pv-conmuta" [class.pv-conmuta-clave]="modo() === 'clave'">
+        <!-- Vía 1: PIN del turno -->
+        <div class="pv-conmuta-panel" [attr.inert]="modo() === 'clave' ? '' : null">
+          <div class="overflow-hidden">
+            @defer (when demo) {
+              <div class="mb-5">
+                <km-atajos-demo [elegido]="turno()" (elegir)="elegirTurno($event)" />
+              </div>
+            }
 
-      <!-- Visor: un punto por dígito marcado. -->
-      <div
-        class="mb-4 flex min-h-toque items-center justify-center gap-2.5 rounded-control border border-linea bg-panel-2"
-        [class.pv-sacude]="sacude()"
-        role="status"
-        [attr.aria-label]="'Dígitos marcados: ' + marcados()"
-      >
-        @for (punto of ranura; track $index) {
-          <span
-            class="pv-punto"
-            [class.pv-punto-lleno]="$index < marcados()"
-            aria-hidden="true"
-          ></span>
-        }
+            <div
+              class="mb-4 flex min-h-toque items-center justify-center gap-2.5 rounded-control border border-linea bg-panel-2"
+              [class.pv-sacude]="sacude()"
+              role="status"
+              [attr.aria-label]="'Dígitos marcados: ' + marcados()"
+            >
+              @for (punto of ranura; track $index) {
+                <span
+                  class="pv-punto"
+                  [class.pv-punto-lleno]="$index < marcados()"
+                  aria-hidden="true"
+                ></span>
+              }
+            </div>
+
+            <div class="grid grid-cols-3 gap-2">
+              @for (tecla of teclas; track tecla) {
+                <button
+                  class="pv-tecla-pad pv-cifra"
+                  type="button"
+                  [disabled]="sesion.cargando()"
+                  (click)="marcar(tecla)"
+                >
+                  {{ tecla }}
+                </button>
+              }
+              <button
+                class="pv-tecla-pad text-sm"
+                type="button"
+                [disabled]="sesion.cargando() || marcados() === 0"
+                (click)="borrar()"
+              >
+                Borrar
+              </button>
+              <button
+                class="pv-tecla-pad pv-cifra"
+                type="button"
+                [disabled]="sesion.cargando()"
+                (click)="marcar('0')"
+              >
+                0
+              </button>
+              <button
+                class="pv-tecla-pad pv-tecla-pad-accion text-sm"
+                type="button"
+                [disabled]="sesion.cargando() || marcados() === 0"
+                (click)="entrar()"
+              >
+                {{ sesion.cargando() ? '…' : 'Entrar' }}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Vía 2: usuario y clave -->
+        <div class="pv-conmuta-panel" [attr.inert]="modo() === 'pin' ? '' : null">
+          <div class="overflow-hidden">
+            <km-formulario-acceso />
+          </div>
+        </div>
       </div>
 
+      <!-- El error vive fuera de los dos paneles: lo produce cualquiera de
+           las dos vías y no debe desaparecer al conmutar. -->
       @if (sesion.error()) {
         <p
-          class="pv-tono pv-tono-anulado pv-entra mb-4 rounded-control px-3 py-2 text-center text-sm"
+          class="pv-tono pv-tono-anulado pv-entra mt-4 rounded-control px-3 py-2 text-center text-sm"
           role="alert"
         >
           {{ sesion.error() }}
         </p>
       }
 
-      <div class="grid grid-cols-3 gap-2">
-        @for (tecla of teclas; track tecla) {
-          <button
-            class="pv-tecla-pad pv-cifra"
-            type="button"
-            [disabled]="sesion.cargando()"
-            (click)="marcar(tecla)"
-          >
-            {{ tecla }}
-          </button>
-        }
-        <button
-          class="pv-tecla-pad text-sm"
-          type="button"
-          [disabled]="sesion.cargando() || marcados() === 0"
-          (click)="borrar()"
-        >
-          Borrar
-        </button>
-        <button
-          class="pv-tecla-pad pv-cifra"
-          type="button"
-          [disabled]="sesion.cargando()"
-          (click)="marcar('0')"
-        >
-          0
-        </button>
-        <button
-          class="pv-tecla-pad pv-tecla-pad-accion text-sm"
-          type="button"
-          [disabled]="sesion.cargando() || marcados() === 0"
-          (click)="entrar()"
-        >
-          {{ sesion.cargando() ? '…' : 'Entrar' }}
-        </button>
-      </div>
-
-      <!-- Usuario y clave, plegado. Se anima el alto con grid, que es lo único
-           que transiciona de 0 a «lo que mida» sin fijar píxeles. -->
       <div class="mt-5 border-t border-linea pt-3">
         <button
-          class="flex w-full items-center justify-between py-1 text-sm text-tenue"
+          class="flex w-full items-center justify-center gap-2 py-1 text-sm text-tenue"
           type="button"
-          [attr.aria-expanded]="conFormulario()"
-          aria-controls="acceso-formulario"
-          (click)="conFormulario.set(!conFormulario())"
+          (click)="conmutar()"
         >
-          <span>Entrar con usuario y clave</span>
-          <span class="pv-chevron" [class.pv-chevron-abierto]="conFormulario()">⌃</span>
+          <span>{{ modo() === 'pin' ? 'Entrar con usuario y clave' : 'Volver al teclado' }}</span>
+          <span class="pv-flecha" [class.pv-flecha-vuelta]="modo() === 'clave'">→</span>
         </button>
-
-        <div class="pv-plegable" [class.pv-plegable-abierto]="conFormulario()">
-          <div class="overflow-hidden" id="acceso-formulario">
-            <div class="pt-3">
-              <km-formulario-acceso />
-            </div>
-          </div>
-        </div>
       </div>
     </div>
   `,
 })
 export class NucleoAccesoComponent {
-  /** Lo observa la escena para reaccionar: imprimir, abrir el cajón, etc. */
-  readonly marcadosCambio = input<((n: number) => void) | null>(null)
-
   protected readonly sesion = inject(SesionStore)
   private readonly router = inject(Router)
 
@@ -128,13 +135,21 @@ export class NucleoAccesoComponent {
   protected readonly teclas = ['1', '2', '3', '4', '5', '6', '7', '8', '9']
   protected readonly ranura = Array.from({ length: LARGO_PIN })
 
+  /** Pública para que la escena ajuste el encabezado de la comanda. */
+  readonly modo = signal<Modo>('pin')
   readonly turno = signal<string | null>(null)
   readonly pin = signal('')
-  protected readonly conFormulario = signal(false)
   /** Sacudida del visor cuando la clave no entra. Se apaga sola. */
   protected readonly sacude = signal(false)
 
   readonly marcados = computed(() => this.pin().length)
+
+  protected conmutar(): void {
+    this.modo.update((actual) => (actual === 'pin' ? 'clave' : 'pin'))
+    // Lo marcado en una vía no se arrastra a la otra.
+    this.pin.set('')
+    this.sesion.limpiarError()
+  }
 
   protected elegirTurno(turno: TurnoDemo): void {
     this.turno.set(turno.usuario)
@@ -172,7 +187,7 @@ export class NucleoAccesoComponent {
 
   /** El pad acepta también el teclado físico, sin foco en ningún campo. */
   protected tecla(evento: KeyboardEvent): void {
-    if (this.conFormulario() || evento.ctrlKey || evento.metaKey || evento.altKey) return
+    if (this.modo() !== 'pin' || evento.ctrlKey || evento.metaKey || evento.altKey) return
 
     if (/^[0-9]$/.test(evento.key)) {
       evento.preventDefault()
