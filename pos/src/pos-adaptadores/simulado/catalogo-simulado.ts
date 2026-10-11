@@ -1,5 +1,6 @@
 import {
   IGV_GENERAL,
+  type CategoriaRef,
   type ConsultaCatalogo,
   type ProductoRef,
   type PuertoCatalogo,
@@ -29,6 +30,8 @@ interface DetalleFarmacia extends Record<string, unknown> {
 const productos: ProductoRef[] = [
   {
     id: 'f-paracetamol-500',
+    categoria: { codigo: 'ANALG', nombre: 'Analgésicos' },
+    icono: 'tableta',
     descripcion: 'Paracetamol 500 mg',
     codigoBarras: '7750001000017',
     // El almacén cuenta tabletas, así que un blíster descuenta 10.
@@ -41,6 +44,8 @@ const productos: ProductoRef[] = [
   },
   {
     id: 'f-ibuprofeno-400',
+    categoria: { codigo: 'ANALG', nombre: 'Analgésicos' },
+    icono: 'tableta',
     descripcion: 'Ibuprofeno 400 mg',
     codigoBarras: '7750001000024',
     unidadAlmacen: TAB,
@@ -51,6 +56,8 @@ const productos: ProductoRef[] = [
   },
   {
     id: 'f-amoxicilina-500',
+    categoria: { codigo: 'ANTIB', nombre: 'Antibióticos' },
+    icono: 'capsula',
     descripcion: 'Amoxicilina 500 mg',
     codigoBarras: '7750001000031',
     unidadAlmacen: TAB,
@@ -60,6 +67,8 @@ const productos: ProductoRef[] = [
   },
   {
     id: 'f-metformina-850',
+    categoria: { codigo: 'CRONI', nombre: 'Crónicos' },
+    icono: 'tableta',
     descripcion: 'Metformina 850 mg',
     codigoBarras: '7750001000048',
     unidadAlmacen: TAB,
@@ -72,6 +81,8 @@ const productos: ProductoRef[] = [
   },
   {
     id: 'f-loratadina-10',
+    categoria: { codigo: 'ALERG', nombre: 'Antialérgicos' },
+    icono: 'tableta',
     descripcion: 'Loratadina 10 mg',
     codigoBarras: '7750001000055',
     unidadAlmacen: TAB,
@@ -82,6 +93,8 @@ const productos: ProductoRef[] = [
   },
   {
     id: 'f-alcohol-70',
+    categoria: { codigo: 'INSUM', nombre: 'Insumos' },
+    icono: 'frasco',
     descripcion: 'Alcohol medicinal 70° 1 L',
     codigoBarras: '7750001000062',
     unidadAlmacen: FCO,
@@ -91,6 +104,8 @@ const productos: ProductoRef[] = [
   },
   {
     id: 'f-jeringa-5',
+    categoria: { codigo: 'INSUM', nombre: 'Insumos' },
+    icono: 'inyectable',
     descripcion: 'Jeringa descartable 5 ml',
     codigoBarras: '7750001000079',
     unidadAlmacen: UND,
@@ -100,6 +115,8 @@ const productos: ProductoRef[] = [
   },
   {
     id: 'f-mascarilla',
+    categoria: { codigo: 'PROTE', nombre: 'Protección' },
+    icono: 'caja',
     descripcion: 'Mascarilla quirúrgica tricapa',
     codigoBarras: '7750001000086',
     unidadAlmacen: UND,
@@ -147,6 +164,18 @@ function conNota(producto: ProductoRef): ProductoRef {
   return { ...producto, nota: partes.join(' · ') }
 }
 
+/** Las categorías del catálogo, con cuántos productos tiene cada una. */
+export function categoriasDelCatalogo(): { categoria: CategoriaRef; cuantos: number }[] {
+  const cuenta = new Map<string, { categoria: CategoriaRef; cuantos: number }>()
+  for (const producto of productos) {
+    if (!producto.categoria) continue
+    const previo = cuenta.get(producto.categoria.codigo)
+    if (previo) previo.cuantos += 1
+    else cuenta.set(producto.categoria.codigo, { categoria: producto.categoria, cuantos: 1 })
+  }
+  return [...cuenta.values()]
+}
+
 export class CatalogoSimulado implements PuertoCatalogo {
   async buscar(consulta: ConsultaCatalogo): Promise<ProductoRef[]> {
     await new Promise((listo) => setTimeout(listo, 90))
@@ -156,13 +185,17 @@ export class CatalogoSimulado implements PuertoCatalogo {
       return exacto ? [conNota(exacto)] : []
     }
 
+    const enCategoria = consulta.categoria
+      ? productos.filter((p) => p.categoria?.codigo === consulta.categoria)
+      : productos
+
     const texto = normalizar(consulta.texto ?? '')
-    if (texto.length === 0) return productos.slice(0, consulta.limite ?? 8).map(conNota)
+    if (texto.length === 0) return enCategoria.slice(0, consulta.limite ?? 12).map(conNota)
 
     // Busca por descripción y también por principio activo: en una botica se
     // pide tanto «Panadol» como «paracetamol», y a veces el cliente solo
     // recuerda uno de los dos.
-    const hallados = productos.filter((producto) => {
+    const hallados = enCategoria.filter((producto) => {
       const detalle = detalleFarmacia[producto.id]
       return (
         normalizar(producto.descripcion).includes(texto) ||
@@ -171,6 +204,6 @@ export class CatalogoSimulado implements PuertoCatalogo {
       )
     })
 
-    return hallados.slice(0, consulta.limite ?? 8).map(conNota)
+    return hallados.slice(0, consulta.limite ?? 12).map(conNota)
   }
 }

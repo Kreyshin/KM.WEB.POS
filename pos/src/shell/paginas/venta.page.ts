@@ -8,8 +8,14 @@ import {
 } from '@angular/core'
 import { FormsModule } from '@angular/forms'
 import type { ElementRef } from '@angular/core'
-import type { PresentacionVenta, ProductoRef } from '@pos-core/index'
-import { MonedaPipe, PUERTO_CATALOGO, TicketService } from '@pos-core-ui/index'
+import type { CategoriaRef, PresentacionVenta, ProductoRef } from '@pos-core/index'
+import { categoriasDelCatalogo } from '@pos-adaptadores/simulado/index'
+import {
+  IconoProductoComponent,
+  MonedaPipe,
+  PUERTO_CATALOGO,
+  TicketService,
+} from '@pos-core-ui/index'
 import { SesionStore } from '../sesion/sesion.store'
 
 /**
@@ -29,7 +35,7 @@ import { SesionStore } from '../sesion/sesion.store'
  */
 @Component({
   selector: 'km-venta-page',
-  imports: [FormsModule, MonedaPipe],
+  imports: [FormsModule, MonedaPipe, IconoProductoComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { '(document:keydown)': 'atajo($event)' },
   template: `
@@ -56,6 +62,30 @@ import { SesionStore } from '../sesion/sesion.store'
           Cliente
           <span class="pv-tecla">F6</span>
         </button>
+      </div>
+
+      <!-- Categorías. Filtran de verdad, así que son botones y no adorno. -->
+      <div class="flex shrink-0 gap-1.5 overflow-x-auto pb-0.5">
+        <button
+          class="pv-chip"
+          type="button"
+          [class.pv-chip-activo]="!categoria()"
+          (click)="filtrar(null)"
+        >
+          Todo
+          <span class="pv-chip-cuenta">{{ totalCatalogo }}</span>
+        </button>
+        @for (grupo of categorias; track grupo.categoria.codigo) {
+          <button
+            class="pv-chip"
+            type="button"
+            [class.pv-chip-activo]="categoria() === grupo.categoria.codigo"
+            (click)="filtrar(grupo.categoria)"
+          >
+            {{ grupo.categoria.nombre }}
+            <span class="pv-chip-cuenta">{{ grupo.cuantos }}</span>
+          </button>
+        }
       </div>
 
       <div class="pv-panel flex min-h-0 flex-1 flex-col overflow-hidden">
@@ -87,34 +117,49 @@ import { SesionStore } from '../sesion/sesion.store'
                 [attr.aria-selected]="i === fila()"
                 (mouseenter)="fila.set(i)"
               >
-                <div class="flex items-baseline justify-between gap-3">
-                  <p class="truncate text-sm font-semibold">{{ producto.descripcion }}</p>
-                  <p class="pv-cifra text-tenue shrink-0 text-[11px]">
-                    {{ producto.codigoBarras }}
-                  </p>
-                </div>
-                @if (producto.nota) {
-                  <p class="text-tenue truncate text-xs">{{ producto.nota }}</p>
-                }
+                <div class="flex gap-3">
+                  <km-icono-producto [clave]="producto.icono" [tamano]="40" />
 
-                <!-- La presentación ES el precio: elegirla es la acción, no
-                     un paso previo. Por eso va en la fila y no en un diálogo. -->
-                <div class="mt-1.5 flex flex-wrap gap-1.5">
-                  @for (pres of producto.presentaciones; track pres.id; let j = $index) {
-                    <button
-                      class="pv-pres"
-                      type="button"
-                      [class.pv-pres-activa]="i === fila() && j === presentacion()"
-                      (click)="agregar(producto, pres)"
-                      (mouseenter)="presentacion.set(j)"
-                    >
-                      <span>{{ pres.unidad.nombre }}</span>
-                      <span class="pv-cifra font-semibold">{{ pres.precio | moneda: false }}</span>
-                      @if (pres.igvTasa === 0) {
-                        <span class="pv-exonerado">exon</span>
+                  <div class="min-w-0 flex-1">
+                    <div class="flex items-baseline justify-between gap-3">
+                      <p class="truncate text-sm font-semibold">{{ producto.descripcion }}</p>
+                      <p class="pv-cifra text-tenue shrink-0 text-[11px]">
+                        {{ producto.codigoBarras }}
+                      </p>
+                    </div>
+
+                    @if (producto.nota) {
+                      <p class="text-tenue truncate text-xs">
+                        {{ sinReceta(producto.nota) }}
+                        @if (exigeReceta(producto)) {
+                          <span class="pv-receta ml-1">receta</span>
+                        }
+                      </p>
+                    }
+
+                    <!-- La presentación ES el precio: elegirla es la acción,
+                         no un paso previo. Por eso va en la fila y no en un
+                         diálogo aparte. -->
+                    <div class="mt-1.5 flex flex-wrap gap-1.5">
+                      @for (pres of producto.presentaciones; track pres.id; let j = $index) {
+                        <button
+                          class="pv-pres"
+                          type="button"
+                          [class.pv-pres-activa]="i === fila() && j === presentacion()"
+                          (click)="agregar(producto, pres)"
+                          (mouseenter)="presentacion.set(j)"
+                        >
+                          <span>{{ pres.unidad.nombre }}</span>
+                          <span class="pv-cifra font-semibold">
+                            {{ pres.precio | moneda: false }}
+                          </span>
+                          @if (pres.igvTasa === 0) {
+                            <span class="pv-exonerado">exon</span>
+                          }
+                        </button>
                       }
-                    </button>
-                  }
+                    </div>
+                  </div>
                 </div>
               </li>
             }
@@ -140,7 +185,11 @@ export class VentaPage {
 
   private readonly campo = viewChild<ElementRef<HTMLInputElement>>('campo')
 
+  protected readonly categorias = categoriasDelCatalogo()
+  protected readonly totalCatalogo = this.categorias.reduce((s, g) => s + g.cuantos, 0)
+
   protected readonly texto = signal('')
+  protected readonly categoria = signal<string | null>(null)
   protected readonly resultados = signal<ProductoRef[]>([])
   protected readonly buscando = signal(false)
 
@@ -163,7 +212,12 @@ export class VentaPage {
     this.buscando.set(true)
 
     const sucursalId = this.sesion.sucursal()?.id ?? ''
-    const hallados = await this.catalogo.buscar({ texto, sucursalId, limite: 12 })
+    const hallados = await this.catalogo.buscar({
+      texto,
+      sucursalId,
+      categoria: this.categoria() ?? undefined,
+      limite: 12,
+    })
 
     // Escribir rápido lanza varias búsquedas y no llegan en orden: sin esto,
     // una respuesta lenta de «para» pisaría la de «paracetamol».
@@ -182,6 +236,20 @@ export class VentaPage {
     }
   }
 
+  protected filtrar(categoria: CategoriaRef | null): void {
+    this.categoria.set(categoria?.codigo ?? null)
+    void this.buscar(this.texto())
+  }
+
+  /** La nota trae «… · exige receta»; el badge lo dice mejor que el texto. */
+  protected exigeReceta(producto: ProductoRef): boolean {
+    return producto.nota?.includes('exige receta') === true
+  }
+
+  protected sinReceta(nota: string): string {
+    return nota.replace(' · exige receta', '')
+  }
+
   protected agregar(producto: ProductoRef, pres: PresentacionVenta): void {
     this.ticket.agregarLinea({
       productoId: producto.id,
@@ -191,6 +259,7 @@ export class VentaPage {
       cantidad: 1,
       precioUnitario: pres.precio,
       igvTasa: pres.igvTasa,
+      icono: producto.icono,
       atributos: {},
     })
   }

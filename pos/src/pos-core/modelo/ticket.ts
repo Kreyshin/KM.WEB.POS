@@ -81,6 +81,8 @@ export interface LineaTicket<A = Record<string, unknown>> {
   igvTasa: number
   /** Importe descontado en esta línea, no un porcentaje. */
   descuento: number
+  /** Clave del icono, copiada del producto al vender. */
+  icono?: string
   /** Talla y color, o lote y receta. El núcleo no lo abre. */
   atributos: A
 }

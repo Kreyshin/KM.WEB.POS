@@ -16,6 +16,25 @@ export interface ProductoRef {
    * sepa de rubros.
    */
   nota?: string
+  /**
+   * Categoría para agrupar y filtrar. No es de un rubro: toda tienda las
+   * tiene —analgésicos en una botica, camisas en una de ropa—. El núcleo solo
+   * la transporta; quién decide la lista es el catálogo.
+   */
+  categoria?: CategoriaRef
+  /**
+   * Clave del icono con el que se dibuja el producto.
+   *
+   * Es vocabulario compartido, no lógica de rubro: la capa de interfaz tiene
+   * un juego de iconos genéricos —tableta, frasco, inyectable, caja— y el
+   * adaptador dice cuál usar. Si no viene ninguno, se dibuja el genérico.
+   */
+  icono?: string
+}
+
+export interface CategoriaRef {
+  codigo: string
+  nombre: string
 }
 
 export interface ResultadoBusqueda extends ProductoRef {
@@ -26,6 +45,8 @@ export interface ResultadoBusqueda extends ProductoRef {
 export interface ConsultaCatalogo {
   texto?: string
   codigoBarras?: string
+  /** Código de categoría. Sin él se busca en todo el catálogo. */
+  categoria?: string
   sucursalId: string
   limite?: number
 }

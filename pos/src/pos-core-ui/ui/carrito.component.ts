@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, inject } from '@angular/core'
 import { consumoAlmacen, type LineaTicket } from '@pos-core/index'
 import { TicketService } from '../estado/ticket.service'
 import { MonedaPipe } from './moneda.pipe'
+import { IconoProductoComponent } from './icono-producto.component'
 
 /**
  * El carrito: las líneas del ticket en curso.
@@ -17,14 +18,16 @@ import { MonedaPipe } from './moneda.pipe'
  */
 @Component({
   selector: 'km-carrito',
-  imports: [MonedaPipe],
+  imports: [MonedaPipe, IconoProductoComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'block' },
   template: `
     <ul class="flex flex-col">
       @for (linea of ticket.lineas(); track linea.id) {
         <li class="pv-ticket-linea pv-fade-in px-5 py-3">
-          <div class="flex items-start justify-between gap-3">
+          <div class="flex items-start gap-3">
+            <km-icono-producto [clave]="linea.icono" [tamano]="34" />
+
             <div class="min-w-0 flex-1">
               <p class="truncate text-sm font-semibold">{{ linea.descripcion }}</p>
               <p class="text-xs opacity-60">
@@ -49,7 +52,7 @@ import { MonedaPipe } from './moneda.pipe'
             </div>
           </div>
 
-          <div class="mt-2 flex items-center gap-2">
+          <div class="mt-2 flex items-center gap-2 pl-[2.875rem]">
             <button
               class="pv-paso"
               type="button"

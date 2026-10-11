@@ -29,6 +29,7 @@ export interface EntradaLinea<A = Record<string, unknown>> {
   cantidad: number
   precioUnitario: number
   igvTasa: number
+  icono?: string
   atributos: A
 }
 
