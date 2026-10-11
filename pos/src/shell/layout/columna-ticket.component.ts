@@ -8,7 +8,7 @@ import {
 } from '@angular/core'
 import type { ElementRef } from '@angular/core'
 import { FormsModule } from '@angular/forms'
-import type { Cobro, ComprobanteRef } from '@pos-core/index'
+import type { Cobro, ComprobanteRef, LineaTicket } from '@pos-core/index'
 import { CajaService, CarritoComponent, MonedaPipe, TicketService } from '@pos-core-ui/index'
 import { PUERTO_PAGOS, PUERTO_TICKETS } from '@pos-core-ui/index'
 import { PerfilService } from '../perfiles/perfil.service'
@@ -91,7 +91,7 @@ import { ReciboComponent } from '../cobro/recibo.component'
             </dl>
           </div>
         } @else {
-          <km-carrito />
+          <km-carrito [describir]="describirLinea" />
         }
       </div>
 
@@ -212,6 +212,14 @@ export class ColumnaTicketComponent {
   protected readonly cobrando = signal(false)
   protected readonly aparcando = signal(false)
   protected readonly reparo = signal<string | null>(null)
+
+  /*
+   * Enlazado como campo y no como método para que la referencia no
+   * cambie en cada repintado: con OnPush, una función nueva cada vez
+   * obliga a recalcular todas las líneas por nada.
+   */
+  protected readonly describirLinea = (linea: LineaTicket): string =>
+    this.perfilRubro.describirLinea(linea)
   protected nota = ''
   protected readonly recibo = signal<Cobro | null>(null)
   protected readonly comprobante = signal<ComprobanteRef | undefined>(undefined)

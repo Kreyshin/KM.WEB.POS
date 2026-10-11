@@ -2785,3 +2785,168 @@ select.pv-campo {
 .pv-marca[data-tono='exito'] {
   --pv-marca-color: var(--pv-exito);
 }
+
+/* ══ Perfil de ropa: perchero y matriz ═════════════════════════════════════ */
+
+.pv-perchero {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(17rem, 1fr));
+  gap: 0.625rem;
+  padding: 0.75rem;
+  overflow: auto;
+  min-height: 0;
+  flex: 1;
+  align-content: start;
+}
+
+.pv-percha {
+  display: flex;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 0.75rem;
+  border-radius: 14px;
+  border: 1px solid var(--pv-border);
+  background-color: var(--pv-surface);
+  text-align: left;
+  transition:
+    border-color var(--km-mov-rapido) var(--km-curva),
+    box-shadow var(--km-mov-rapido) var(--km-curva),
+    transform var(--km-mov-rapido) var(--km-curva);
+}
+
+.pv-percha:active {
+  transform: scale(0.99);
+}
+
+.pv-percha-activa {
+  border-color: var(--pv-info-500);
+  box-shadow:
+    0 0 0 1px var(--pv-info-500),
+    0 10px 24px -14px color-mix(in srgb, var(--pv-info-600) 70%, transparent);
+}
+
+/*
+ * La matriz.
+ *
+ * Tabla de verdad —no una rejilla de divs— porque es una tabla: tiene
+ * cabeceras de fila y de columna y un lector de pantalla tiene que poder
+ * anunciar «talla M, color azul». Con divs habría que reconstruir a mano
+ * todo lo que `<th scope>` ya hace.
+ */
+.pv-matriz {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 3px;
+}
+
+.pv-matriz th {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--pv-muted);
+  white-space: nowrap;
+}
+
+.pv-matriz-esquina {
+  text-align: left;
+}
+
+.pv-matriz-fila {
+  text-align: right;
+  padding-right: 0.25rem;
+}
+
+/* Cuadradas y con la cifra dentro: el número de existencias ES el
+ * contenido, no un adorno. Sin él la celda solo diría sí o no, y «quedan
+ * 2» es una venta distinta de «quedan 9». */
+.pv-celda {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  min-width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 8px;
+  border: 1px solid color-mix(in srgb, var(--pv-exito) 40%, transparent);
+  background-color: color-mix(in srgb, var(--pv-exito) 12%, transparent);
+  color: var(--pv-exito);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  transition:
+    transform var(--km-mov-rapido) var(--km-curva),
+    filter var(--km-mov-rapido) var(--km-curva);
+}
+
+.pv-celda:hover:not(:disabled) {
+  filter: brightness(1.12);
+}
+
+.pv-celda:active:not(:disabled) {
+  transform: scale(0.94);
+}
+
+/* Poca: se puede vender, pero conviene ofrecerla ya. */
+.pv-celda-poca {
+  border-color: color-mix(in srgb, var(--pv-aviso) 45%, transparent);
+  background-color: color-mix(in srgb, var(--pv-aviso) 14%, transparent);
+  color: var(--pv-aviso);
+}
+
+/* Agotada: la tienda la trabaja y está en cero. Se repone. */
+.pv-celda-agotada {
+  border-color: var(--pv-border);
+  background-color: var(--pv-surface-2);
+  color: var(--pv-muted);
+  cursor: not-allowed;
+}
+
+/* No existe: no se trabaja esa combinación. Nunca llegará. */
+.pv-celda-vacia {
+  display: grid;
+  place-items: center;
+  height: 2.25rem;
+  color: color-mix(in srgb, var(--pv-muted) 45%, transparent);
+  font-size: 0.875rem;
+}
+
+.pv-celda-ancha {
+  width: auto;
+  min-width: 4.5rem;
+  gap: 0.125rem;
+  padding: 0 0.625rem;
+}
+
+.pv-matriz-leyenda {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 0.625rem;
+  font-size: 10px;
+  color: var(--pv-muted);
+}
+
+.pv-matriz-leyenda span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3125rem;
+}
+
+.pv-punto-hay,
+.pv-punto-agotada,
+.pv-punto-nunca {
+  width: 8px;
+  height: 8px;
+  border-radius: 3px;
+}
+
+.pv-punto-hay {
+  background-color: color-mix(in srgb, var(--pv-exito) 55%, transparent);
+}
+
+.pv-punto-agotada {
+  background-color: var(--pv-surface-2);
+  border: 1px solid var(--pv-border);
+}
+
+.pv-punto-nunca {
+  background-color: color-mix(in srgb, var(--pv-muted) 30%, transparent);
+}

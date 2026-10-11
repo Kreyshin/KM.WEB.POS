@@ -52,6 +52,53 @@ export interface ProductoRef {
    * allí sin que la pantalla cambie.
    */
   stock?: number
+  /**
+   * Los ejes por los que se abre este producto en variantes.
+   *
+   * Una camisa es un producto con dos ejes —talla y color— y hasta
+   * veinte combinaciones, cada una con su propio stock. No son
+   * presentaciones: una presentación es otra FORMA DE VENDER lo mismo a
+   * otro precio (blíster, caja); una variante es OTRO EJEMPLAR, al mismo
+   * precio y con existencias propias.
+   *
+   * Está en el núcleo y no en el perfil de ropa porque no es de ropa:
+   * un calzado tiene talla, una pintura color y litros, un teléfono
+   * capacidad y color. Lo que cambia por rubro son los ejes, y esos los
+   * pone el catálogo.
+   */
+  ejes?: readonly EjeVariante[]
+  variantes?: readonly VarianteProducto[]
+}
+
+export interface EjeVariante {
+  /** 'talla', 'color'. Es la clave con la que viaja en `atributos`. */
+  clave: string
+  etiqueta: string
+  /** En el orden en que se enseñan: S, M, L, XL, no alfabético. */
+  valores: readonly string[]
+}
+
+export interface VarianteProducto {
+  id: string
+  /** Un valor por eje: { talla: 'M', color: 'Azul' }. */
+  atributos: Readonly<Record<string, string>>
+  /** Existencias de ESTA combinación. Cero es agotado, no inexistente. */
+  stock?: number
+  /** Solo si esta combinación cuesta distinto. Normalmente no. */
+  precio?: number
+  codigoBarras?: string
+}
+
+/** La variante que corresponde a una combinación, si existe y hay stock. */
+export function varianteDe(
+  producto: ProductoRef,
+  elegido: Readonly<Record<string, string>>,
+): VarianteProducto | null {
+  return (
+    producto.variantes?.find((variante) =>
+      Object.entries(elegido).every(([clave, valor]) => variante.atributos[clave] === valor),
+    ) ?? null
+  )
 }
 
 /** Un dato de la ficha. `destacado` lo sube a la cabecera del panel. */

@@ -1,5 +1,12 @@
 import { computed, inject, Injectable, signal } from '@angular/core'
-import type { CampoLinea, MarcaProducto, ProductoRef, Ticket, Validacion } from '@pos-core/index'
+import type {
+  CampoLinea,
+  LineaTicket,
+  MarcaProducto,
+  ProductoRef,
+  Ticket,
+  Validacion,
+} from '@pos-core/index'
 import { validacionOk } from '@pos-core/index'
 import type { PerfilRubroAngular } from '@pos-core-ui/index'
 import { SesionStore } from '../sesion/sesion.store'
@@ -39,6 +46,11 @@ export class PerfilService {
   nota(producto: ProductoRef): string {
     const cruda = producto.nota ?? ''
     return this.cargado()?.limpiarNota?.(cruda) ?? cruda
+  }
+
+  /** Cómo se nombra la línea. Sin perfil, la descripción pelada. */
+  describirLinea(linea: LineaTicket): string {
+    return this.cargado()?.describirLinea?.(linea) ?? linea.descripcion
   }
 
   /** Qué pedir antes de agregar. Vacío es el caso normal. */

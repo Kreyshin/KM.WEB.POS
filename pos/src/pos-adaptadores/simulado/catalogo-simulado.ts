@@ -1,3 +1,4 @@
+import { catalogoRopa } from './catalogo-ropa'
 import {
   IGV_GENERAL,
   type CampoFicha,
@@ -328,12 +329,25 @@ function guardarPropios(lista: ProductoRef[]): void {
  * que permite corregir el precio de un producto de ejemplo sin tocar
  * código. Los que no coinciden se añaden al final.
  */
-function catalogo(): ProductoRef[] {
+/**
+ * El catálogo vigente de una sucursal.
+ *
+ * Por sucursal y no uno solo: una tienda de ropa y una botica no venden
+ * lo mismo, y servirle paracetamol a Miraflores era lo que hacía que el
+ * perfil de ropa no se pudiera ni probar. Qué semilla toca lo decide el
+ * prefijo del id de sucursal, que en el back real será el rubro.
+ */
+function semillaDe(sucursalId: string): ProductoRef[] {
+  return sucursalId.includes('ropa') ? catalogoRopa() : semilla
+}
+
+function catalogo(sucursalId = ''): ProductoRef[] {
+  const base = semillaDe(sucursalId)
   const mios = propios()
   const porId = new Map(mios.map((producto) => [producto.id, producto]))
-  const base = semilla.map((producto) => porId.get(producto.id) ?? producto)
-  const nuevos = mios.filter((producto) => !semilla.some((s) => s.id === producto.id))
-  return [...base, ...nuevos]
+  const conEdiciones = base.map((producto) => porId.get(producto.id) ?? producto)
+  const nuevos = mios.filter((producto) => !base.some((s) => s.id === producto.id))
+  return [...conEdiciones, ...nuevos]
 }
 
 /**
@@ -358,9 +372,11 @@ function enriquecer(producto: ProductoRef): ProductoRef {
 }
 
 /** Las categorías del catálogo, con cuántos productos tiene cada una. */
-export function categoriasDelCatalogo(): { categoria: CategoriaRef; cuantos: number }[] {
+export function categoriasDelCatalogo(
+  sucursalId = '',
+): { categoria: CategoriaRef; cuantos: number }[] {
   const cuenta = new Map<string, { categoria: CategoriaRef; cuantos: number }>()
-  for (const producto of catalogo()) {
+  for (const producto of catalogo(sucursalId)) {
     if (!producto.categoria) continue
     const previo = cuenta.get(producto.categoria.codigo)
     if (previo) previo.cuantos += 1
@@ -376,10 +392,15 @@ export function categoriasDelCatalogo(): { categoria: CategoriaRef; cuantos: num
  * con sus cuentas. Cambiar de rubro cambia estas facetas y la pantalla
  * sigue igual, que es la razón de que el filtro sea genérico.
  */
-export function facetasDelCatalogo(): readonly Faceta[] {
+export function facetasDelCatalogo(sucursalId = ''): readonly Faceta[] {
+  // En ropa se filtra por lo que el cliente pide —«una talla M azul»—, no
+  // por laboratorio. Las facetas salen de los EJES del catálogo, así que
+  // el día que entre calzado aparecerán las suyas sin tocar nada.
+  if (sucursalId.includes('ropa')) return facetasPorEjes(catalogo(sucursalId))
+
   const contar = (de: (p: ProductoRef) => { valor: string; etiqueta: string } | null) => {
     const cuenta = new Map<string, OpcionFacetaMutable>()
-    for (const producto of catalogo()) {
+    for (const producto of catalogo(sucursalId)) {
       const clave = de(producto)
       if (!clave) continue
       const previo = cuenta.get(clave.valor)
@@ -447,6 +468,67 @@ export function facetasDelCatalogo(): readonly Faceta[] {
   ]
 }
 
+/**
+ * Facetas tejidas desde los ejes de variante del propio catálogo.
+ *
+ * Genérico de verdad: no sabe qué es una talla. Recorre los ejes que los
+ * productos declaren y cuenta cuántos tienen cada valor con stock. Sirve
+ * igual para talla y color en ropa que para capacidad y color en
+ * teléfonos.
+ */
+function facetasPorEjes(productos: readonly ProductoRef[]): readonly Faceta[] {
+  const porEje = new Map<string, { etiqueta: string; valores: Map<string, number> }>()
+
+  for (const producto of productos) {
+    for (const eje of producto.ejes ?? []) {
+      const entrada = porEje.get(eje.clave) ?? { etiqueta: eje.etiqueta, valores: new Map() }
+      for (const valor of eje.valores) {
+        // Solo cuenta si hay existencias: ofrecer un filtro que deja la
+        // pantalla vacía es peor que no ofrecerlo.
+        const hay = producto.variantes?.some(
+          (variante) => variante.atributos[eje.clave] === valor && (variante.stock ?? 0) > 0,
+        )
+        if (hay) entrada.valores.set(valor, (entrada.valores.get(valor) ?? 0) + 1)
+      }
+      porEje.set(eje.clave, entrada)
+    }
+  }
+
+  const facetas: Faceta[] = []
+  for (const [clave, { etiqueta, valores }] of porEje) {
+    facetas.push({
+      clave,
+      etiqueta,
+      // Sin ordenar: el orden de los ejes ya es el bueno (S, M, L, XL),
+      // y alfabetizarlo lo rompería.
+      opciones: [...valores.entries()].map(([valor, cuantos]) => ({
+        valor,
+        etiqueta: valor,
+        cuantos,
+      })),
+    })
+  }
+
+  facetas.push({
+    clave: 'disponibilidad',
+    etiqueta: 'Stock',
+    opciones: [
+      {
+        valor: 'ok',
+        etiqueta: 'Disponible',
+        cuantos: productos.filter((p) => (p.stock ?? 0) > 0).length,
+      },
+      {
+        valor: 'agotado',
+        etiqueta: 'Agotado',
+        cuantos: productos.filter((p) => (p.stock ?? 0) === 0).length,
+      },
+    ].filter((opcion) => opcion.cuantos > 0),
+  })
+
+  return facetas
+}
+
 interface OpcionFacetaMutable {
   valor: string
   etiqueta: string
@@ -477,10 +559,20 @@ function cumple(producto: ProductoRef, clave: string, valor: string): boolean {
       if (valor === 'bajo') return hay > 0 && hay <= 20
       return hay > 20
     }
-    default:
+    default: {
+      // Puede ser un eje de variante: «talla M», «color Azul». Pasa el
+      // producto que tenga esa combinación con existencias.
+      if (producto.ejes?.some((eje) => eje.clave === clave)) {
+        return (
+          producto.variantes?.some(
+            (variante) => variante.atributos[clave] === valor && (variante.stock ?? 0) > 0,
+          ) === true
+        )
+      }
       // Una faceta desconocida no filtra nada: más vale enseñar de más que
       // vaciar la pantalla por una clave que el adaptador ya no publica.
       return true
+    }
   }
 }
 
@@ -503,19 +595,21 @@ function ordenar(lista: ProductoRef[], orden: OrdenCatalogo | undefined): Produc
 }
 
 export class CatalogoSimulado implements PuertoCatalogo {
-  async categorias() {
-    return categoriasDelCatalogo()
+  async categorias(sucursalId: string) {
+    return categoriasDelCatalogo(sucursalId)
   }
 
-  async facetas() {
-    return facetasDelCatalogo()
+  async facetas(sucursalId: string) {
+    return facetasDelCatalogo(sucursalId)
   }
 
   async buscar(consulta: ConsultaCatalogo): Promise<ProductoRef[]> {
     await new Promise((listo) => setTimeout(listo, 90))
 
     if (consulta.codigoBarras) {
-      const exacto = catalogo().find((p) => p.codigoBarras === consulta.codigoBarras)
+      const exacto = catalogo(consulta.sucursalId).find(
+        (p) => p.codigoBarras === consulta.codigoBarras,
+      )
       return exacto ? [enriquecer(exacto)] : []
     }
 
@@ -524,7 +618,7 @@ export class CatalogoSimulado implements PuertoCatalogo {
     const filtros = { ...consulta.filtros }
     if (consulta.categoria) filtros['categoria'] = consulta.categoria
 
-    const filtrados = catalogo().filter((producto) =>
+    const filtrados = catalogo(consulta.sucursalId).filter((producto) =>
       Object.entries(filtros).every(([clave, valor]) => cumple(producto, clave, valor)),
     )
 

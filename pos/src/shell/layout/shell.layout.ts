@@ -9,7 +9,7 @@ import {
 import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router'
 import { toSignal } from '@angular/core/rxjs-interop'
 import { filter, map } from 'rxjs'
-import { CajaService, TicketService } from '@pos-core-ui/index'
+import { CajaService, ContextoVenta, TicketService } from '@pos-core-ui/index'
 import { SesionStore } from '../sesion/sesion.store'
 import { PerfilService } from '../perfiles/perfil.service'
 import { TemaService } from '../tema/tema.service'
@@ -189,6 +189,7 @@ export class ShellLayout {
   private readonly ticket = inject(TicketService)
   private readonly caja = inject(CajaService)
   private readonly perfilRubro = inject(PerfilService)
+  private readonly contexto = inject(ContextoVenta)
 
   protected readonly tema = inject(TemaService)
   protected readonly menuAbierto = signal(false)
@@ -224,6 +225,9 @@ export class ShellLayout {
      * los dos, hace de puente.
      */
     const sucursal = this.sesion.sucursal()
+    // Antes de abrir nada: los perfiles leen de aquí dónde se vende, y
+    // no pueden preguntárselo al shell.
+    this.contexto.fijar(sucursal)
     if (sucursal) {
       this.ticket.abrir({
         sucursalId: sucursal.id,
@@ -303,6 +307,7 @@ export class ShellLayout {
     this.ticket.cerrar()
     this.caja.limpiar()
     this.perfilRubro.limpiar()
+    this.contexto.fijar(null)
     await this.sesion.cerrar()
     await this.router.navigate(['/acceso'])
   }

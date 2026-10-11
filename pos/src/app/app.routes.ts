@@ -23,7 +23,7 @@ export const routes: Routes = [
       { path: '', pathMatch: 'full', redirectTo: 'venta' },
       {
         path: 'venta',
-        loadComponent: () => import('@shell/paginas/venta.page').then((m) => m.VentaPage),
+        loadComponent: () => import('@shell/paginas/mostrador.page').then((m) => m.MostradorPage),
       },
       {
         path: 'venta/por-cobrar',

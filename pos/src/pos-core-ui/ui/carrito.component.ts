@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core'
+import { ChangeDetectionStrategy, Component, inject, input } from '@angular/core'
 import { consumoAlmacen, type LineaTicket } from '@pos-core/index'
 import { TicketService } from '../estado/ticket.service'
 import { MonedaPipe } from './moneda.pipe'
@@ -29,7 +29,7 @@ import { IconoProductoComponent } from './icono-producto.component'
             <km-icono-producto [clave]="linea.icono" [tamano]="34" />
 
             <div class="min-w-0 flex-1">
-              <p class="truncate text-sm font-semibold">{{ linea.descripcion }}</p>
+              <p class="truncate text-sm font-semibold">{{ describir()(linea) }}</p>
               <p class="text-xs opacity-60">
                 {{ linea.unidad.nombre }}
                 <!-- El consumo de almacén solo se enseña cuando difiere de lo
@@ -96,6 +96,20 @@ import { IconoProductoComponent } from './icono-producto.component'
 })
 export class CarritoComponent {
   protected readonly ticket = inject(TicketService)
+
+  /**
+   * Cómo se nombra una línea. Lo pone el PERFIL del rubro.
+   *
+   * Sin esto, `describirLinea` era otra propiedad del contrato que nadie
+   * leía: el perfil de ropa podía declarar «Camisa Oxford · M · Azul» y
+   * el carrito seguía enseñando solo «Camisa Oxford», que es la línea de
+   * la que luego nadie sabe qué ejemplar salió de la tienda.
+   *
+   * Llega como `input` y no inyectando el perfil porque esta capa no
+   * puede conocer el registro, que vive en el shell. El respaldo es la
+   * descripción pelada, que es lo correcto sin perfil.
+   */
+  readonly describir = input<(linea: LineaTicket) => string>((linea) => linea.descripcion)
 
   protected consumo(linea: LineaTicket): number {
     return consumoAlmacen(linea)
