@@ -81,7 +81,7 @@ pos/src/
 │   ├── simulado/       Implementaciones en memoria
 │   └── http/           Implementaciones reales (hito 6)
 │   └── hoja/           Lectura y plantilla .xlsx del catálogo
-├── perfil-ropa/        (pendiente)
+├── perfil-ropa/        Matriz de talla y color, pantalla de venta propia
 ├── perfil-farmacia/    Marcas, reglas y atributos de botica
 ├── shell/              Layout, sesión, tema, guardas, pantallas comunes
 │   ├── perfiles/       Registro con import() diferido y PerfilService
@@ -344,8 +344,7 @@ vertical se queda con la suya es lo que desbloquea este punto.
 
 ### Deuda conocida
 
-| Qué                                        | Por qué importa                                        |
-| ------------------------------------------ | ------------------------------------------------------ |
-| `KARMA.LIB.CAJA` no existe                 | Dos implementaciones del mismo cobro, ya divergiendo   |
-| `ModoIntegracion` / `VinculoErp` sin traer | El enganche con el ERP se resuelve con campos sueltos  |
-| `perfil-ropa` vacío                        | El contrato del perfil solo se ha probado con un rubro |
+| Qué                                        | Por qué importa                                       |
+| ------------------------------------------ | ----------------------------------------------------- |
+| `KARMA.LIB.CAJA` no existe                 | Dos implementaciones del mismo cobro, ya divergiendo  |
+| `ModoIntegracion` / `VinculoErp` sin traer | El enganche con el ERP se resuelve con campos sueltos |
