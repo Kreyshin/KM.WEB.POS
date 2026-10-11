@@ -1,4 +1,11 @@
-import type { LineaTicket, MarcaProducto, ProductoRef, Ticket, Validacion } from '@pos-core/index'
+import type {
+  CampoLinea,
+  LineaTicket,
+  MarcaProducto,
+  ProductoRef,
+  Ticket,
+  Validacion,
+} from '@pos-core/index'
 import { validacionFalla, validacionOk } from '@pos-core/index'
 import type { PerfilRubroAngular } from '@pos-core-ui/index'
 
@@ -22,11 +29,25 @@ import type { PerfilRubroAngular } from '@pos-core-ui/index'
  * adaptadores ni el shell. El lint lo verifica.
  */
 
-/** Atributos que esta vertical cuelga de una línea. */
+/**
+ * Atributos que esta vertical cuelga de una línea.
+ *
+ * `numeroReceta` es lo ÚNICO que se pide hoy, y es una decisión tomada
+ * mirando lo que de verdad hace una botica en Perú: se anota el número y
+ * ya está. Médico, colegiatura, paciente y el libro de controlados son
+ * ampliaciones reales, pero exigirlas desde el primer día haría la venta
+ * más lenta que la competencia por un dato que casi nadie fiscaliza en el
+ * mostrador.
+ *
+ * Crecer es añadir campos aquí y en `camposDeLinea`. Nada más se entera:
+ * el núcleo transporta `atributos` sin leerlos.
+ */
 export interface AtributosFarmacia extends Record<string, unknown> {
+  /** Número de la receta. Lo exige el producto, no el ticket. */
+  numeroReceta?: string
+  /** Para cuando llegue el control por lote. Hoy no se pide. */
   lote?: string
   vencimiento?: string
-  recetaId?: string
 }
 
 /**
@@ -51,8 +72,36 @@ export const perfilFarmacia: PerfilRubroAngular<AtributosFarmacia> = {
 
   describirLinea(linea: LineaTicket<AtributosFarmacia>): string {
     const partes = [linea.descripcion, linea.unidad.nombre]
+    if (linea.atributos.numeroReceta) partes.push(`receta ${linea.atributos.numeroReceta}`)
     if (linea.atributos.lote) partes.push(`lote ${linea.atributos.lote}`)
     return partes.join(' · ')
+  },
+
+  /**
+   * Solo lo que exige receta abre el paso extra.
+   *
+   * Un paracetamol se vende de un toque, como debe ser. Abrir un
+   * formulario para cada producto por si acaso es la forma más rápida de
+   * que el cajero deje de usar el sistema.
+   */
+  /* Se estampa en la línea para que la comprobación previa al cobro no
+     tenga que volver al catálogo a preguntar qué era cada producto. */
+  atributosIniciales(producto: ProductoRef): Record<string, unknown> {
+    return exigeReceta(producto) ? { exigeReceta: true } : {}
+  },
+
+  camposDeLinea(producto: ProductoRef): readonly CampoLinea[] {
+    if (!exigeReceta(producto)) return []
+    return [
+      {
+        clave: 'numeroReceta',
+        etiqueta: 'Número de receta',
+        tipo: 'texto',
+        requerido: true,
+        modo: 'numerico',
+        ayuda: 'El número impreso en la receta médica.',
+      },
+    ]
   },
 
   marcasDeProducto(producto: ProductoRef): readonly MarcaProducto[] {
@@ -81,25 +130,25 @@ export const perfilFarmacia: PerfilRubroAngular<AtributosFarmacia> = {
   },
 
   /**
-   * Antes de cobrar: ninguna línea con receta puede ir sin registrarla.
+   * Red de seguridad antes de cobrar.
    *
-   * De momento solo comprueba que exista un identificador. El ALCANCE de
-   * la receta —si basta el número, o hacen falta médico, colegiatura y
-   * paciente, o el libro de controlados completo— está sin decidir, y
-   * ampliarlo es cambiar `AtributosFarmacia` y esta función. Nada más.
+   * El número ya se pide al agregar, así que esto no debería saltar nunca
+   * por el camino normal. Está por los que NO pasan por ahí: un ticket
+   * aparcado y retomado, o uno que entre por el escáner. Una línea de
+   * receta sin número es una infracción, y descubrirla en la inspección
+   * sale más caro que pararla aquí.
    */
   async validarAntesDeCobrar(ticket: Ticket): Promise<Validacion> {
-    const sinReceta = ticket.lineas.filter((linea) => {
+    const sinNumero = ticket.lineas.filter((linea) => {
       const atributos = linea.atributos as AtributosFarmacia
-      return atributos.recetaId === undefined && atributos.lote !== undefined
+      return atributos['exigeReceta'] === true && !atributos.numeroReceta
     })
-    if (sinReceta.length > 0) {
-      return validacionFalla(
-        `Falta registrar la receta de ${sinReceta.length} ${
-          sinReceta.length === 1 ? 'producto' : 'productos'
-        }.`,
-      )
-    }
-    return validacionOk
+    if (sinNumero.length === 0) return validacionOk
+
+    return validacionFalla(
+      sinNumero.length === 1
+        ? `Falta el número de receta de ${sinNumero[0].descripcion}.`
+        : `Faltan los números de receta de ${sinNumero.length} productos.`,
+    )
   },
 }

@@ -44,6 +44,34 @@ export interface MarcaProducto {
   detalle?: string
 }
 
+/**
+ * Un dato que el perfil necesita ANTES de meter la línea al ticket.
+ *
+ * Es el punto de extensión que faltaba, y el que separa un POS de verdad
+ * de una calculadora: casi todo rubro pide algo que no está en el
+ * catálogo sino en el mostrador. El número de receta en una botica, la
+ * talla y el color en una tienda de ropa, la serie o el IMEI en una de
+ * tecnología. Son datos del EJEMPLAR que se entrega, no del producto.
+ *
+ * Preguntarlo al agregar y no al cobrar es deliberado: al cobrar el
+ * cliente ya tiene el dinero en la mano, y descubrir ahí que falta la
+ * serie del televisor para la garantía es parar la cola.
+ *
+ * El núcleo no interpreta ninguno. Los recoge y los deja en `atributos`,
+ * que es justo para lo que existe.
+ */
+export interface CampoLinea {
+  clave: string
+  etiqueta: string
+  tipo: 'texto' | 'numero' | 'fecha' | 'opcion'
+  /** Solo para `opcion`. */
+  opciones?: readonly { valor: string; etiqueta: string }[]
+  requerido: boolean
+  ayuda?: string
+  /** Para que el teclado del móvil salga bien y el escáner no estorbe. */
+  modo?: 'numerico' | 'texto'
+}
+
 export interface BuscadorProductos {
   buscar(texto: string): Promise<ResultadoBusqueda[]>
   porCodigoBarras(codigo: string): Promise<ResultadoBusqueda | null>
@@ -82,6 +110,23 @@ export interface PerfilRubro<A = Record<string, unknown>, TPantalla = unknown> {
    * Validaciones de respuesta inmediata en pantalla. La regla definitiva la
    * aplica el microservicio del vertical: esto es cortesía, no autoridad.
    */
+  /**
+   * Qué hay que preguntar antes de agregar este producto.
+   *
+   * Devolver nada —o no implementarlo— es el caso normal: se agrega de un
+   * toque, que es como se vende el 90 % de las cosas. Solo lo que de
+   * verdad lo necesita abre un paso extra.
+   */
+  camposDeLinea?(producto: ProductoRef, presentacionId: string): readonly CampoLinea[]
+  /**
+   * Atributos que el perfil estampa en la línea sin preguntar.
+   *
+   * Lo que el perfil deduce del producto y necesita recordar después: que
+   * esta línea exigía receta, que esa prenda venía de la matriz de tallas.
+   * Sin esto, la validación previa al cobro tendría que volver a consultar
+   * el catálogo producto por producto para saber qué era cada línea.
+   */
+  atributosIniciales?(producto: ProductoRef, presentacionId: string): Record<string, unknown>
   validarLinea?(linea: LineaTicket<A>, ticket: Ticket): Promise<Validacion>
   validarAntesDeCobrar?(ticket: Ticket): Promise<Validacion>
   mediosDePagoExtra?: MedioPagoRef[]

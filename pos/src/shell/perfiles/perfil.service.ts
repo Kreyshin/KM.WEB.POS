@@ -1,5 +1,5 @@
 import { computed, inject, Injectable, signal } from '@angular/core'
-import type { MarcaProducto, ProductoRef, Ticket, Validacion } from '@pos-core/index'
+import type { CampoLinea, MarcaProducto, ProductoRef, Ticket, Validacion } from '@pos-core/index'
 import { validacionOk } from '@pos-core/index'
 import type { PerfilRubroAngular } from '@pos-core-ui/index'
 import { SesionStore } from '../sesion/sesion.store'
@@ -39,6 +39,16 @@ export class PerfilService {
   nota(producto: ProductoRef): string {
     const cruda = producto.nota ?? ''
     return this.cargado()?.limpiarNota?.(cruda) ?? cruda
+  }
+
+  /** Qué pedir antes de agregar. Vacío es el caso normal. */
+  camposDeLinea(producto: ProductoRef, presentacionId: string): readonly CampoLinea[] {
+    return this.cargado()?.camposDeLinea?.(producto, presentacionId) ?? []
+  }
+
+  /** Lo que el perfil estampa sin preguntar. */
+  atributosIniciales(producto: ProductoRef, presentacionId: string): Record<string, unknown> {
+    return this.cargado()?.atributosIniciales?.(producto, presentacionId) ?? {}
   }
 
   async validarAntesDeCobrar(ticket: Ticket): Promise<Validacion> {

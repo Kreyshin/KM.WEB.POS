@@ -9,6 +9,7 @@ import {
 import { FormsModule } from '@angular/forms'
 import type { ElementRef } from '@angular/core'
 import type {
+  CampoLinea,
   Faceta,
   GrupoCategoria,
   OrdenCatalogo,
@@ -24,6 +25,7 @@ import {
 import { SesionStore } from '../sesion/sesion.store'
 import { PerfilService } from '../perfiles/perfil.service'
 import { FichaProductoComponent, type Agregado } from './ficha-producto.component'
+import { CamposLineaComponent } from '../perfiles/campos-linea.component'
 
 /**
  * Zona de venta.
@@ -50,7 +52,13 @@ import { FichaProductoComponent, type Agregado } from './ficha-producto.componen
  */
 @Component({
   selector: 'km-venta-page',
-  imports: [FormsModule, MonedaPipe, IconoProductoComponent, FichaProductoComponent],
+  imports: [
+    FormsModule,
+    MonedaPipe,
+    IconoProductoComponent,
+    FichaProductoComponent,
+    CamposLineaComponent,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { '(document:keydown)': 'atajo($event)' },
   template: `
@@ -258,6 +266,16 @@ import { FichaProductoComponent, type Agregado } from './ficha-producto.componen
       </div>
     </div>
 
+    @if (pidiendo(); as peticion) {
+      <km-campos-linea
+        [campos]="peticion.campos"
+        [producto]="peticion.producto.descripcion"
+        titulo="Antes de agregar"
+        (cancelar)="pidiendo.set(null)"
+        (confirmar_)="agregarConDatos($event)"
+      />
+    }
+
     @if (ficha(); as abierto) {
       <km-ficha-producto
         [producto]="abierto"
@@ -301,6 +319,12 @@ export class VentaPage {
   protected readonly resultados = signal<ProductoRef[]>([])
   protected readonly buscando = signal(false)
   protected readonly ficha = signal<ProductoRef | null>(null)
+  protected readonly pidiendo = signal<{
+    producto: ProductoRef
+    pres: PresentacionVenta
+    cantidad: number
+    campos: readonly CampoLinea[]
+  } | null>(null)
 
   /** Producto y presentación resaltados. Los mueven las flechas y el puntero. */
   protected readonly fila = signal(0)
@@ -401,7 +425,37 @@ export class VentaPage {
     this.enfocar()
   }
 
+  /**
+   * Agregar pasa por el perfil.
+   *
+   * Si el rubro necesita algo del mostrador —el número de receta, la
+   * serie de un televisor— se pregunta AQUÍ, no al cobrar: con el cliente
+   * pagando, parar la cola por un dato es lo peor que puede hacer la
+   * caja.
+   */
   protected agregar(producto: ProductoRef, pres: PresentacionVenta, cantidad = 1): void {
+    const campos = this.perfilRubro.camposDeLinea(producto, pres.id)
+    if (campos.length > 0) {
+      this.pidiendo.set({ producto, pres, cantidad, campos })
+      return
+    }
+    this.meter(producto, pres, cantidad, {})
+  }
+
+  protected agregarConDatos(datos: Record<string, unknown>): void {
+    const peticion = this.pidiendo()
+    if (!peticion) return
+    this.meter(peticion.producto, peticion.pres, peticion.cantidad, datos)
+    this.pidiendo.set(null)
+    this.enfocar()
+  }
+
+  private meter(
+    producto: ProductoRef,
+    pres: PresentacionVenta,
+    cantidad: number,
+    datos: Record<string, unknown>,
+  ): void {
     this.ticket.agregarLinea({
       productoId: producto.id,
       descripcion: producto.descripcion,
@@ -411,7 +465,7 @@ export class VentaPage {
       precioUnitario: pres.precio,
       igvTasa: pres.igvTasa,
       icono: producto.icono,
-      atributos: {},
+      atributos: { ...this.perfilRubro.atributosIniciales(producto, pres.id), ...datos },
     })
   }
 
