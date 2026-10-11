@@ -1611,3 +1611,291 @@ body {
     justify-content: flex-start;
   }
 }
+
+/* ══ Rejilla de catálogo ═══════════════════════════════════════════════════
+ *
+ * `auto-fill` y no un número de columnas: la misma pantalla se usa en un
+ * monitor de 1920 y en una tablet apaisada, y fijar tres columnas deja
+ * huecos en uno y aprieta en la otra. El mínimo de 15rem es lo que necesita
+ * el nombre de un medicamento con concentración sin partirse en tres
+ * renglones.
+ */
+.pv-rejilla {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+  gap: 0.625rem;
+  padding: 0.75rem;
+  overflow: auto;
+  min-height: 0;
+  flex: 1;
+  align-content: start;
+}
+
+.pv-tarjeta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  border-radius: 14px;
+  border: 1px solid var(--pv-border);
+  background-color: var(--pv-surface);
+  transition:
+    border-color 140ms var(--pv-salida),
+    box-shadow 140ms var(--pv-salida),
+    transform 140ms var(--pv-salida);
+}
+
+/* El resalte es borde y sombra, no relleno: con relleno, la tarjeta activa
+ * tapaba las marcas de receta y agotado, que es justo lo que hay que ver. */
+.pv-tarjeta-activa {
+  border-color: var(--pv-indigo-500);
+  box-shadow:
+    0 0 0 1px var(--pv-indigo-500),
+    0 10px 24px -14px color-mix(in srgb, var(--pv-indigo-600) 70%, transparent);
+  transform: translateY(-1px);
+}
+
+/* Agotado no se esconde: el cajero tiene que poder decir que no hay y
+ * ofrecer otra cosa. Se apaga, no desaparece. */
+.pv-tarjeta-agotada {
+  opacity: 0.55;
+}
+
+.pv-tarjeta-cabecera {
+  display: flex;
+  gap: 0.625rem;
+  align-items: flex-start;
+  text-align: left;
+  cursor: pointer;
+}
+
+.pv-tarjeta-marcas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  min-height: 1rem;
+}
+
+.pv-tarjeta-precios {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3125rem;
+  margin-top: auto;
+}
+
+.pv-tarjeta-ficha {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--pv-primary-texto);
+  text-align: left;
+  opacity: 0;
+  transition: opacity 140ms var(--pv-salida);
+}
+
+.pv-tarjeta:hover .pv-tarjeta-ficha,
+.pv-tarjeta-activa .pv-tarjeta-ficha,
+.pv-tarjeta-ficha:focus-visible {
+  opacity: 1;
+}
+
+/* Punto en la presentación que sale de romper un envase. Es un punto y no
+ * una palabra porque en la tarjeta no cabe, y en la ficha ya va escrito. */
+.pv-punto-fraccion {
+  width: 5px;
+  height: 5px;
+  border-radius: 999px;
+  background-color: var(--pv-aviso);
+}
+
+.pv-marca-fraccion,
+.pv-marca-agotado,
+.pv-marca-bajo,
+.pv-marca-ficha {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 5px;
+  padding: 0.0625rem 0.3125rem;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.pv-marca-fraccion {
+  color: var(--pv-aviso);
+  background-color: color-mix(in srgb, var(--pv-aviso) 15%, transparent);
+}
+
+.pv-marca-agotado {
+  color: var(--pv-error);
+  background-color: color-mix(in srgb, var(--pv-error) 15%, transparent);
+}
+
+.pv-marca-bajo {
+  color: var(--pv-muted);
+  background-color: color-mix(in srgb, var(--pv-muted) 15%, transparent);
+  text-transform: none;
+  letter-spacing: 0;
+  font-weight: 600;
+}
+
+.pv-marca-ficha {
+  color: var(--pv-primary-texto);
+  background-color: color-mix(in srgb, var(--pv-indigo-500) 14%, transparent);
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+/* ══ Filtros avanzados ═════════════════════════════════════════════════════ */
+
+.pv-filtros {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+  gap: 0.875rem 1.25rem;
+  padding: 0.875rem 1rem;
+  border-radius: 14px;
+  border: 1px solid var(--pv-border);
+  background-color: var(--pv-surface-2);
+}
+
+.pv-filtro-opcion {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3125rem;
+  border-radius: 7px;
+  border: 1px solid var(--pv-border);
+  background-color: var(--pv-surface);
+  padding: 0.1875rem 0.5rem;
+  font-size: 12px;
+  transition:
+    border-color 120ms var(--pv-salida),
+    background-color 120ms var(--pv-salida);
+}
+
+.pv-filtro-opcion:hover {
+  border-color: var(--pv-indigo-400);
+}
+
+.pv-filtro-marcada {
+  border-color: var(--pv-indigo-500);
+  background-color: color-mix(in srgb, var(--pv-indigo-500) 14%, transparent);
+  color: var(--pv-primary-texto);
+  font-weight: 600;
+}
+
+.pv-limpiar {
+  align-self: end;
+  justify-self: start;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--pv-error);
+}
+
+.pv-boton-marcado {
+  border-color: var(--pv-indigo-500);
+  color: var(--pv-primary-texto);
+}
+
+/* ══ Panel de ficha ════════════════════════════════════════════════════════ */
+
+.pv-ficha-panel {
+  width: 100%;
+  max-width: 34rem;
+  max-height: min(88vh, 46rem);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.pv-ficha-cuerpo {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  padding: 1.25rem;
+  overflow: auto;
+}
+
+.pv-ficha-datos {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+  gap: 0.625rem 1.25rem;
+}
+
+.pv-ficha-datos dt {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--pv-muted);
+}
+
+.pv-ficha-datos dd {
+  font-size: 0.8125rem;
+  margin-top: 0.0625rem;
+}
+
+/* Cada forma de vender es una fila entera y no una pastilla: aquí se decide
+ * entre dar el envase o partirlo, y esa decisión necesita leerse con su
+ * equivalencia en stock al lado. */
+.pv-opcion-venta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border-radius: 10px;
+  border: 1px solid var(--pv-border);
+  background-color: var(--pv-surface);
+  text-align: left;
+}
+
+.pv-opcion-venta:hover {
+  border-color: var(--pv-indigo-400);
+}
+
+.pv-opcion-activa {
+  border-color: var(--pv-indigo-500);
+  box-shadow: inset 0 0 0 1px var(--pv-indigo-500);
+  background-color: color-mix(in srgb, var(--pv-indigo-500) 8%, transparent);
+}
+
+.pv-aviso-fraccion {
+  margin-top: 0.625rem;
+  border-radius: 9px;
+  border: 1px solid color-mix(in srgb, var(--pv-aviso) 32%, transparent);
+  background-color: color-mix(in srgb, var(--pv-aviso) 10%, transparent);
+  padding: 0.5rem 0.625rem;
+  font-size: 11px;
+  line-height: 1.45;
+  color: var(--pv-text);
+}
+
+.pv-contador {
+  display: flex;
+  align-items: center;
+  gap: 0.125rem;
+  border-radius: 10px;
+  border: 1px solid var(--pv-border);
+  padding: 0.125rem;
+}
+
+.pv-contador button {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  font-size: 15px;
+  line-height: 1;
+}
+
+.pv-contador button:hover {
+  background-color: var(--pv-surface-2);
+}
+
+.pv-contador span {
+  min-width: 2.25rem;
+  text-align: center;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}

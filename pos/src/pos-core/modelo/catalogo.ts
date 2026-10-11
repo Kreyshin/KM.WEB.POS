@@ -30,6 +30,35 @@ export interface ProductoRef {
    * adaptador dice cuál usar. Si no viene ninguno, se dibuja el genérico.
    */
   icono?: string
+  /**
+   * Ficha del producto: lo que se contesta cuando el cliente pregunta.
+   *
+   * Pares etiqueta/valor, sin estructura de rubro. En una botica son
+   * principio activo, concentración, forma farmacéutica, laboratorio,
+   * registro sanitario y condición de venta; en una tienda de ropa serían
+   * composición, tejido y cuidados. El núcleo no interpreta ninguno: los
+   * transporta para que la pantalla los enseñe tal cual.
+   *
+   * Está en el núcleo y no en `detalle` porque la pantalla genérica tiene
+   * que poder pintarla sin saber de rubros. Qué campos hay y en qué orden
+   * lo decide el catálogo.
+   */
+  ficha?: readonly CampoFicha[]
+  /**
+   * Existencias en unidad de ALMACÉN, si el catálogo las conoce.
+   *
+   * Opcional a propósito: el POS puede venderse sin control de stock, y al
+   * contratar el módulo de almacén del ERP el mismo campo se llena desde
+   * allí sin que la pantalla cambie.
+   */
+  stock?: number
+}
+
+/** Un dato de la ficha. `destacado` lo sube a la cabecera del panel. */
+export interface CampoFicha {
+  etiqueta: string
+  valor: string
+  destacado?: boolean
 }
 
 export interface CategoriaRef {
@@ -47,8 +76,39 @@ export interface ConsultaCatalogo {
   codigoBarras?: string
   /** Código de categoría. Sin él se busca en todo el catálogo. */
   categoria?: string
+  /**
+   * Filtros avanzados, por clave de faceta.
+   *
+   * Genérico a propósito: el núcleo no sabe que existe «laboratorio» ni
+   * «condición de venta». Las claves salen de las facetas que publica el
+   * propio catálogo, así que un rubro puede filtrar por talla y otro por
+   * laboratorio sin tocar este contrato ni la pantalla.
+   */
+  filtros?: Readonly<Record<string, string>>
+  orden?: OrdenCatalogo
   sucursalId: string
   limite?: number
+}
+
+export type OrdenCatalogo = 'relevancia' | 'nombre' | 'precio-asc' | 'precio-desc'
+
+/**
+ * Un filtro que el catálogo publica para que la pantalla lo dibuje.
+ *
+ * La pantalla de venta pinta las facetas que reciba, con sus cuentas, sin
+ * conocer ninguna. Es lo que permite tener filtros de verdad sin meter
+ * farmacia en el shell.
+ */
+export interface Faceta {
+  clave: string
+  etiqueta: string
+  opciones: readonly OpcionFaceta[]
+}
+
+export interface OpcionFaceta {
+  valor: string
+  etiqueta: string
+  cuantos: number
 }
 
 export interface ContextoPrecio {

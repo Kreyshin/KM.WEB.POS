@@ -53,6 +53,16 @@ export interface PresentacionVenta {
    * que los grave está mal emitida.
    */
   igvTasa: number
+  /**
+   * La presentación se obtiene rompiendo otra mayor.
+   *
+   * La tableta suelta de un blíster que se vende cerrado: existe para el
+   * cliente que pide una sola y no para el inventario, que sigue contando
+   * la unidad de almacén. Es solo una etiqueta para la pantalla —el cálculo
+   * ya sale de `factorAlmacen`—, pero sin ella el cajero no distingue entre
+   * vender un envase y partirlo, que es una decisión del mostrador.
+   */
+  fraccionada?: boolean
 }
 
 /** IGV general vigente en Perú. Las presentaciones exoneradas llevan 0. */
