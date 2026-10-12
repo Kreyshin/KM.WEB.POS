@@ -9,6 +9,7 @@ import {
   PUERTO_PAGOS,
   PUERTO_SESION,
   PUERTO_TURNOS,
+  PUERTO_DEVOLUCIONES,
   PUERTO_TICKETS,
 } from '@pos-core-ui/index'
 import {
@@ -20,6 +21,7 @@ import {
   PagosSimulados,
   SesionSimulada,
   TurnosSimulados,
+  DevolucionesSimuladas,
   TicketsSimulados,
 } from '@pos-adaptadores/simulado/index'
 import { HojaCatalogoExcel } from '@pos-adaptadores/hoja/excel'
@@ -46,5 +48,6 @@ export const proveedoresSimulados: Provider[] = [
   { provide: PUERTO_MEDIOS_PAGO, useClass: MediosPagoSimulados },
   { provide: PUERTO_PAGOS, useClass: PagosSimulados },
   { provide: PUERTO_TICKETS, useClass: TicketsSimulados },
+  { provide: PUERTO_DEVOLUCIONES, useClass: DevolucionesSimuladas },
   { provide: PUERTO_HOJA_CATALOGO, useClass: HojaCatalogoExcel },
 ]

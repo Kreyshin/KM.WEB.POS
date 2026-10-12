@@ -109,7 +109,22 @@ export function cobroCompleto(total: number, pagos: readonly Pago[]): boolean {
  *   `propinas`     no hay propina en un mostrador.
  */
 
-export const tiposMovimiento = ['apertura', 'venta', 'ingreso', 'egreso', 'cierre'] as const
+/*
+ * `devolucion` es su propio tipo y no un egreso cualquiera.
+ *
+ * Un egreso es plata que sale para una movilidad o una compra; una
+ * devolución es una venta que se deshace. Mezclarlas haría que el resumen
+ * del turno dijera que se vendieron mil y se gastaron doscientos, cuando
+ * lo que pasó es que se vendieron ochocientos.
+ */
+export const tiposMovimiento = [
+  'apertura',
+  'venta',
+  'devolucion',
+  'ingreso',
+  'egreso',
+  'cierre',
+] as const
 export type TipoMovimiento = (typeof tiposMovimiento)[number]
 
 export interface MovimientoCaja {
@@ -171,7 +186,10 @@ export interface SesionCaja {
  */
 export function efectivoEsperado(sesion: SesionCaja): number {
   const movido = sesion.movimientos
-    .filter((m) => m.medio === 'EFE' || m.tipo === 'ingreso' || m.tipo === 'egreso')
+    .filter(
+      (m) =>
+        m.medio === 'EFE' || m.tipo === 'ingreso' || m.tipo === 'egreso' || m.tipo === 'devolucion',
+    )
     .reduce((suma, m) => suma + m.importe, 0)
   return redondear(sesion.fondoInicial + movido)
 }
@@ -241,13 +259,26 @@ export function totalPorMedio(sesion: SesionCaja): { medio: string; importe: num
   return [...cuenta.entries()].map(([medio, importe]) => ({ medio, importe: redondear(importe) }))
 }
 
-/** Ventas del turno: cuántas y por cuánto. */
-export function resumenVentas(sesion: SesionCaja): { cuantas: number; importe: number } {
+/**
+ * Ventas del turno: cuántas y por cuánto, ya NETO de devoluciones.
+ *
+ * Neto porque es lo que se cobró de verdad. Enseñar lo bruto obliga al
+ * cajero a restar de cabeza para saber cuánto entró, y ahí es donde se
+ * equivoca.
+ */
+export function resumenVentas(sesion: SesionCaja): {
+  cuantas: number
+  importe: number
+  devuelto: number
+} {
   const ventas = sesion.movimientos.filter((m) => m.tipo === 'venta')
+  const devoluciones = sesion.movimientos.filter((m) => m.tipo === 'devolucion')
   const tickets = new Set(ventas.map((m) => m.ticketId))
+  const devuelto = redondear(devoluciones.reduce((suma, m) => suma + Math.abs(m.importe), 0))
   return {
     cuantas: tickets.size,
-    importe: redondear(ventas.reduce((suma, m) => suma + m.importe, 0)),
+    importe: redondear(ventas.reduce((suma, m) => suma + m.importe, 0) - devuelto),
+    devuelto,
   }
 }
 

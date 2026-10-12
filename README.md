@@ -413,7 +413,8 @@ entonces la verdad es la del ERP. La pantalla no cambia: cambia el modo.
 | 6 · Gestión           | Por cobrar, catálogo con alta y carga masiva, clientes, reportes  | **Listo**    |
 | 7 · Perfil ropa       | Matriz de talla y color, pantalla de venta propia                 | **Listo**    |
 | 8 · Enlace ERP        | `ModoIntegracion` y `VinculoErp` de D-009                         | Pendiente    |
-| 9 · Back real         | `KARMA.MS.POS` y los adaptadores HTTP                             | Pendiente    |
+| 9 · Devoluciones      | Nota de crédito, baja del comprobante y política de la empresa    | **Listo**    |
+| 10 · Back real        | `KARMA.MS.POS` y los adaptadores HTTP                             | Pendiente    |
 
 \* El cobro y la caja funcionan, pero **dentro de este repo**, no en
 `KARMA.LIB.CAJA`. Lo que sí está hecho es **congelar el contrato** (ver

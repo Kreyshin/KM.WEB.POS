@@ -146,6 +146,24 @@ export class CajaService {
    * al puerto es el resultado: así el número que se guarda es exactamente
    * el que el cajero tenía delante al firmar.
    */
+  /**
+   * Anota una devolución en efectivo. Sale de la gaveta.
+   *
+   * Importe NEGATIVO y tipo propio: así el efectivo esperado baja y el
+   * resumen del turno puede enseñar lo vendido neto sin que nadie reste de
+   * cabeza. Si se devolvió como saldo a favor no se llama: no salió plata.
+   */
+  async anotarDevolucion(ticketId: string, importe: number, concepto: string): Promise<void> {
+    if (!this.estado() || importe <= 0) return
+    await this.registrar({
+      tipo: 'devolucion',
+      concepto,
+      medio: 'EFE',
+      importe: -Math.abs(importe),
+      ticketId,
+    })
+  }
+
   async cerrar(contado: Readonly<Record<string, number>>, nota?: string): Promise<void> {
     const sesion = this.estado()
     if (!sesion) return

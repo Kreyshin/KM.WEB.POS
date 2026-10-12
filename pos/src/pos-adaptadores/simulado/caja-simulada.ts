@@ -192,10 +192,26 @@ export class CajaSimulada implements PuertoCaja {
  */
 const LLAVE_SERIE = 'km.pos.correlativo'
 
+/**
+ * Cada tipo gasta SU correlativo.
+ *
+ * Una nota de crédito no es una boleta: tiene su propia serie y su propia
+ * numeración. Mientras cayó en la de boleta, cada devolución se comía un
+ * número de la serie de ventas y dejaba un hueco que en una fiscalización
+ * hay que explicar.
+ *
+ * La nota de venta tampoco: es papel interno y no va a SUNAT.
+ */
+const SERIES: Record<string, string> = {
+  FAC: 'F001',
+  BOL: 'B001',
+  NCR: 'NC01',
+  NDB: 'ND01',
+  NDV: 'NV01',
+}
+
 function siguienteComprobante(tipo: string): ComprobanteRef {
-  // Una nota de venta no es comprobante electrónico: lleva su propia serie
-  // interna y no va a SUNAT. Separarla evita que gaste correlativo de boleta.
-  const serie = tipo === 'FAC' ? 'F001' : tipo === 'NDV' ? 'NV01' : 'B001'
+  const serie = SERIES[tipo] ?? SERIES['BOL']
   let numero = 1
   try {
     const guardado = Number(localStorage.getItem(`${LLAVE_SERIE}.${serie}`) ?? '0')

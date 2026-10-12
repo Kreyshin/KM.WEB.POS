@@ -10,7 +10,13 @@ import type { ElementRef } from '@angular/core'
 import { FormsModule } from '@angular/forms'
 import type { CampoLinea, Cobro, ComprobanteRef, DatoLinea, LineaTicket } from '@pos-core/index'
 import { CajaService, CarritoComponent, MonedaPipe, TicketService } from '@pos-core-ui/index'
-import { ContextoVenta, PUERTO_CATALOGO, PUERTO_PAGOS, PUERTO_TICKETS } from '@pos-core-ui/index'
+import {
+  ContextoVenta,
+  PUERTO_CATALOGO,
+  PUERTO_DEVOLUCIONES,
+  PUERTO_PAGOS,
+  PUERTO_TICKETS,
+} from '@pos-core-ui/index'
 import { PerfilService } from '../perfiles/perfil.service'
 import { CamposLineaComponent } from '../perfiles/campos-linea.component'
 import { PanelCobroComponent } from '../cobro/panel-cobro.component'
@@ -263,6 +269,7 @@ export class ColumnaTicketComponent {
   private readonly perfilRubro = inject(PerfilService)
   private readonly catalogo = inject(PUERTO_CATALOGO)
   private readonly contexto = inject(ContextoVenta)
+  private readonly devoluciones = inject(PUERTO_DEVOLUCIONES)
 
   private readonly cobrar = viewChild<ElementRef<HTMLButtonElement>>('cobrar')
   private readonly panel = viewChild<PanelCobroComponent>('panel')
@@ -405,6 +412,26 @@ export class ColumnaTicketComponent {
       }
 
       this.comprobante.set(resultado.comprobante)
+
+      /*
+       * Se anota la venta cobrada.
+       *
+       * Hasta hoy el POS la olvidaba en cuanto se cobraba: se imprimía el
+       * recibo y no quedaba nada, así que una devolución media hora
+       * después no tenía contra qué hacerse. En producción esto lo guarda
+       * el microservicio al registrar el pago.
+       */
+      const vendido = this.ticket.ticket()
+      if (vendido && resultado.comprobante) {
+        await this.devoluciones.anotarVenta({
+          ticketId: vendido.id,
+          comprobante: resultado.comprobante,
+          emitidoEn: new Date().toISOString(),
+          cliente: vendido.cliente?.nombre,
+          total: vendido.totales.total,
+          lineas: vendido.lineas,
+        })
+      }
       // El ciclo del ticket es borrador → por_cobrar → cobrado, y el store
       // no deja saltarse el paso. No se envía a cobro al ABRIR el panel a
       // propósito: si el cajero cancela, el ticket tiene que seguir siendo

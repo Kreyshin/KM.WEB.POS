@@ -35,6 +35,12 @@ export const routes: Routes = [
         loadComponent: () => import('@shell/paginas/caja.page').then((m) => m.CajaPage),
       },
       {
+        path: 'devoluciones',
+        canActivate: [exigeRol('cajero', 'supervisor', 'administrador')],
+        loadComponent: () =>
+          import('@shell/paginas/devoluciones.page').then((m) => m.DevolucionesPage),
+      },
+      {
         path: 'catalogo',
         loadComponent: () => import('@shell/paginas/catalogo.page').then((m) => m.CatalogoPage),
       },

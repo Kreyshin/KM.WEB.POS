@@ -13,15 +13,20 @@ import type {
   CategoriaRef,
   Cliente,
   Cobro,
+  ComprobanteRef,
   ConsultaCatalogo,
   ConteoMedio,
+  Devolucion,
   ContextoPrecio,
   CuentaPorCobrar,
   Faceta,
   FilaHoja,
   MedioPago,
+  LineaTicket,
   MovimientoCaja,
+  NotaConSaldo,
   PoliticaCaja,
+  PoliticaDevolucion,
   ProductoRef,
   ResultadoCobro,
   SesionCaja,
@@ -197,6 +202,50 @@ export interface PuertoHojaCatalogo {
  * Sin él, el acceso pide usuario y clave, que es lo que debe pasar cuando
  * nadie publica una lista.
  */
+/**
+ * Devoluciones y anulación de ventas.
+ *
+ * Separado de `PuertoPagos` porque deshacer una venta no es cobrarla al
+ * revés: lleva motivo, responsable y un documento propio, y la baja ni
+ * siquiera mueve dinero en algunos casos.
+ */
+export interface PuertoDevoluciones {
+  /** La política de esta sucursal: plazos, si devuelve efectivo, saldos. */
+  politica(sucursalId: string): Promise<PoliticaDevolucion>
+  /**
+   * Anota una venta ya cobrada, para poder devolverla después.
+   *
+   * Está en el puerto y no se llama al adaptador directamente porque el
+   * shell no puede nombrar adaptadores. En producción esto no existe: el
+   * microservicio guarda la venta al registrar el pago, y este método se
+   * queda sin cuerpo o desaparece del contrato.
+   */
+  anotarVenta(venta: VentaCobrada): Promise<void>
+  /** Las ventas cobradas que todavía admiten devolución. */
+  ventasDevolubles(sucursalId: string, texto?: string): Promise<readonly VentaCobrada[]>
+  /** Lo ya devuelto de una venta. Sin esto se puede devolver dos veces. */
+  previas(ticketId: string): Promise<readonly Devolucion[]>
+  /**
+   * Registra la devolución y emite el documento que corresponda.
+   *
+   * Devuelve la devolución ya con su nota, porque el correlativo lo pone
+   * quien lo custodia y la pantalla no puede inventarlo.
+   */
+  registrar(devolucion: Omit<Devolucion, 'id' | 'nota'>): Promise<Devolucion>
+  /** Las notas con saldo de un cliente, para aplicarlas como pago. */
+  notasConSaldo(sucursalId: string, clienteId?: string): Promise<readonly NotaConSaldo[]>
+}
+
+/** Una venta ya cobrada, con lo que hace falta para devolverla. */
+export interface VentaCobrada {
+  ticketId: string
+  comprobante: ComprobanteRef
+  emitidoEn: string
+  cliente?: string
+  total: number
+  lineas: readonly LineaTicket[]
+}
+
 export interface PuertoTurnos {
   delPuesto(sucursalId: string): Promise<readonly TurnoSugerido[]>
 }

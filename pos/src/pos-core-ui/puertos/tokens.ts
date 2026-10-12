@@ -15,6 +15,7 @@ import type {
   PuertoHojaCatalogo,
   PuertoMantenimientoCatalogo,
   PuertoMediosPago,
+  PuertoDevoluciones,
   PuertoPagos,
   PuertoPrecios,
   PuertoSesion,
@@ -38,3 +39,5 @@ export const PUERTO_TURNOS = new InjectionToken<PuertoTurnos>('PuertoTurnos')
 export const PUERTO_CAJA = new InjectionToken<PuertoCaja>('PuertoCaja')
 export const PUERTO_MEDIOS_PAGO = new InjectionToken<PuertoMediosPago>('PuertoMediosPago')
 export const PUERTO_PAGOS = new InjectionToken<PuertoPagos>('PuertoPagos')
+
+export const PUERTO_DEVOLUCIONES = new InjectionToken<PuertoDevoluciones>('PuertoDevoluciones')

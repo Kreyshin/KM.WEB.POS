@@ -34,6 +34,10 @@ import { ChangeDetectionStrategy, Component, input } from '@angular/core'
           <path d="M15 3v4h4" />
           <path d="M9.5 13.5l1.8 1.8 3.4-3.6" />
         }
+        @case ('devoluciones') {
+          <path d="M3 9.5 12 5l9 4.5v8L12 22l-9-4.5z" />
+          <path d="M15 12.5H9.5M12 9.5l-3 3 3 3" />
+        }
         @case ('caja') {
           <path d="M3 9.5 12 5l9 4.5v8L12 22l-9-4.5z" />
           <path d="M3 9.5 12 14l9-4.5M12 14v8" />

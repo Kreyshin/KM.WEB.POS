@@ -131,7 +131,7 @@ describe('sesión de caja', () => {
 
   it('cuenta tickets y no movimientos, porque uno mixto deja dos', () => {
     const sesion = sesionCon([venta(20, 'EFE', 't-1'), venta(11.4, 'YAP', 't-1')])
-    expect(resumenVentas(sesion)).toEqual({ cuantas: 1, importe: 31.4 })
+    expect(resumenVentas(sesion)).toEqual({ cuantas: 1, importe: 31.4, devuelto: 0 })
   })
 
   it('el arqueo corto sale negativo y el sobrante positivo', () => {
@@ -210,5 +210,54 @@ describe('arqueo por medio (contrato congelado D-012)', () => {
     // El que protege al negocio del que lo configura mal: si quien cuenta ve
     // lo esperado, escribe ese número y el arqueo deja de medir nada.
     expect(politicaCajaPorDefecto.cierreCiego).toBe(true)
+  })
+})
+
+describe('devoluciones en el turno', () => {
+  function turnoCon(movimientos: MovimientoCaja[]): SesionCaja {
+    return {
+      id: 's-1',
+      sucursalId: 'suc-1',
+      usuarioId: 'u-1',
+      usuarioNombre: 'Elena',
+      abiertaEn: '2026-01-01T08:00:00Z',
+      fondoInicial: 100,
+      estado: 'abierta',
+      movimientos,
+    }
+  }
+  const mov = (p: Partial<MovimientoCaja>): MovimientoCaja => ({
+    id: 'm',
+    en: '2026-01-01T09:00:00Z',
+    tipo: 'venta',
+    concepto: '',
+    importe: 0,
+    ...p,
+  })
+
+  it('una devolución en efectivo sale del cajón', () => {
+    const turno = turnoCon([
+      mov({ tipo: 'venta', medio: 'EFE', importe: 60, ticketId: 't-1' }),
+      mov({ tipo: 'devolucion', medio: 'EFE', importe: -20, ticketId: 't-1' }),
+    ])
+    expect(efectivoEsperado(turno)).toBe(140)
+  })
+
+  it('las ventas del turno se enseñan NETAS de lo devuelto', () => {
+    // Enseñar lo bruto obliga al cajero a restar de cabeza para saber
+    // cuánto entró, y ahí es donde se equivoca.
+    const turno = turnoCon([
+      mov({ tipo: 'venta', medio: 'EFE', importe: 100, ticketId: 't-1' }),
+      mov({ tipo: 'devolucion', medio: 'EFE', importe: -30, ticketId: 't-1' }),
+    ])
+    expect(resumenVentas(turno)).toEqual({ cuantas: 1, importe: 70, devuelto: 30 })
+  })
+
+  it('una devolución no cuenta como un ticket más', () => {
+    const turno = turnoCon([
+      mov({ tipo: 'venta', medio: 'EFE', importe: 50, ticketId: 't-1' }),
+      mov({ tipo: 'devolucion', medio: 'EFE', importe: -50, ticketId: 't-1' }),
+    ])
+    expect(resumenVentas(turno).cuantas).toBe(1)
   })
 })

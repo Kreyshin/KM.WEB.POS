@@ -988,6 +988,30 @@ body {
   color: var(--pv-muted);
 }
 
+/* Devoluciones: una fila por línea de la venta, con cuánto vuelve. */
+.pv-devolucion-fila {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  border-radius: var(--pv-radio-control);
+  border: 1px solid var(--pv-border);
+  background-color: var(--pv-surface-2);
+  padding: 0.5rem 0.625rem;
+}
+
+/* Sin nada que devolver la fila se apaga pero NO se esconde: el cajero
+   tiene que ver que esa línea existió y que ya volvió entera. */
+.pv-devolucion-agotada {
+  opacity: 0.45;
+}
+
+.pv-resumen-devolucion {
+  border-radius: var(--pv-radio-card);
+  border: 1px solid var(--pv-border);
+  background-color: var(--pv-surface-2);
+  padding: 0.875rem 1rem;
+}
+
 /* Un enlace que no grita. Para lo que casi nunca se usa pero tiene que
    estar: el descuento del ticket. */
 .pv-quitar-linea {
