@@ -2,6 +2,7 @@ import { computed, inject, Injectable, signal } from '@angular/core'
 import type {
   CampoLinea,
   DatoLinea,
+  FormaEjemplar,
   LineaTicket,
   MarcaProducto,
   ProductoRef,
@@ -63,6 +64,16 @@ export class PerfilService {
   detalleDeLinea(linea: LineaTicket): readonly DatoLinea[] {
     return this.cargado()?.detalleDeLinea?.(linea) ?? []
   }
+
+  /**
+   * Cómo llama el rubro a lo que identifica un ejemplar, si es que aplica.
+   *
+   * `null` donde no aplica —ropa identifica por variante, no por número—,
+   * y el editor de producto simplemente no enseña la sección.
+   */
+  readonly formaEjemplar = computed<FormaEjemplar | null>(
+    () => this.cargado()?.ejemplaresDeProducto ?? null,
+  )
 
   /** Qué pedir antes de agregar. Vacío es el caso normal. */
   camposDeLinea(producto: ProductoRef, presentacionId: string): readonly CampoLinea[] {

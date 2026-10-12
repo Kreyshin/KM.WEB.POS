@@ -57,6 +57,19 @@ export const perfilTecnologia: PerfilRubroAngular<AtributosTecnologia> = {
       : linea.descripcion
   },
 
+  /*
+   * Una serie es, por definición, UN aparato: ni cantidad ni vencimiento.
+   * Registrarlas aquí es lo que permite que la garantía se pueda tramitar
+   * meses después contra el número que figura en el comprobante.
+   */
+  ejemplaresDeProducto: {
+    etiqueta: 'Series en tienda',
+    singular: 'Serie o IMEI',
+    conVencimiento: false,
+    conCantidad: false,
+    ayuda: 'Lo que se entrega se elige de esta lista: no se teclea al vender.',
+  },
+
   detalleDeLinea(linea: LineaTicket<AtributosTecnologia>): readonly DatoLinea[] {
     // Un cable no lleva serie y no tiene nada que enseñar aquí: una
     // etiqueta vacía en cada línea sería ruido en la columna más estrecha

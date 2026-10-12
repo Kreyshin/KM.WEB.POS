@@ -113,6 +113,19 @@ export const perfilFarmacia: PerfilRubroAngular<AtributosFarmacia> = {
    * mire la caja antes de entregarla, que es cuando todavía se puede
    * cambiar por otra.
    */
+  /*
+   * Un lote agrupa unidades con el mismo origen y la misma fecha, así que
+   * lleva cantidad y vencimiento. Es lo que hace posible el orden FEFO y lo
+   * que permite rastrear una alerta sanitaria hasta quién se la llevó.
+   */
+  ejemplaresDeProducto: {
+    etiqueta: 'Lotes en stock',
+    singular: 'Lote',
+    conVencimiento: true,
+    conCantidad: true,
+    ayuda: 'El mostrador ofrece primero el que antes vence, y esconde los vencidos.',
+  },
+
   detalleDeLinea(linea: LineaTicket<AtributosFarmacia>): readonly DatoLinea[] {
     const datos: DatoLinea[] = []
     if (linea.atributos.lote) {

@@ -60,6 +60,28 @@ export interface MarcaProducto {
  * El núcleo no interpreta ninguno. Los recoge y los deja en `atributos`,
  * que es justo para lo que existe.
  */
+/**
+ * Cómo se llaman y se comportan los ejemplares de un rubro.
+ *
+ *   SERIE   un aparato concreto: un IMEI, un número de serie. Cantidad 1.
+ *   LOTE    un grupo con origen y vencimiento. Cantidad N.
+ *
+ * Son la misma idea con otro nombre, y por eso el núcleo las transporta
+ * igual y solo cambia cómo se presentan.
+ */
+export interface FormaEjemplar {
+  /** Título de la sección: «Series registradas», «Lotes en stock». */
+  etiqueta: string
+  /** Cómo se llama UNO: «Serie», «Lote». Va en el encabezado de la columna. */
+  singular: string
+  /** Si lleva fecha de vencimiento. Una botica sí, una tienda de aparatos no. */
+  conVencimiento: boolean
+  /** Si cada ejemplar puede tener más de una unidad. Una serie no; un lote sí. */
+  conCantidad: boolean
+  /** Una línea que explique para qué sirve en este rubro. */
+  ayuda?: string
+}
+
 /** Un dato del rubro en una línea del carrito. */
 export interface DatoLinea {
   etiqueta: string
@@ -116,6 +138,22 @@ export interface PerfilRubro<A = Record<string, unknown>, TPantalla = unknown> {
    * nombre, donde se ven enteros y se leen de un vistazo.
    */
   detalleDeLinea?(linea: LineaTicket<A>): readonly DatoLinea[]
+  /**
+   * Cómo llama este rubro a lo que identifica un ejemplar, y si caduca.
+   *
+   * Sin esto el catálogo no tenía DÓNDE dar de alta una serie ni un lote:
+   * `ProductoRef.ejemplares` existía, la pantalla de venta los ofrecía, y
+   * el único modo de meterlos era editar el código del catálogo simulado.
+   * Un dato que el sistema exige al vender y no deja registrar es un dato
+   * que el negocio acaba no teniendo.
+   *
+   * Es una descripción, no una pantalla: el editor de producto es el mismo
+   * para todos y lee esto para titular la sección y decidir si pide fecha
+   * de vencimiento. Un rubro que no lo declara no enseña la sección, que
+   * es lo correcto en una tienda de ropa —ahí lo que identifica es la
+   * variante, no un número—.
+   */
+  ejemplaresDeProducto?: FormaEjemplar
   /**
    * Marcas del producto en la pantalla de venta: receta, frío, peligroso.
    * Lo que el cajero tiene que ver sin abrir la ficha.

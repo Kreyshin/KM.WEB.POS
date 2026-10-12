@@ -1,12 +1,22 @@
-import { ChangeDetectionStrategy, Component, computed, input, output, signal } from '@angular/core'
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  inject,
+  input,
+  output,
+  signal,
+} from '@angular/core'
 import { FormsModule } from '@angular/forms'
 import {
   IGV_GENERAL,
   type CampoFicha,
+  type EjemplarProducto,
   type PresentacionVenta,
   type ProductoRef,
 } from '@pos-core/index'
-import { IconoProductoComponent } from '@pos-core-ui/index'
+import { IconoComponent, IconoProductoComponent } from '@pos-core-ui/index'
+import { PerfilService } from '../perfiles/perfil.service'
 
 /** Unidades frecuentes. El negocio puede escribir otras. */
 const UNIDADES = [
@@ -40,7 +50,7 @@ const ICONOS = ['tableta', 'capsula', 'frasco', 'inyectable', 'caja', 'prenda', 
  */
 @Component({
   selector: 'km-editor-producto',
-  imports: [FormsModule, IconoProductoComponent],
+  imports: [FormsModule, IconoComponent, IconoProductoComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'contents' },
   template: `
@@ -57,7 +67,15 @@ const ICONOS = ['tableta', 'capsula', 'frasco', 'inyectable', 'caja', 'prenda', 
           <h2 class="text-base font-semibold">
             {{ producto() ? 'Editar producto' : 'Nuevo producto' }}
           </h2>
-          <button class="text-tenue text-sm" type="button" (click)="cerrar.emit()">Cerrar</button>
+          <button
+            class="pv-boton-icono"
+            type="button"
+            aria-label="Cerrar"
+            title="Cerrar"
+            (click)="cerrar.emit()"
+          >
+            <km-icono nombre="cerrar" />
+          </button>
         </header>
 
         <div class="pv-editor-cuerpo">
@@ -153,100 +171,203 @@ const ICONOS = ['tableta', 'capsula', 'frasco', 'inyectable', 'caja', 'prenda', 
 
           <!-- 3. Cómo se vende -->
           <section>
-            <div class="mb-2 flex items-baseline justify-between">
+            <div class="mb-2 flex items-center justify-between gap-3">
               <p class="pv-etiqueta text-tenue">Cómo se vende</p>
-              <button class="pv-tabla-accion" type="button" (click)="anadirPresentacion()">
-                + Añadir forma
+              <button class="pv-boton-menudo" type="button" (click)="anadirPresentacion()">
+                <km-icono nombre="mas" tamano="xs" />
+                Forma de venta
               </button>
             </div>
 
-            <div class="flex flex-col gap-2">
+            <!--
+              Tabla, no fichas apiladas.
+
+              Antes cada forma de venta era una tira con el precio encogido
+              entre dos casillas de verificación y una equis suelta: lo que
+              se mira al dar de alta un producto —cuánto cuesta cada
+              presentación— era lo más pequeño de la pantalla. Ahora el
+              precio manda por tamaño y las marcas son pastillas que se ven
+              encendidas o apagadas de un vistazo, no casillas que hay que
+              leer.
+            -->
+            <div class="pv-tabla-pres">
+              <div class="pv-tabla-pres-cab" aria-hidden="true">
+                <span>Unidad</span>
+                <span class="text-right">Equivale a</span>
+                <span class="text-right">Precio</span>
+                <span>Marcas</span>
+                <span></span>
+              </div>
+
               @for (pres of presentaciones(); track pres.id; let i = $index) {
-                <div class="pv-presentacion-fila">
-                  <label class="pv-pres-unidad">
-                    <span class="pv-etiqueta-campo">Unidad</span>
-                    <select
-                      class="pv-campo mt-1 text-sm"
-                      [ngModel]="pres.unidad.codigo"
-                      (ngModelChange)="cambiarUnidad(i, $event)"
-                    >
-                      @for (unidad of unidades; track unidad.codigo) {
-                        <option [value]="unidad.codigo">{{ unidad.nombre }}</option>
-                      }
-                    </select>
-                  </label>
+                <div class="pv-tabla-pres-fila">
+                  <select
+                    class="pv-campo text-sm"
+                    [attr.aria-label]="'Unidad de la forma de venta ' + (i + 1)"
+                    [ngModel]="pres.unidad.codigo"
+                    (ngModelChange)="cambiarUnidad(i, $event)"
+                  >
+                    @for (unidad of unidades; track unidad.codigo) {
+                      <option [value]="unidad.codigo">{{ unidad.nombre }}</option>
+                    }
+                  </select>
 
-                  <label class="pv-pres-numero">
-                    <span class="pv-etiqueta-campo">Equivale a</span>
-                    <input
-                      class="pv-campo pv-cifra mt-1 text-right text-sm"
-                      type="number"
-                      min="0.001"
-                      step="1"
-                      [ngModel]="pres.factorAlmacen"
-                      (ngModelChange)="cambiarCampo(i, 'factorAlmacen', $event)"
-                    />
-                  </label>
+                  <input
+                    class="pv-campo pv-cifra text-right text-sm"
+                    type="number"
+                    min="0.001"
+                    step="1"
+                    [attr.aria-label]="'Equivalencia con el almacén de la forma ' + (i + 1)"
+                    [ngModel]="pres.factorAlmacen"
+                    (ngModelChange)="cambiarCampo(i, 'factorAlmacen', $event)"
+                  />
 
-                  <label class="pv-pres-numero">
-                    <span class="pv-etiqueta-campo">Precio</span>
+                  <!-- El precio lleva su moneda dentro: un número sin unidad
+                       en una rejilla de números se confunde con el factor. -->
+                  <div class="pv-campo-moneda">
+                    <span aria-hidden="true">S/</span>
                     <input
-                      class="pv-campo pv-cifra mt-1 text-right text-sm"
+                      class="pv-cifra"
                       type="number"
                       min="0"
                       step="0.10"
+                      [attr.aria-label]="'Precio de la forma de venta ' + (i + 1)"
                       [ngModel]="pres.precio"
                       (ngModelChange)="cambiarCampo(i, 'precio', $event)"
                     />
-                  </label>
+                  </div>
 
-                  <div class="flex shrink-0 flex-col gap-1 pt-4">
-                    <label class="pv-casilla">
-                      <input
-                        type="checkbox"
-                        [ngModel]="pres.igvTasa === 0"
-                        (ngModelChange)="cambiarExoneracion(i, $event)"
-                      />
-                      <span>Exonerado</span>
-                    </label>
-                    <label class="pv-casilla">
-                      <input
-                        type="checkbox"
-                        [ngModel]="pres.fraccionada === true"
-                        (ngModelChange)="cambiarCampo(i, 'fraccionada', $event)"
-                      />
-                      <span>Suelta</span>
-                    </label>
+                  <div class="flex flex-wrap gap-1">
+                    <button
+                      class="pv-marca-conmuta"
+                      type="button"
+                      [class.pv-marca-puesta]="pres.igvTasa === 0"
+                      [attr.aria-pressed]="pres.igvTasa === 0"
+                      title="Exonerado de IGV"
+                      (click)="cambiarExoneracion(i, pres.igvTasa !== 0)"
+                    >
+                      Exonerado
+                    </button>
+                    <button
+                      class="pv-marca-conmuta"
+                      type="button"
+                      [class.pv-marca-puesta]="pres.fraccionada === true"
+                      [attr.aria-pressed]="pres.fraccionada === true"
+                      title="Se puede vender suelta"
+                      (click)="cambiarCampo(i, 'fraccionada', pres.fraccionada !== true)"
+                    >
+                      Suelta
+                    </button>
                   </div>
 
                   <button
-                    class="pv-paso mt-4 shrink-0"
+                    class="pv-boton-icono pv-boton-icono-peligro"
                     type="button"
                     [disabled]="presentaciones().length === 1"
-                    aria-label="Quitar esta forma de venta"
+                    [attr.aria-label]="'Quitar la forma de venta ' + (i + 1)"
+                    [title]="
+                      presentaciones().length === 1
+                        ? 'Un producto necesita al menos una forma de venta'
+                        : 'Quitar'
+                    "
                     (click)="quitarPresentacion(i)"
                   >
-                    ×
+                    <km-icono nombre="eliminar" />
                   </button>
-                </div>
 
-                <p class="text-tenue -mt-1 pl-1 text-xs">{{ equivalencia(pres) }}</p>
+                  <p class="pv-tabla-pres-nota">{{ equivalencia(pres) }}</p>
+                </div>
               }
             </div>
           </section>
 
-          <!-- 4. Ficha -->
+          <!-- 4. Ejemplares: series o lotes, según el rubro -->
+          @if (forma(); as forma) {
+            <section>
+              <div class="mb-2 flex items-center justify-between gap-3">
+                <p class="pv-etiqueta text-tenue">{{ forma.etiqueta }}</p>
+                <button class="pv-boton-menudo" type="button" (click)="anadirEjemplar()">
+                  <km-icono nombre="mas" tamano="xs" />
+                  {{ forma.singular }}
+                </button>
+              </div>
+              @if (forma.ayuda) {
+                <p class="text-tenue mb-2 text-xs">{{ forma.ayuda }}</p>
+              }
+
+              <div class="flex flex-col gap-1.5">
+                @for (ej of ejemplares(); track $index; let i = $index) {
+                  <div
+                    class="pv-tabla-ejemplar"
+                    [class.pv-tabla-ejemplar-simple]="!forma.conVencimiento && !forma.conCantidad"
+                  >
+                    <div class="pv-campo-icono">
+                      <km-icono [nombre]="forma.conVencimiento ? 'lote' : 'serie'" />
+                      <input
+                        class="pv-cifra"
+                        type="text"
+                        [placeholder]="forma.singular"
+                        [attr.aria-label]="forma.singular + ' ' + (i + 1)"
+                        [ngModel]="ej.codigo"
+                        (ngModelChange)="cambiarEjemplar(i, 'codigo', $event)"
+                      />
+                    </div>
+
+                    @if (forma.conVencimiento) {
+                      <input
+                        class="pv-campo pv-cifra text-sm"
+                        type="date"
+                        [attr.aria-label]="'Vencimiento del lote ' + (i + 1)"
+                        [ngModel]="ej.vence ?? ''"
+                        (ngModelChange)="cambiarEjemplar(i, 'vence', $event)"
+                      />
+                    }
+
+                    @if (forma.conCantidad) {
+                      <input
+                        class="pv-campo pv-cifra text-right text-sm"
+                        type="number"
+                        min="0"
+                        step="1"
+                        [attr.aria-label]="'Unidades del lote ' + (i + 1)"
+                        [ngModel]="ej.cantidad"
+                        (ngModelChange)="cambiarEjemplar(i, 'cantidad', $event)"
+                      />
+                    }
+
+                    <button
+                      class="pv-boton-icono pv-boton-icono-peligro"
+                      type="button"
+                      [attr.aria-label]="'Quitar ' + forma.singular + ' ' + (i + 1)"
+                      title="Quitar"
+                      (click)="quitarEjemplar(i)"
+                    >
+                      <km-icono nombre="eliminar" />
+                    </button>
+                  </div>
+                } @empty {
+                  <p class="text-tenue text-xs">Ninguno registrado.</p>
+                }
+              </div>
+
+              @if (ejemplares().length > 0) {
+                <p class="text-tenue mt-2 text-xs">
+                  Suman {{ unidadesEnEjemplares() }} de {{ stock ?? 0 }} en existencias.
+                </p>
+              }
+            </section>
+          }
+
+          <!-- 5. Ficha -->
           <section>
-            <div class="mb-2 flex items-baseline justify-between">
+            <div class="mb-2 flex items-center justify-between gap-3">
               <p class="pv-etiqueta text-tenue">Ficha</p>
-              <button class="pv-tabla-accion" type="button" (click)="anadirCampo()">
-                + Añadir dato
+              <button class="pv-boton-menudo" type="button" (click)="anadirCampo()">
+                <km-icono nombre="mas" tamano="xs" />
+                Dato
               </button>
             </div>
-            <p class="text-tenue mb-2 text-xs">
-              Lo que se contesta cuando el cliente pregunta. En una botica: principio activo,
-              laboratorio, registro sanitario.
-            </p>
+            <p class="text-tenue mb-2 text-xs">Lo que se contesta cuando el cliente pregunta.</p>
 
             <div class="flex flex-col gap-1.5">
               @for (campo of ficha(); track $index; let i = $index) {
@@ -255,6 +376,7 @@ const ICONOS = ['tableta', 'capsula', 'frasco', 'inyectable', 'caja', 'prenda', 
                     class="pv-campo text-sm"
                     type="text"
                     placeholder="Etiqueta"
+                    [attr.aria-label]="'Etiqueta del dato ' + (i + 1)"
                     [ngModel]="campo.etiqueta"
                     (ngModelChange)="cambiarFicha(i, 'etiqueta', $event)"
                   />
@@ -262,16 +384,31 @@ const ICONOS = ['tableta', 'capsula', 'frasco', 'inyectable', 'caja', 'prenda', 
                     class="pv-campo text-sm"
                     type="text"
                     placeholder="Valor"
+                    [attr.aria-label]="'Valor del dato ' + (i + 1)"
                     [ngModel]="campo.valor"
                     (ngModelChange)="cambiarFicha(i, 'valor', $event)"
                   />
+                  <!-- Marcar un dato como filtrable es lo que lo convierte en
+                       faceta del buscador: «Marca» sí, «Composición» no. -->
                   <button
-                    class="pv-paso shrink-0"
+                    class="pv-marca-conmuta"
                     type="button"
-                    aria-label="Quitar este dato"
+                    [class.pv-marca-puesta]="campo.faceta === true"
+                    [attr.aria-pressed]="campo.faceta === true"
+                    title="Además de verse, este dato filtra en el buscador"
+                    (click)="cambiarFicha(i, 'faceta', campo.faceta !== true)"
+                  >
+                    <km-icono nombre="filtro" tamano="xs" />
+                    Filtra
+                  </button>
+                  <button
+                    class="pv-boton-icono pv-boton-icono-peligro"
+                    type="button"
+                    [attr.aria-label]="'Quitar el dato ' + (i + 1)"
+                    title="Quitar"
                     (click)="quitarCampo(i)"
                   >
-                    ×
+                    <km-icono nombre="eliminar" />
                   </button>
                 </div>
               } @empty {
@@ -288,6 +425,7 @@ const ICONOS = ['tableta', 'capsula', 'frasco', 'inyectable', 'caja', 'prenda', 
               type="button"
               (click)="eliminar.emit(existente.id)"
             >
+              <km-icono nombre="eliminar" />
               Eliminar
             </button>
           }
@@ -300,7 +438,8 @@ const ICONOS = ['tableta', 'capsula', 'frasco', 'inyectable', 'caja', 'prenda', 
             [disabled]="!!problema()"
             (click)="confirmar()"
           >
-            Guardar producto
+            <km-icono nombre="guardar" />
+            Guardar
           </button>
         </footer>
       </div>
@@ -327,6 +466,18 @@ export class EditorProductoComponent {
 
   protected readonly presentaciones = signal<PresentacionVenta[]>([])
   protected readonly ficha = signal<CampoFicha[]>([])
+  protected readonly ejemplares = signal<EjemplarProducto[]>([])
+
+  /*
+   * Cómo llama ESTE rubro a lo que identifica un ejemplar. Nulo donde no
+   * aplica —en ropa identifica la variante, no un número— y entonces la
+   * sección no se pinta.
+   */
+  protected readonly forma = inject(PerfilService).formaEjemplar
+
+  protected readonly unidadesEnEjemplares = computed(() =>
+    this.ejemplares().reduce((suma, ej) => suma + (ej.cantidad || 0), 0),
+  )
 
   /** Fuerza el recálculo de la validación con `ngModel` sobre campos llanos. */
   protected readonly cambios = signal(0)
@@ -349,6 +500,7 @@ export class EditorProductoComponent {
     this.stock = actual.stock ?? 0
     this.presentaciones.set(actual.presentaciones.map((pres) => ({ ...pres })))
     this.ficha.set((actual.ficha ?? []).map((campo) => ({ ...campo })))
+    this.ejemplares.set((actual.ejemplares ?? []).map((ej) => ({ ...ej })))
 
     // Los campos llanos no son señales, así que `problema()` quedó
     // calculado con el formulario vacío y decía «falta la descripción»
@@ -380,6 +532,13 @@ export class EditorProductoComponent {
     }
     if (this.ficha().some((campo) => campo.etiqueta.trim() && !campo.valor.trim())) {
       return 'Hay un dato de la ficha con etiqueta y sin valor.'
+    }
+    const codigos = this.ejemplares()
+      .map((ej) => ej.codigo.trim())
+      .filter(Boolean)
+    if (new Set(codigos).size !== codigos.length) {
+      const nombre = this.forma()?.singular ?? 'ejemplar'
+      return `Hay un ${nombre.toLowerCase()} repetido: dos iguales son uno contado dos veces.`
     }
     return null
   })
@@ -422,6 +581,34 @@ export class EditorProductoComponent {
     this.tocar()
   }
 
+  protected anadirEjemplar(): void {
+    // Una serie es un aparato: arranca en 1 y no se toca. Un lote arranca
+    // en 1 también, porque un lote vacío no se registra.
+    this.ejemplares.update((lista) => [...lista, { codigo: '', cantidad: 1 }])
+    this.tocar()
+  }
+
+  protected quitarEjemplar(indice: number): void {
+    this.ejemplares.update((lista) => lista.filter((_, i) => i !== indice))
+    this.tocar()
+  }
+
+  protected cambiarEjemplar(
+    indice: number,
+    campo: 'codigo' | 'vence' | 'cantidad',
+    valor: unknown,
+  ): void {
+    this.ejemplares.update((lista) =>
+      lista.map((ej, i) => {
+        if (i !== indice) return ej
+        if (campo === 'cantidad') return { ...ej, cantidad: Math.max(0, Number(valor) || 0) }
+        if (campo === 'vence') return { ...ej, vence: String(valor) || undefined }
+        return { ...ej, codigo: String(valor) }
+      }),
+    )
+    this.tocar()
+  }
+
   protected anadirCampo(): void {
     this.ficha.update((lista) => [...lista, { etiqueta: '', valor: '' }])
   }
@@ -431,7 +618,11 @@ export class EditorProductoComponent {
     this.tocar()
   }
 
-  protected cambiarFicha(indice: number, campo: 'etiqueta' | 'valor', valor: string): void {
+  protected cambiarFicha(
+    indice: number,
+    campo: 'etiqueta' | 'valor' | 'faceta',
+    valor: string | boolean,
+  ): void {
     this.ficha.update((lista) =>
       lista.map((dato, i) => (i === indice ? { ...dato, [campo]: valor } : dato)),
     )
@@ -466,6 +657,9 @@ export class EditorProductoComponent {
       // Los campos a medio escribir no se guardan: una ficha con etiquetas
       // vacías se ve peor que una ficha corta.
       ficha: this.ficha().filter((campo) => campo.etiqueta.trim() && campo.valor.trim()),
+      // Un ejemplar sin número no identifica nada: se descarta en vez de
+      // guardarse en blanco y aparecer luego como opción vacía al vender.
+      ejemplares: this.ejemplares().filter((ej) => ej.codigo.trim()),
     })
   }
 

@@ -14,6 +14,7 @@ import {
   MonedaPipe,
   PUERTO_CATALOGO,
   PUERTO_MANTENIMIENTO_CATALOGO,
+  IconoComponent,
 } from '@pos-core-ui/index'
 import { SesionStore } from '../sesion/sesion.store'
 import { FichaProductoComponent } from './ficha-producto.component'
@@ -42,6 +43,7 @@ import { CargaMasivaComponent } from './carga-masiva.component'
     MonedaPipe,
     IconoProductoComponent,
     FichaProductoComponent,
+    IconoComponent,
     EditorProductoComponent,
     CargaMasivaComponent,
   ],
@@ -143,13 +145,30 @@ import { CargaMasivaComponent } from './carga-masiva.component'
                       }
                     </div>
                   </td>
-                  <td class="text-right whitespace-nowrap">
-                    <button class="pv-tabla-accion" type="button" (click)="ficha.set(producto)">
-                      Ficha
-                    </button>
-                    <button class="pv-tabla-accion ml-3" type="button" (click)="editar(producto)">
-                      Editar
-                    </button>
+                  <!-- Iconos, no dos palabras repetidas en cada fila: el
+                       texto compite con los datos, que es lo que hay que
+                       leer. Es la forma de las tablas de las hermanas. -->
+                  <td>
+                    <div class="flex justify-end gap-1.5">
+                      <button
+                        class="pv-boton-icono"
+                        type="button"
+                        [attr.aria-label]="'Ver la ficha de ' + producto.descripcion"
+                        title="Ver ficha"
+                        (click)="ficha.set(producto)"
+                      >
+                        <km-icono nombre="ver" />
+                      </button>
+                      <button
+                        class="pv-boton-icono"
+                        type="button"
+                        [attr.aria-label]="'Editar ' + producto.descripcion"
+                        title="Editar"
+                        (click)="editar(producto)"
+                      >
+                        <km-icono nombre="editar" />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               } @empty {
