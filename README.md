@@ -17,6 +17,10 @@ Esta es la norma que mantiene el POS pequeño, y existe para poder decir que
 no. Un punto de venta que crece sin línea acaba siendo un ERP malo con una
 pantalla de cobro.
 
+Pequeño no es incompleto. El comprobante y la devolución están DENTRO
+aunque suenen a contabilidad: ocurren con el cliente delante, y eso manda
+sobre a qué se parecen.
+
 **Lo único que el POS tiene que saber:** quién atiende, qué se lleva el
 cliente, cuánto es, cómo paga, qué papel se entrega y qué hay en la gaveta al
 cerrar. Todo lo demás lo pide por un puerto.
