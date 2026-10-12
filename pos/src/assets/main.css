@@ -988,6 +988,28 @@ body {
   color: var(--pv-muted);
 }
 
+/* Una nota de crédito con saldo, en el panel de cobro. */
+.pv-nota-saldo {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  border-radius: var(--pv-radio-control);
+  border: 1px solid color-mix(in srgb, var(--pv-marca-500) 32%, transparent);
+  background-color: color-mix(in srgb, var(--pv-marca-500) 8%, transparent);
+  padding: 0.5rem 0.625rem;
+}
+
+/* El aviso de que la nota se consume entera. Va en tono de alerta porque
+   el cliente pierde dinero si nadie lo lee. */
+.pv-aviso-nota {
+  border-radius: 8px;
+  background-color: color-mix(in srgb, var(--pv-aviso) 14%, transparent);
+  padding: 0.3125rem 0.5rem;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--pv-aviso);
+}
+
 /* Devoluciones: una fila por línea de la venta, con cuánto vuelve. */
 .pv-devolucion-fila {
   display: flex;

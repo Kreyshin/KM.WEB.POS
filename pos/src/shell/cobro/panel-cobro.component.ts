@@ -9,16 +9,26 @@ import {
 } from '@angular/core'
 import { FormsModule } from '@angular/forms'
 import {
+  aplicableDeNota,
   cobroCompleto,
   pendiente,
+  politicaDevolucionPorDefecto,
   recibido,
+  saldoDeNota,
+  saldoQueSePierde,
   vuelto,
   type Cobro,
   type MedioPago,
+  type NotaConSaldo,
   type Pago,
   type Totales,
 } from '@pos-core/index'
-import { MonedaPipe, PUERTO_MEDIOS_PAGO } from '@pos-core-ui/index'
+import {
+  IconoComponent,
+  MonedaPipe,
+  PUERTO_DEVOLUCIONES,
+  PUERTO_MEDIOS_PAGO,
+} from '@pos-core-ui/index'
 import { IconoMedioComponent } from './icono-medio.component'
 
 /**
@@ -41,7 +51,7 @@ import { IconoMedioComponent } from './icono-medio.component'
  */
 @Component({
   selector: 'km-panel-cobro',
-  imports: [FormsModule, MonedaPipe, IconoMedioComponent],
+  imports: [FormsModule, MonedaPipe, IconoComponent, IconoMedioComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'contents', '(document:keydown)': 'atajo($event)' },
   template: `
@@ -79,6 +89,58 @@ import { IconoMedioComponent } from './icono-medio.component'
               }
             </div>
           </section>
+
+          <!--
+            Notas de crédito con saldo.
+
+            Sección aparte y no un medio más de la fila de arriba: una nota
+            no es «una forma de pagar», es un papel concreto con un número y
+            un saldo que se está gastando. Mezclarla con el efectivo haría
+            que el cajero tuviera que recordar cuál aplicó.
+          -->
+          @if (notas().length > 0) {
+            <section>
+              <p class="pv-etiqueta text-tenue mb-2">Notas de crédito del cliente</p>
+              <div class="flex flex-col gap-1.5">
+                @for (nota of notas(); track nota.comprobante.numero) {
+                  <div class="pv-nota-saldo">
+                    <km-icono nombre="etiqueta" />
+                    <span class="min-w-0 flex-1">
+                      <span class="pv-cifra block text-sm font-semibold">
+                        {{ nota.comprobante.serie }}-{{ nota.comprobante.numero }}
+                      </span>
+                      <span class="text-tenue text-xs">
+                        Saldo {{ saldo(nota) | moneda: false }}
+                        @if (sePierde(nota) > 0) {
+                          · se perderían {{ sePierde(nota) | moneda: false }}
+                        }
+                      </span>
+                    </span>
+                    <button
+                      class="pv-boton pv-boton-tenue text-xs"
+                      type="button"
+                      [disabled]="yaAplicada(nota) || falta() <= 0"
+                      (click)="aplicarNota(nota)"
+                    >
+                      {{
+                        yaAplicada(nota)
+                          ? 'Aplicada'
+                          : 'Aplicar ' + (aplicable(nota) | moneda: false)
+                      }}
+                    </button>
+                  </div>
+
+                  @if (sePierde(nota) > 0 && !yaAplicada(nota)) {
+                    <!-- La política de esta empresa no guarda saldos: la
+                         nota se gasta entera. Avisar antes, no después. -->
+                    <p class="pv-aviso-nota">
+                      Esta empresa no deja saldo a favor: al aplicarla se consume entera.
+                    </p>
+                  }
+                }
+              </div>
+            </section>
+          }
 
           @if (medioActivo(); as medio) {
             <section>
@@ -227,6 +289,7 @@ import { IconoMedioComponent } from './icono-medio.component'
 })
 export class PanelCobroComponent {
   private readonly puerto = inject(PUERTO_MEDIOS_PAGO)
+  private readonly devoluciones = inject(PUERTO_DEVOLUCIONES)
 
   readonly totales = input.required<Totales>()
 
@@ -248,6 +311,11 @@ export class PanelCobroComponent {
 
   protected importe: number | null = null
   protected referencia = ''
+
+  /** Notas con saldo del cliente, para aplicarlas contra esta compra. */
+  protected readonly notas = signal<readonly NotaConSaldo[]>([])
+  private readonly politica = signal(politicaDevolucionPorDefecto)
+  private readonly aplicadas = signal<readonly string[]>([])
   protected documento = ''
 
   protected readonly falta = computed(() => pendiente(this.totales().total, this.pagos()))
@@ -278,6 +346,55 @@ export class PanelCobroComponent {
     void this.cargarMedios()
   }
 
+  private async cargarNotas(): Promise<void> {
+    const [politica, notas] = await Promise.all([
+      this.devoluciones.politica(''),
+      this.devoluciones.notasConSaldo(''),
+    ])
+    this.politica.set(politica)
+    // Si la empresa no deja usar la nota como pago, ni se enseña.
+    this.notas.set(politica.notaComoPago ? notas : [])
+  }
+
+  protected saldo(nota: NotaConSaldo): number {
+    return saldoDeNota(nota)
+  }
+
+  protected aplicable(nota: NotaConSaldo): number {
+    return aplicableDeNota(nota, this.falta(), this.politica())
+  }
+
+  protected sePierde(nota: NotaConSaldo): number {
+    return saldoQueSePierde(nota, this.falta(), this.politica())
+  }
+
+  protected yaAplicada(nota: NotaConSaldo): boolean {
+    return this.aplicadas().includes(nota.comprobante.numero)
+  }
+
+  /**
+   * Aplica la nota como un pago más.
+   *
+   * Entra en la lista de pagos con su número de referencia, así que el
+   * arqueo la separa del efectivo sola: una nota no está en la gaveta, y
+   * contarla ahí haría que todo cierre saliera largo.
+   */
+  protected aplicarNota(nota: NotaConSaldo): void {
+    const importe = this.aplicable(nota)
+    if (importe <= 0 || this.yaAplicada(nota)) return
+
+    this.pagos.update((lista) => [
+      ...lista,
+      {
+        medio: { codigo: 'NCR', nombre: 'Nota de crédito', daVuelto: false },
+        importe,
+        referencia: `${nota.comprobante.serie}-${nota.comprobante.numero}`,
+      },
+    ])
+    this.aplicadas.update((lista) => [...lista, nota.comprobante.numero])
+    this.importe = this.falta()
+  }
+
   private async cargarMedios(): Promise<void> {
     const lista = await this.puerto.disponibles('')
     this.medios.set(lista)
@@ -285,6 +402,7 @@ export class PanelCobroComponent {
     // menos por venta son minutos al final del turno.
     this.medioActivo.set(lista.find((medio) => medio.daVuelto) ?? lista[0] ?? null)
     this.importe = this.falta()
+    void this.cargarNotas()
   }
 
   protected importeValido(): boolean {

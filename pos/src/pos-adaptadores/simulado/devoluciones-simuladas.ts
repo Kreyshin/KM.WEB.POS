@@ -123,6 +123,16 @@ export class DevolucionesSimuladas implements PuertoDevoluciones {
   async notasConSaldo(_sucursalId: string): Promise<readonly NotaConSaldo[]> {
     return leer<NotaConSaldo>(LLAVE_NOTAS).filter((nota) => nota.importe > nota.consumido)
   }
+
+  async consumirNota(numero: string, importe: number): Promise<void> {
+    const notas = leer<NotaConSaldo>(LLAVE_NOTAS)
+    const indice = notas.findIndex((nota) => nota.comprobante.numero === numero)
+    if (indice === -1) return
+    const nota = notas[indice]
+    // Nunca por encima de su importe: una nota no puede quedar debiendo.
+    notas[indice] = { ...nota, consumido: Math.min(nota.importe, nota.consumido + importe) }
+    escribir(LLAVE_NOTAS, notas)
+  }
 }
 
 /** Recalcula el importe de una devolución desde las líneas de la venta. */

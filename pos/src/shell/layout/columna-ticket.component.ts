@@ -421,6 +421,18 @@ export class ColumnaTicketComponent {
        * después no tenía contra qué hacerse. En producción esto lo guarda
        * el microservicio al registrar el pago.
        */
+      /*
+       * Las notas aplicadas se gastan AHORA, no al pulsarlas en el panel.
+       *
+       * Si el cajero cancela a medio cobrar, la nota tiene que seguir
+       * entera: consumirla antes sería regalarle el saldo a nadie.
+       */
+      for (const pago of cobro.pagos) {
+        if (pago.medio.codigo !== 'NCR' || !pago.referencia) continue
+        const numero = pago.referencia.split('-').pop() ?? ''
+        await this.devoluciones.consumirNota(numero, pago.importe)
+      }
+
       const vendido = this.ticket.ticket()
       if (vendido && resultado.comprobante) {
         await this.devoluciones.anotarVenta({

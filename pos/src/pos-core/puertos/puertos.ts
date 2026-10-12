@@ -234,6 +234,14 @@ export interface PuertoDevoluciones {
   registrar(devolucion: Omit<Devolucion, 'id' | 'nota'>): Promise<Devolucion>
   /** Las notas con saldo de un cliente, para aplicarlas como pago. */
   notasConSaldo(sucursalId: string, clienteId?: string): Promise<readonly NotaConSaldo[]>
+  /**
+   * Gasta saldo de una nota, al cobrar la venta donde se aplicó.
+   *
+   * Se llama DESPUÉS de que el cobro salga bien y no al aplicarla en el
+   * panel: si el cajero cancela a medio cobrar, la nota tiene que seguir
+   * entera. Consumirla al pulsar sería regalarle el saldo a nadie.
+   */
+  consumirNota(numero: string, importe: number): Promise<void>
 }
 
 /** Una venta ya cobrada, con lo que hace falta para devolverla. */
