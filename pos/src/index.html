@@ -13,6 +13,32 @@
     <link rel="icon" type="image/png" href="favicon.png" />
     <script>
       /*
+       * Desdobla la ruta que rescató el 404 del sitio.
+       *
+       * GitHub Pages sirve archivos, no rutas: al recargar en `/demo/caja`
+       * devolvía su pantalla de error, porque ese archivo no existe. El
+       * `404.html` de la raíz dobla la ruta sobre la cadena de consulta y
+       * manda aquí; esto la desdobla y repone la barra de direcciones ANTES
+       * de que arranque el enrutador, así que Angular nunca llega a ver la
+       * forma rara y no queda rastro en el historial.
+       *
+       * Va antes que el tema porque corrige la URL, y cuanto menos tiempo
+       * esté mal, menos posibilidades hay de que algo la lea así.
+       */
+      ;(function () {
+        var consulta = location.search
+        if (consulta.slice(0, 2) !== '?/') return
+        var partes = consulta.slice(2).split('&')
+        var ruta = partes.shift().replace(/~and~/g, '&')
+        var resto = partes.join('&').replace(/~and~/g, '&')
+        history.replaceState(
+          null,
+          '',
+          location.pathname.replace(/\/$/, '/') + ruta + (resto ? '?' + resto : '') + location.hash,
+        )
+      })()
+
+      /*
        * Tema antes del primer pintado.
        *
        * El atributo ya viene en `light` en el HTML, que es el tema de

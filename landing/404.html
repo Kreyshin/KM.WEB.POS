@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <title>Karma Novum · Punto de venta</title>
+    <meta name="robots" content="noindex" />
+    <!--
+      Rescate de rutas de la demo.
+
+      GitHub Pages sirve archivos, no rutas, y la demo es una aplicación de
+      una sola página: `/demo/caja` no existe como archivo, así que al
+      recargar con F5 —o al abrir un enlace directo— Pages devolvía su
+      propia pantalla de error y la demo parecía rota.
+
+      Pages busca el 404 en la RAÍZ del sitio, no en la carpeta donde se
+      pidió la ruta, así que el `404.html` que ya había dentro de `/demo/`
+      no llegaba a usarse nunca. Este sí.
+
+      Lo que hace es doblar la ruta sobre la cadena de consulta y mandar a
+      la demo, que la desdobla antes de arrancar. Es el apaño conocido para
+      aplicaciones de una sola página en Pages: la alternativa es rutas con
+      almohadilla, y eso ensucia todos los enlaces para siempre por un caso
+      que solo ocurre al recargar.
+    -->
+    <script>
+      (function () {
+        var base = '/KM.WEB.POS/'
+        var demo = base + 'demo/'
+        var ruta = location.pathname
+
+        // Lo que no sea de la demo vuelve a la portada: una ruta inventada
+        // en la raíz no es un fallo de enrutador, es un enlace mal escrito.
+        if (ruta.indexOf(demo) !== 0) {
+          location.replace(base)
+          return
+        }
+
+        var resto = ruta.slice(demo.length).replace(/^\/+/, '')
+        var consulta = location.search.slice(1)
+        location.replace(
+          demo +
+            '?/' +
+            resto.replace(/&/g, '~and~') +
+            (consulta ? '&' + consulta.replace(/&/g, '~and~') : '') +
+            location.hash,
+        )
+      })()
+    </script>
+  </head>
+  <body></body>
+</html>
