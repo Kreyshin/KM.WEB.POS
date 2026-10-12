@@ -8,19 +8,25 @@ import { ChangeDetectionStrategy, Component, computed, input } from '@angular/co
  * qué vende la tienda. Si llega una clave desconocida, cae en el genérico.
  *
  * Cada icono lleva su propio tono, y eso es lo que da vida a una lista que
- * si no sería un muro de texto. El tono NO es el color de marca: el índigo
- * sigue reservado al dinero, y estos son fríos y apagados a propósito para
+ * si no sería un muro de texto. El tono NO es el color de marca: el latón
+ * queda reservado al dinero, y estos son fríos y apagados a propósito para
  * no competir con el total ni con el botón de cobrar.
+ *
+ * Dos quedaron fuera al cambiar la identidad. El violeta de la cápsula era
+ * el morado de la PLATAFORMA metido dentro del POS, que es justo lo que
+ * este producto no quiere parecer. Y la terracota de la prenda rozaba el
+ * latón de marca, y un color categórico que se confunde con el de acción
+ * deja de ordenar nada.
  */
 type Forma = 'tableta' | 'capsula' | 'frasco' | 'inyectable' | 'caja' | 'prenda' | 'generico'
 
 const TONOS: Record<Forma, string> = {
   tableta: '#2f6fb0',
-  capsula: '#7a52c9',
-  frasco: '#0f8a8a',
+  capsula: '#0f7a8a',
+  frasco: '#2a7d62',
   inyectable: '#4a6b8a',
-  caja: '#b05a8a',
-  prenda: '#b5703f',
+  caja: '#a4505e',
+  prenda: '#9c5a7a',
   generico: '#6e7487',
 }
 

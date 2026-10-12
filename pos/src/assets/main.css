@@ -5,9 +5,33 @@
 /* =============================================================================
  * Karma Novum · Punto de venta — sistema de diseño
  *
- * Identidad: ÍNDIGO sobre blanco. El índigo sale del isotipo de Karma Novum,
- * que es el degradado violeta-azul de la plataforma, así que el POS se lee
- * como una pieza de la suite y no como un producto suelto.
+ * Identidad: LATÓN sobre tinta azul. Sale del logotipo del propio POS —el
+ * cajón de caja en azul pizarra con el bronce del metal y el papel marfil
+ * del comprobante—, y no de la plataforma.
+ *
+ * Es un cambio sobre la versión anterior, que era índigo copiado de Karma
+ * Novum, y hay dos razones.
+ *
+ * LA PRIMERA es que el POS se vende suelto. No todo el que lo compra
+ * compra la plataforma, y un producto que solo se explica como «el módulo
+ * morado de otra cosa» no tiene nada que enseñar cuando se presenta solo.
+ * La plataforma es morada —`#8a2be2`, el mismo en hotel, restaurante y
+ * taller—, así que el POS en morado no era parte de la suite: era un
+ * cuarto clon.
+ *
+ * LA SEGUNDA es que el índigo no tenía nada que ver con el logotipo, y el
+ * logotipo es lo que va en la factura, en el cartel y en la pantalla de
+ * acceso. Una marca cuyo color no está en su propio símbolo obliga a
+ * elegir cuál de los dos está mal.
+ *
+ * Lo que SÍ se comparte con la suite no es el tono, es el sistema: la misma
+ * geometría, el mismo movimiento (`--km-mov-*`), la misma postura táctil y
+ * la misma forma de nombrar. Dos productos de la misma casa se reconocen
+ * por cómo se comportan antes que por el color.
+ *
+ * Y el latón no lo tiene nadie más: hotel tira a azul cielo, taller a azul
+ * acero, restaurante a naranja, y el verde está reservado para la vertical
+ * agrícola que vendrá.
  *
  * CLARO POR DEFECTO. Es un cambio sobre la versión anterior y es deliberado:
  * un sistema de gestión se usa mayormente con luz, se proyecta en reuniones y
@@ -30,17 +54,36 @@
 @custom-variant dark ([data-theme='dark'] &);
 
 :root {
-  /* ── Índigo: la acción, la selección y el foco ─────────────────────────── */
-  --pv-info-50: #eef1ff;
-  --pv-info-100: #e0e5ff;
-  --pv-info-200: #c6cfff;
-  --pv-info-300: #a3b0ff;
-  --pv-info-400: #7f88ff;
-  --pv-info-500: #5b61f5;
-  --pv-info-600: #4a46e8;
-  --pv-info-700: #3c36c7;
-  --pv-info-800: #322da0;
-  --pv-info-900: #2b287e;
+  /* ── Latón: la acción, la selección y el foco ──────────────────────────
+   *
+   * El metal del cajón, no un naranja. La diferencia está en la saturación:
+   * un naranja de aviso grita y compite con los avisos de verdad; un latón
+   * se queda quieto y aun así se distingue de cualquier gris.
+   *
+   * El 600 es el de acción y aguanta texto blanco (5.6:1). El 700 es el de
+   * texto sobre fondo claro (7.0:1). Por debajo del 500 ya no hay contraste
+   * para texto y solo sirven de fondo. */
+  --pv-marca-50: #fcf7ee;
+  --pv-marca-100: #f6ead3;
+  --pv-marca-200: #ecd3a6;
+  --pv-marca-300: #dcb673;
+  --pv-marca-400: #c89a4a;
+  --pv-marca-500: #ae7f30;
+  --pv-marca-600: #916325;
+  --pv-marca-700: #744f1f;
+  --pv-marca-800: #5c3e1c;
+  --pv-marca-900: #493219;
+
+  /* ── Tinta: el azul profundo del logotipo. Es el cromo, no el acento.
+   *
+   * Va en la barra lateral y en el bloque del total, que son las dos zonas
+   * oscuras permanentes. Antes eran pizarra neutra y el conjunto se leía
+   * como una herramienta gris con un botón de color; con la tinta azul el
+   * sistema entero tiene temperatura. */
+  --pv-tinta-700: #1e3147;
+  --pv-tinta-800: #152439;
+  --pv-tinta-900: #0f1b2c;
+  --pv-tinta-950: #0a1220;
 
   /* ── Pizarra: todo lo demás. Neutro real, sin tinte. ───────────────────── */
   --pv-pizarra-25: #fafbfd;
@@ -71,13 +114,13 @@
   --pv-text: var(--pv-pizarra-900);
   --pv-muted: var(--pv-pizarra-500);
   --pv-border: var(--pv-pizarra-200);
-  --pv-selection: var(--pv-info-50);
+  --pv-selection: var(--pv-marca-50);
 
   /* Roles derivados */
-  --pv-primary: var(--pv-info-600);
-  --pv-primary-texto: var(--pv-info-700);
-  --pv-accion: var(--pv-info-600);
-  --pv-accion-hover: var(--pv-info-700);
+  --pv-primary: var(--pv-marca-600);
+  --pv-primary-texto: var(--pv-marca-700);
+  --pv-accion: var(--pv-marca-600);
+  --pv-accion-hover: var(--pv-marca-700);
 
   /*
    * La barra lateral va en PIZARRA OSCURA en los dos temas. Es el rasgo que
@@ -85,10 +128,10 @@
    * en las verticales hermanas, el cromo de navegación es constante y lo que
    * cambia es el área de trabajo.
    */
-  --pv-rail: var(--pv-pizarra-900);
-  --pv-rail-2: var(--pv-pizarra-800);
-  --pv-rail-text: var(--pv-pizarra-100);
-  --pv-rail-muted: var(--pv-pizarra-400);
+  --pv-rail: var(--pv-tinta-900);
+  --pv-rail-2: var(--pv-tinta-800);
+  --pv-rail-text: #e6ecf3;
+  --pv-rail-muted: #8698ab;
 
   /* Geometría. Más suelta que antes: un sistema de gestión respira. */
   --pv-radio-control: 10px;
@@ -98,7 +141,7 @@
   --pv-sombra-sutil: 0 1px 2px rgb(23 25 34 / 0.05);
   --pv-sombra-panel: 0 1px 3px rgb(23 25 34 / 0.07), 0 8px 24px -12px rgb(23 25 34 / 0.12);
   --pv-sombra-flotante: 0 12px 40px -12px rgb(23 25 34 / 0.26);
-  --pv-foco: 0 0 0 3px color-mix(in srgb, var(--pv-info-500) 38%, transparent);
+  --pv-foco: 0 0 0 3px color-mix(in srgb, var(--pv-marca-500) 38%, transparent);
 
   /* Estructura */
   --pv-rail-ancho: 76px;
@@ -167,8 +210,8 @@
 /*
  * Tema oscuro. Pizarra neutra, no carbón teñido: el anterior tiraba a marrón
  * y a las ocho horas eso cansa y ensucia cualquier color que se le ponga
- * encima. Aquí el gris es gris y el índigo sube de tono para mantener el
- * contraste sobre fondo oscuro.
+ * encima. Aquí el gris es gris —justo porque el acento ya es cálido— y el
+ * latón sube de tono para mantener el contraste sobre fondo oscuro.
  */
 [data-theme='dark'] {
   --pv-bg: var(--pv-pizarra-950);
@@ -178,18 +221,19 @@
   --pv-text: var(--pv-pizarra-100);
   --pv-muted: var(--pv-pizarra-400);
   --pv-border: #2a2f3a;
-  --pv-selection: #23264a;
+  --pv-selection: #3a2f1c;
 
-  --pv-primary: var(--pv-info-400);
-  --pv-primary-texto: var(--pv-info-300);
-  --pv-accion: var(--pv-info-600);
-  --pv-accion-hover: var(--pv-info-500);
+  /* Sobre oscuro el latón sube de tono: el 600 sobre carbón es barro. */
+  --pv-primary: var(--pv-marca-400);
+  --pv-primary-texto: var(--pv-marca-300);
+  --pv-accion: var(--pv-marca-600);
+  --pv-accion-hover: var(--pv-marca-500);
 
   /* La barra se hunde un escalón más que el lienzo para seguir separándose. */
-  --pv-rail: #0a0c12;
-  --pv-rail-2: #141821;
-  --pv-rail-text: var(--pv-pizarra-100);
-  --pv-rail-muted: var(--pv-pizarra-400);
+  --pv-rail: var(--pv-tinta-950);
+  --pv-rail-2: var(--pv-tinta-800);
+  --pv-rail-text: #e6ecf3;
+  --pv-rail-muted: #8698ab;
 
   --pv-exito: #34b183;
   --pv-aviso: #d79a2b;
@@ -202,7 +246,7 @@
 }
 
 @theme inline {
-  --color-indigo-pv: var(--pv-primary);
+  --color-marca-pv: var(--pv-primary);
   --color-primario: var(--pv-primary);
   --color-primario-texto: var(--pv-primary-texto);
   --color-accion: var(--pv-accion);
@@ -335,7 +379,7 @@ body {
 }
 
 .pv-tono-cobrado {
-  --pv-tono-color: var(--pv-info-500);
+  --pv-tono-color: var(--pv-marca-500);
 }
 
 .pv-tono-por-cobrar {
@@ -368,7 +412,7 @@ body {
  *   navegación  -> neutra, una barra fina y callada
  *   zona de venta -> superficie limpia, sin lavados de color
  *   columna del ticket -> CARBÓN en ambos temas, es el ancla de la pantalla
- *   total y «cobrar» -> ÍNDIGO, y son lo único índigo que hay a la vista
+ *   total y «cobrar» -> LATÓN, y son lo único de marca que hay a la vista
  *
  * La regla operativa que se sigue de esto: si algo se pinta del color de acción y no es
  * el total ni el botón de cobrar, está mal. Un POS en el que el botón de
@@ -381,9 +425,9 @@ body {
   height: 3px;
   background: linear-gradient(
     90deg,
-    var(--pv-info-800) 0%,
-    var(--pv-info-600) 40%,
-    var(--pv-info-400) 100%
+    var(--pv-marca-800) 0%,
+    var(--pv-marca-600) 40%,
+    var(--pv-marca-400) 100%
   );
 }
 
@@ -423,7 +467,7 @@ body {
    * se funde con el fondo: el ticket dejaría de leerse como una pieza aparte,
    * que es justo lo que tiene que ser.
    */
-  border-left: 1px solid color-mix(in srgb, var(--pv-info-400) 22%, var(--pv-border));
+  border-left: 1px solid color-mix(in srgb, var(--pv-marca-400) 22%, var(--pv-border));
   box-shadow: -12px 0 28px -20px rgb(0 0 0 / 0.9);
 }
 
@@ -480,7 +524,7 @@ body {
 }
 
 .pv-cantidad:focus {
-  outline: 2px solid var(--pv-info-400);
+  outline: 2px solid var(--pv-marca-400);
   outline-offset: 1px;
 }
 
@@ -587,14 +631,23 @@ body {
 }
 
 /*
- * Bloque del total. El único índigo grande de la pantalla.
+ * Bloque del total. La única tinta azul grande de la pantalla.
  *
  * El importe va en 40px y tabular: tiene que leerse de pie, a un metro, y con
  * el cliente mirando.
  */
+/*
+ * El bloque del total: tinta azul con la cifra en marfil.
+ *
+ * NO se mezcla el latón con el azul. Son casi complementarios, y la mezcla
+ * al 20 % daba exactamente #29292b: un gris neutro. Dos colores con
+ * carácter mezclados en el mismo plano se cancelan; puestos uno sobre otro
+ * —cifra cálida sobre fondo frío— es el contraste del propio logotipo, el
+ * comprobante de papel saliendo del cajón.
+ */
 .pv-total {
-  background-color: color-mix(in srgb, var(--pv-info-600) 20%, var(--pv-rail));
-  border-top: 1px solid color-mix(in srgb, var(--pv-info-400) 40%, transparent);
+  background-color: var(--pv-tinta-800);
+  border-top: 1px solid color-mix(in srgb, var(--pv-marca-400) 45%, transparent);
 }
 
 .pv-total-cifra {
@@ -603,7 +656,7 @@ body {
   font-weight: 700;
   line-height: 1;
   letter-spacing: -0.02em;
-  color: var(--pv-info-200);
+  color: var(--pv-marca-200);
 }
 
 /*
@@ -632,8 +685,8 @@ body {
   width: 7px;
   height: 7px;
   border-radius: 999px;
-  background-color: var(--pv-info-400);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--pv-info-400) 22%, transparent);
+  background-color: var(--pv-marca-400);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--pv-marca-400) 22%, transparent);
 }
 
 .pv-pulso-cerrada {
@@ -643,8 +696,8 @@ body {
 
 /* Distintivo del rubro activo. */
 .pv-chip-vertical {
-  background-color: color-mix(in srgb, var(--pv-info-500) 14%, var(--pv-surface));
-  border: 1px solid color-mix(in srgb, var(--pv-info-500) 50%, var(--pv-surface));
+  background-color: color-mix(in srgb, var(--pv-marca-500) 14%, var(--pv-surface));
+  border: 1px solid color-mix(in srgb, var(--pv-marca-500) 50%, var(--pv-surface));
   color: var(--pv-primary-texto);
 }
 
@@ -655,12 +708,12 @@ body {
   background-image:
     radial-gradient(
       55rem 26rem at 0% 0%,
-      color-mix(in srgb, var(--pv-info-500) 10%, transparent),
+      color-mix(in srgb, var(--pv-marca-500) 10%, transparent),
       transparent 70%
     ),
     radial-gradient(
       45rem 24rem at 100% 0%,
-      color-mix(in srgb, var(--pv-info-700) 13%, transparent),
+      color-mix(in srgb, var(--pv-marca-700) 13%, transparent),
       transparent 70%
     );
 }
@@ -669,12 +722,12 @@ body {
   background-image:
     radial-gradient(
       55rem 26rem at 0% 0%,
-      color-mix(in srgb, var(--pv-info-500) 11%, transparent),
+      color-mix(in srgb, var(--pv-marca-500) 11%, transparent),
       transparent 70%
     ),
     radial-gradient(
       45rem 24rem at 100% 0%,
-      color-mix(in srgb, var(--pv-info-700) 9%, transparent),
+      color-mix(in srgb, var(--pv-marca-700) 9%, transparent),
       transparent 70%
     );
 }
@@ -689,7 +742,7 @@ body {
   inset: 0 0 auto 0;
   height: 3px;
   border-radius: var(--pv-radio-card) var(--pv-radio-card) 0 0;
-  background: linear-gradient(90deg, var(--pv-info-600) 0%, var(--pv-info-400) 100%);
+  background: linear-gradient(90deg, var(--pv-marca-600) 0%, var(--pv-marca-400) 100%);
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────
@@ -1039,8 +1092,8 @@ body {
 }
 
 .pv-tecla-pad:hover:not(:disabled) {
-  background-color: color-mix(in srgb, var(--pv-info-500) 10%, var(--pv-surface-2));
-  border-color: color-mix(in srgb, var(--pv-info-500) 35%, var(--pv-border));
+  background-color: color-mix(in srgb, var(--pv-marca-500) 10%, var(--pv-surface-2));
+  border-color: color-mix(in srgb, var(--pv-marca-500) 35%, var(--pv-border));
 }
 
 /* El hundido al pulsar es lo que hace que el pad se sienta físico. Va en
@@ -1048,7 +1101,7 @@ body {
  * fotograma que el dedo. */
 .pv-tecla-pad:active:not(:disabled) {
   transform: scale(0.94);
-  background-color: color-mix(in srgb, var(--pv-info-500) 18%, var(--pv-surface-2));
+  background-color: color-mix(in srgb, var(--pv-marca-500) 18%, var(--pv-surface-2));
 }
 
 .pv-tecla-pad:disabled {
@@ -1086,8 +1139,8 @@ body {
 }
 
 .pv-punto-lleno {
-  background-color: var(--pv-info-400);
-  border-color: var(--pv-info-400);
+  background-color: var(--pv-marca-400);
+  border-color: var(--pv-marca-400);
   transform: scale(1.25);
 }
 
@@ -1143,8 +1196,8 @@ body {
 
 /* Turno elegido en la lista. */
 .pv-turno-elegido {
-  background-color: color-mix(in srgb, var(--pv-info-500) 16%, var(--pv-surface));
-  border-color: color-mix(in srgb, var(--pv-info-500) 55%, var(--pv-border));
+  background-color: color-mix(in srgb, var(--pv-marca-500) 16%, var(--pv-surface));
+  border-color: color-mix(in srgb, var(--pv-marca-500) 55%, var(--pv-border));
   color: var(--pv-primary-texto);
 }
 
@@ -1215,16 +1268,16 @@ body {
  * columna del ticket lleva carbón en los dos temas.
  */
 .pv-acceso-lienzo {
-  background-color: #0b0d14;
+  background-color: #0a1220;
   background-image:
     radial-gradient(
       62rem 42rem at 26% 46%,
-      color-mix(in srgb, var(--pv-info-500) 17%, transparent),
+      color-mix(in srgb, var(--pv-marca-500) 17%, transparent),
       transparent 70%
     ),
     radial-gradient(
       46rem 34rem at 82% 2%,
-      color-mix(in srgb, var(--pv-info-600) 22%, transparent),
+      color-mix(in srgb, var(--pv-marca-600) 22%, transparent),
       transparent 70%
     );
 }
@@ -1256,7 +1309,7 @@ body {
   height: 40rem;
   top: -12rem;
   left: -10rem;
-  background: var(--pv-info-600);
+  background: var(--pv-marca-600);
   opacity: 0.62;
   animation: pv-deriva-1 26s ease-in-out infinite alternate;
 }
@@ -1266,7 +1319,7 @@ body {
   height: 34rem;
   bottom: -12rem;
   right: -8rem;
-  background: var(--pv-info-700);
+  background: var(--pv-marca-700);
   opacity: 0.58;
   animation: pv-deriva-2 32s ease-in-out infinite alternate;
 }
@@ -1283,7 +1336,7 @@ body {
   top: 50%;
   left: 50%;
   margin: -16rem 0 0 -16rem;
-  background: var(--pv-info-400);
+  background: var(--pv-marca-400);
   opacity: 0.62;
   filter: blur(70px);
   animation: pv-deriva-3 38s ease-in-out infinite alternate;
@@ -1377,8 +1430,8 @@ body {
   --pv-text: #15161c;
   --pv-muted: #62646f;
   --pv-border: #dcdbd5;
-  --pv-selection: #d9d7fb;
-  --pv-primary-texto: #3f3ac4;
+  --pv-selection: #f0e2c6;
+  --pv-primary-texto: #744f1f;
 
   -webkit-mask:
     conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg) bottom /
@@ -1398,7 +1451,7 @@ body {
   font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.22em;
-  color: #3f3ac4;
+  color: #744f1f;
 }
 
 .pv-comanda-regla {
@@ -1493,7 +1546,7 @@ body {
  */
 .pv-fila-activa {
   background-color: var(--pv-surface-2);
-  border-left-color: var(--pv-info-500);
+  border-left-color: var(--pv-marca-500);
 }
 
 /* Presentación: la unidad y su precio, juntos, porque elegir una ES elegir
@@ -1518,7 +1571,7 @@ body {
 }
 
 .pv-pres:hover {
-  border-color: color-mix(in srgb, var(--pv-info-500) 50%, var(--pv-border));
+  border-color: color-mix(in srgb, var(--pv-marca-500) 50%, var(--pv-border));
 }
 
 .pv-pres:active {
@@ -1526,8 +1579,8 @@ body {
 }
 
 .pv-pres-activa {
-  background-color: color-mix(in srgb, var(--pv-info-500) 16%, var(--pv-surface));
-  border-color: var(--pv-info-500);
+  background-color: color-mix(in srgb, var(--pv-marca-500) 16%, var(--pv-surface));
+  border-color: var(--pv-marca-500);
   color: var(--pv-primary-texto);
 }
 
@@ -1608,8 +1661,8 @@ body {
 }
 
 .pv-chip-activo {
-  background-color: color-mix(in srgb, var(--pv-info-500) 15%, var(--pv-surface));
-  border-color: var(--pv-info-500);
+  background-color: color-mix(in srgb, var(--pv-marca-500) 15%, var(--pv-surface));
+  border-color: var(--pv-marca-500);
   color: var(--pv-primary-texto);
 }
 
@@ -1653,17 +1706,17 @@ body {
 }
 
 /*
- * El activo se marca con fondo índigo, no con un filo. En una barra vertical
+ * El activo se marca con fondo de latón, no con un filo. En una barra vertical
  * de siete elementos el filo se pierde; aquí sí conviene el bloque, porque
  * la selección cambia pocas veces al día y no parpadea.
  */
 .pv-modulo-activo {
-  background-color: var(--pv-info-600);
+  background-color: var(--pv-marca-600);
   color: #ffffff;
 }
 
 .pv-modulo-activo:hover {
-  background-color: var(--pv-info-600);
+  background-color: var(--pv-marca-600);
   color: #ffffff;
 }
 
@@ -1747,7 +1800,7 @@ body {
   align-items: center;
   justify-content: center;
   border-radius: 999px;
-  background-color: var(--pv-info-600);
+  background-color: var(--pv-marca-600);
   color: #ffffff;
   font-size: 11px;
   font-weight: 700;
@@ -1929,7 +1982,7 @@ body {
 }
 
 .pv-ficha-dato {
-  background-color: color-mix(in srgb, #0b0d14 72%, transparent);
+  background-color: color-mix(in srgb, #0a1220 72%, transparent);
   padding: 0.75rem 1rem 0.875rem;
 }
 
@@ -1992,8 +2045,8 @@ body {
   height: 56px;
   border-radius: 16px;
   color: var(--pv-primary-texto);
-  background-color: color-mix(in srgb, var(--pv-info-500) 10%, transparent);
-  border: 1px solid color-mix(in srgb, var(--pv-info-500) 22%, transparent);
+  background-color: color-mix(in srgb, var(--pv-marca-500) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--pv-marca-500) 22%, transparent);
 }
 
 .pv-espera-teclas {
@@ -2068,10 +2121,10 @@ body {
 /* El resalte es borde y sombra, no relleno: con relleno, la tarjeta activa
  * tapaba las marcas de receta y agotado, que es justo lo que hay que ver. */
 .pv-tarjeta-activa {
-  border-color: var(--pv-info-500);
+  border-color: var(--pv-marca-500);
   box-shadow:
-    0 0 0 1px var(--pv-info-500),
-    0 10px 24px -14px color-mix(in srgb, var(--pv-info-600) 70%, transparent);
+    0 0 0 1px var(--pv-marca-500),
+    0 10px 24px -14px color-mix(in srgb, var(--pv-marca-600) 70%, transparent);
   transform: translateY(-1px);
 }
 
@@ -2162,7 +2215,7 @@ body {
 
 .pv-marca-ficha {
   color: var(--pv-primary-texto);
-  background-color: color-mix(in srgb, var(--pv-info-500) 14%, transparent);
+  background-color: color-mix(in srgb, var(--pv-marca-500) 14%, transparent);
   text-transform: none;
   letter-spacing: 0;
 }
@@ -2194,12 +2247,12 @@ body {
 }
 
 .pv-filtro-opcion:hover {
-  border-color: var(--pv-info-400);
+  border-color: var(--pv-marca-400);
 }
 
 .pv-filtro-marcada {
-  border-color: var(--pv-info-500);
-  background-color: color-mix(in srgb, var(--pv-info-500) 14%, transparent);
+  border-color: var(--pv-marca-500);
+  background-color: color-mix(in srgb, var(--pv-marca-500) 14%, transparent);
   color: var(--pv-primary-texto);
   font-weight: 600;
 }
@@ -2219,8 +2272,8 @@ body {
   align-items: center;
   gap: 0.375rem;
   border-radius: 999px;
-  border: 1px solid var(--pv-info-500);
-  background-color: color-mix(in srgb, var(--pv-info-500) 12%, transparent);
+  border: 1px solid var(--pv-marca-500);
+  background-color: color-mix(in srgb, var(--pv-marca-500) 12%, transparent);
   padding: 0.1875rem 0.5rem 0.1875rem 0.5625rem;
   font-size: 12px;
   font-weight: 600;
@@ -2293,7 +2346,7 @@ body {
 }
 
 .pv-orden-activo {
-  background-color: color-mix(in srgb, var(--pv-info-500) 14%, transparent);
+  background-color: color-mix(in srgb, var(--pv-marca-500) 14%, transparent);
   color: var(--pv-primary-texto);
   font-weight: 600;
 }
@@ -2313,7 +2366,7 @@ body {
 }
 
 .pv-boton-marcado {
-  border-color: var(--pv-info-500);
+  border-color: var(--pv-marca-500);
   color: var(--pv-primary-texto);
 }
 
@@ -2372,13 +2425,13 @@ body {
 }
 
 .pv-opcion-venta:hover {
-  border-color: var(--pv-info-400);
+  border-color: var(--pv-marca-400);
 }
 
 .pv-opcion-activa {
-  border-color: var(--pv-info-500);
-  box-shadow: inset 0 0 0 1px var(--pv-info-500);
-  background-color: color-mix(in srgb, var(--pv-info-500) 8%, transparent);
+  border-color: var(--pv-marca-500);
+  box-shadow: inset 0 0 0 1px var(--pv-marca-500);
+  background-color: color-mix(in srgb, var(--pv-marca-500) 8%, transparent);
 }
 
 .pv-aviso-fraccion {
@@ -2431,7 +2484,7 @@ body {
   overflow: hidden;
 }
 
-/* El total va sobre índigo sólido: es lo primero que se mira al abrir y
+/* El total va sobre tinta sólida: es lo primero que se mira al abrir y
  * tiene que destacar sobre todo lo demás del panel. */
 .pv-cobro-cabecera {
   display: flex;
@@ -2439,7 +2492,7 @@ body {
   justify-content: space-between;
   gap: 1rem;
   padding: 1.125rem 1.25rem;
-  background-color: var(--pv-info-600);
+  background-color: var(--pv-marca-600);
   color: #ffffff;
 }
 
@@ -2490,13 +2543,13 @@ body {
 }
 
 .pv-medio:hover {
-  border-color: var(--pv-info-400);
+  border-color: var(--pv-marca-400);
 }
 
 .pv-medio-activo {
-  border-color: var(--pv-info-500);
-  box-shadow: inset 0 0 0 1px var(--pv-info-500);
-  background-color: color-mix(in srgb, var(--pv-info-500) 10%, transparent);
+  border-color: var(--pv-marca-500);
+  box-shadow: inset 0 0 0 1px var(--pv-marca-500);
+  background-color: color-mix(in srgb, var(--pv-marca-500) 10%, transparent);
   color: var(--pv-primary-texto);
 }
 
@@ -2520,7 +2573,7 @@ body {
 
 .pv-sugerido:hover {
   border-style: solid;
-  border-color: var(--pv-info-500);
+  border-color: var(--pv-marca-500);
   color: var(--pv-primary-texto);
 }
 
@@ -2643,7 +2696,7 @@ body {
 
 .pv-movimiento-tipo[data-tipo='venta'] {
   color: var(--pv-primary-texto);
-  background-color: color-mix(in srgb, var(--pv-info-500) 14%, transparent);
+  background-color: color-mix(in srgb, var(--pv-marca-500) 14%, transparent);
 }
 
 .pv-movimiento-tipo[data-tipo='egreso'] {
@@ -2774,7 +2827,7 @@ body {
   font-size: 12px;
   font-weight: 700;
   color: var(--pv-primary-texto);
-  background-color: color-mix(in srgb, var(--pv-info-500) 14%, transparent);
+  background-color: color-mix(in srgb, var(--pv-marca-500) 14%, transparent);
 }
 
 .pv-cliente-datos {
@@ -2807,7 +2860,7 @@ body {
 .pv-barra-relleno {
   height: 100%;
   border-radius: 999px;
-  background-color: var(--pv-info-500);
+  background-color: var(--pv-marca-500);
   transition: width 320ms var(--pv-salida);
 }
 
@@ -2850,7 +2903,7 @@ body {
   inset: auto 0 0 0;
   min-height: 3px;
   border-radius: 6px;
-  background-color: var(--pv-info-500);
+  background-color: var(--pv-marca-500);
   transition: height 320ms var(--pv-salida);
 }
 
@@ -2903,7 +2956,7 @@ body {
 }
 
 .pv-casilla input {
-  accent-color: var(--pv-info-600);
+  accent-color: var(--pv-marca-600);
 }
 
 .pv-icono-opcion {
@@ -2915,8 +2968,8 @@ body {
 }
 
 .pv-icono-elegido {
-  border-color: var(--pv-info-500);
-  box-shadow: inset 0 0 0 1px var(--pv-info-500);
+  border-color: var(--pv-marca-500);
+  box-shadow: inset 0 0 0 1px var(--pv-marca-500);
 }
 
 /* Los desplegables nativos heredan el fondo del sistema y en tema oscuro
@@ -3003,7 +3056,7 @@ select.pv-campo {
   font-size: 13px;
   font-weight: 700;
   color: #ffffff;
-  background-color: var(--pv-info-600);
+  background-color: var(--pv-marca-600);
 }
 
 .pv-resumen {
@@ -3130,10 +3183,10 @@ select.pv-campo {
 }
 
 .pv-percha-activa {
-  border-color: var(--pv-info-500);
+  border-color: var(--pv-marca-500);
   box-shadow:
-    0 0 0 1px var(--pv-info-500),
-    0 10px 24px -14px color-mix(in srgb, var(--pv-info-600) 70%, transparent);
+    0 0 0 1px var(--pv-marca-500),
+    0 10px 24px -14px color-mix(in srgb, var(--pv-marca-600) 70%, transparent);
 }
 
 /*

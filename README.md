@@ -224,28 +224,49 @@ veces al día, y esconder el total, es diseñar un backoffice y llamarlo POS.
 
 De ahí salen tres reglas:
 
-1. La navegación es una barra de 44px, neutra y callada.
+1. La navegación es una barra estrecha y callada, con el nombre bajo cada
+   icono.
 2. La columna del ticket no se pliega y no comparte el scroll: el total está
    siempre en pantalla por largo que sea el ticket.
-3. Todo lo frecuente tiene tecla y la enseña (F1 mostrador, F2 buscar,
-   F3 por cobrar, F4 caja, F6 cliente, F9 ajustes, F12 cobrar).
+3. Todo lo frecuente tiene tecla y la enseña (`/` buscar, flechas recorrer,
+   Entrar agregar, Espacio ficha, Alt+C cobrar). No son teclas de función:
+   el navegador se queda con casi todas antes de que lleguen a la página.
 
 ### El color
 
-**Bronce sobre carbón tabaco**, un oro apagado y de baja saturación, no un
-ámbar de aviso. Hospedaje lleva turquesa y azul, Taller azul marino y carmín,
-Restaurante el naranja del fuego, y la plataforma el violeta; el verde queda
-reservado.
+**Latón sobre tinta azul.** Sale del logotipo del propio POS —el cajón en
+azul pizarra, el metal del bronce, el papel marfil del comprobante— y no de
+la plataforma.
+
+Eso último importa porque **el POS se vende suelto**. No todo el que lo
+compra compra la plataforma, y un producto que solo se explica como «el
+módulo morado de otra cosa» no tiene nada que enseñar cuando se presenta
+solo. La plataforma es morada —`#8a2be2`, el mismo en hotel, restaurante y
+taller—, así que el POS en morado no era parte de la suite: era un cuarto
+clon.
+
+Lo que se comparte con la suite no es el tono, es el sistema: la misma
+geometría, el mismo movimiento (`--km-mov-*`), la misma postura táctil y la
+misma forma de nombrar. Dos productos de la misma casa se reconocen por cómo
+se comportan antes que por el color.
+
+Y el latón no lo tiene nadie: hospedaje tira a azul cielo, taller a azul
+acero, restaurante al naranja del fuego, la plataforma al violeta; el verde
+queda reservado para la vertical agrícola.
 
 Lo propio de esta vertical es **dónde** se reparte. Las hermanas visten el
 cromo; aquí el bronce se retira de la navegación y se concentra en el dinero:
 
-| Zona               | Color                                     |
-| ------------------ | ----------------------------------------- |
-| Navegación         | neutra, sin color de marca                |
-| Zona de venta      | superficie limpia, sin lavados            |
-| Columna del ticket | carbón en **ambos** temas: es el ancla    |
-| Total y «Cobrar»   | bronce, y son lo único bronce en pantalla |
+| Zona               | Color                                                    |
+| ------------------ | -------------------------------------------------------- |
+| Navegación         | tinta azul en **ambos** temas: es el cromo, no el acento |
+| Zona de venta      | superficie limpia, sin lavados                           |
+| Columna del ticket | tinta azul en **ambos** temas: es el ancla               |
+| Total y «Cobrar»   | latón, y son lo único de marca en pantalla               |
+
+El latón y la tinta **no se mezclan en el mismo plano**: son casi
+complementarios y al 20 % dan un gris neutro exacto. Van uno sobre otro
+—cifra cálida sobre fondo frío—, que es el contraste del propio logotipo.
 
 La regla operativa: **si algo se pinta de bronce y no es el total ni el botón
 de cobrar, está mal.** Un POS en el que el botón de cobrar compite con la
