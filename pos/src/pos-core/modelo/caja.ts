@@ -83,6 +83,32 @@ export function cobroCompleto(total: number, pagos: readonly Pago[]): boolean {
 
 /* ── Sesión de caja ─────────────────────────────────────────────────────── */
 
+/*
+ * CONTRATO CONGELADO (D-012).
+ *
+ * Lo de aquí abajo es el contrato de caja de la suite, y está escrito con
+ * los nombres de KM.WEB.RESTAURANT a propósito. El restaurante lo tenía
+ * primero y en producción; este POS empezó el suyo por su cuenta y los dos
+ * ya habían divergido en cuatro sitios —`montoInicial` contra
+ * `fondoInicial`, un conteo de efectivo contra un conteo por medio, el
+ * cierre ciego fijo contra parametrizable, y la diferencia calculada
+ * contra guardada—.
+ *
+ * Divergir aquí no es un detalle de nombres: KARMA.LIB.CAJA sale de este
+ * contrato, y dos verticales que llaman distinto a lo mismo son dos
+ * librerías. Cuando hay dos nombres para lo mismo gana el que ya está
+ * cobrando dinero de verdad.
+ *
+ * Lo que el POS NO adopta, y por qué:
+ *
+ *   `localId`      aquí es `sucursalId`, que es el nombre en todo el POS y
+ *                  en el resto de la suite. El restaurante es el raro.
+ *   `movimientos`  el restaurante deriva el arqueo de su tabla de ventas;
+ *                  el POS no tiene tabla de ventas, así que lleva su propio
+ *                  diario. Es la misma información por otro camino.
+ *   `propinas`     no hay propina en un mostrador.
+ */
+
 export const tiposMovimiento = ['apertura', 'venta', 'ingreso', 'egreso', 'cierre'] as const
 export type TipoMovimiento = (typeof tiposMovimiento)[number]
 
@@ -98,6 +124,26 @@ export interface MovimientoCaja {
   ticketId?: string
 }
 
+/**
+ * El arqueo de UN medio de pago al cerrar.
+ *
+ * Por medio y no solo el efectivo, que es como estaba. El cierre de
+ * efectivo detecta el cajón descuadrado; lo que no detectaba era el total
+ * de tarjeta que no cuadra con el voucher del POS bancario, ni el de Yape
+ * contra el extracto. Y ese es justo el descuadre que nadie ve hasta fin
+ * de mes, porque nadie lo está contando.
+ */
+export interface ConteoMedio {
+  medio: string
+  nombre: string
+  /** Lo que el sistema dice que debería haber. */
+  esperado: number
+  /** Lo que la persona contó. */
+  contado: number
+  /** Contado menos esperado. Negativa falta, positiva sobra. */
+  diferencia: number
+}
+
 export interface SesionCaja {
   id: string
   sucursalId: string
@@ -105,11 +151,16 @@ export interface SesionCaja {
   usuarioNombre: string
   abiertaEn: string
   cerradaEn?: string
-  montoInicial: number
+  /** El sencillo con el que arranca el turno. */
+  fondoInicial: number
   estado: 'abierta' | 'cerrada'
   movimientos: readonly MovimientoCaja[]
-  /** Lo que el cajero contó al cerrar. Solo existe tras el arqueo. */
-  conteoFinal?: number
+  /** Lo contado al cerrar, medio por medio. Solo existe tras el arqueo. */
+  conteo?: readonly ConteoMedio[]
+  /** La suma de las diferencias. Se GUARDA, no se recalcula. */
+  diferencia?: number
+  /** Lo que el cajero explicó del descuadre. */
+  nota?: string
 }
 
 /**
@@ -122,7 +173,62 @@ export function efectivoEsperado(sesion: SesionCaja): number {
   const movido = sesion.movimientos
     .filter((m) => m.medio === 'EFE' || m.tipo === 'ingreso' || m.tipo === 'egreso')
     .reduce((suma, m) => suma + m.importe, 0)
-  return redondear(sesion.montoInicial + movido)
+  return redondear(sesion.fondoInicial + movido)
+}
+
+/**
+ * Lo que debería haber en cada medio al cerrar.
+ *
+ * El efectivo sale del cajón —fondo más lo cobrado en efectivo, más y menos
+ * lo que entró y salió de la gaveta—; el resto es lo cobrado por ese medio
+ * y nada más, porque no hay gaveta que llevar.
+ *
+ * El vuelto no aparece restado en ninguna parte y es correcto: el POS anota
+ * en el diario lo que CUBRE el ticket, no lo que el cliente puso sobre el
+ * mostrador, así que el billete de 50 por un ticket de 30 ya entró como 30.
+ * El restaurante llega al mismo número por el otro camino, restando los
+ * vueltos de lo cobrado.
+ */
+export function esperadoPorMedio(
+  sesion: SesionCaja,
+  medios: readonly MedioPago[],
+): readonly { medio: string; nombre: string; esperado: number }[] {
+  const cobrado = new Map(totalPorMedio(sesion).map((fila) => [fila.medio, fila.importe]))
+  return medios.map((medio) => ({
+    medio: medio.codigo,
+    nombre: medio.nombre,
+    esperado: medio.daVuelto ? efectivoEsperado(sesion) : (cobrado.get(medio.codigo) ?? 0),
+  }))
+}
+
+/**
+ * El arqueo: lo contado contra lo esperado, medio por medio.
+ *
+ * Función pura y no un método del adaptador porque es la regla que tiene
+ * que dar el mismo número en el POS, en el restaurante y en la librería que
+ * salga de los dos. Un medio que no se contó va como cero contado, que es
+ * lo honesto: no contarlo no es que cuadre.
+ */
+export function arquear(
+  sesion: SesionCaja,
+  medios: readonly MedioPago[],
+  contado: Readonly<Record<string, number>>,
+): readonly ConteoMedio[] {
+  return esperadoPorMedio(sesion, medios).map((fila) => {
+    const cuenta = redondear(Math.max(0, contado[fila.medio] ?? 0))
+    return {
+      medio: fila.medio,
+      nombre: fila.nombre,
+      esperado: redondear(fila.esperado),
+      contado: cuenta,
+      diferencia: redondear(cuenta - fila.esperado),
+    }
+  })
+}
+
+/** La diferencia del turno entero: la suma de las de cada medio. */
+export function diferenciaTotal(conteo: readonly ConteoMedio[]): number {
+  return redondear(conteo.reduce((suma, fila) => suma + fila.diferencia, 0))
 }
 
 /** Cuánto entró por cada medio. Es la mitad del arqueo que no es efectivo. */
@@ -146,7 +252,7 @@ export function resumenVentas(sesion: SesionCaja): { cuantas: number; importe: n
 }
 
 /**
- * Diferencia del arqueo: contado menos esperado.
+ * Diferencia del arqueo de EFECTIVO: contado menos esperado.
  *
  * Negativa falta dinero, positiva sobra. Ninguna de las dos se corrige
  * sola: las dos se anotan, porque un sobrante repetido suele ser un cobro
@@ -154,6 +260,28 @@ export function resumenVentas(sesion: SesionCaja): { cuantas: number; importe: n
  */
 export function diferenciaArqueo(sesion: SesionCaja, contado: number): number {
   return redondear(contado - efectivoEsperado(sesion))
+}
+
+/**
+ * Si quien cuenta ve lo esperado mientras cuenta.
+ *
+ * Parametrizable, no fijo. Lo normal es que NO lo vea: si lo ve, escribe el
+ * número que el sistema espera y el arqueo deja de medir nada. Pero hay
+ * locales de un solo dueño donde el arqueo es una comprobación y no un
+ * control, y ahí esconder el dato solo es incómodo.
+ *
+ * El valor por defecto es el ciego, que es el que protege al negocio del
+ * que lo configura mal.
+ */
+export interface PoliticaCaja {
+  cierreCiego: boolean
+  /** Sin caja abierta no se cobra. Se puede apagar. */
+  exigirCajaAbierta: boolean
+}
+
+export const politicaCajaPorDefecto: PoliticaCaja = {
+  cierreCiego: true,
+  exigirCajaAbierta: false,
 }
 
 /** Dos decimales exactos. En dinero, el residuo binario no es aceptable. */

@@ -333,19 +333,60 @@ entonces la verdad es la del ERP. La pantalla no cambia: cambia el modo.
 | 4 · Perfil farmacia   | Marcas, reglas y atributos del rubro, cargados en diferido        | **Listo**    |
 | 5 · Cobro y caja      | Pago mixto, vuelto, comprobante, sesión de caja y arqueo          | **Listo** \* |
 | 6 · Gestión           | Por cobrar, catálogo con alta y carga masiva, clientes, reportes  | **Listo**    |
-| 7 · Perfil ropa       | Matriz de talla y color, pantalla de venta propia                 | Pendiente    |
+| 7 · Perfil ropa       | Matriz de talla y color, pantalla de venta propia                 | **Listo**    |
 | 8 · Enlace ERP        | `ModoIntegracion` y `VinculoErp` de D-009                         | Pendiente    |
 | 9 · Back real         | `KARMA.MS.POS` y los adaptadores HTTP                             | Pendiente    |
 
 \* El cobro y la caja funcionan, pero **dentro de este repo**, no en
-`KARMA.LIB.CAJA`. `KM.WEB.RESTAURANT` tiene su propia implementación, con
-otros nombres para las mismas cosas. Hay dos modelos de lo mismo y la
-librería compartida sigue sin existir: decidir si se extrae o si cada
-vertical se queda con la suya es lo que desbloquea este punto.
+`KARMA.LIB.CAJA`. Lo que sí está hecho es **congelar el contrato** (ver
+abajo): los dos verticales ya nombran igual las mismas cosas, que es lo que
+hacía falta antes de extraer nada.
+
+### El contrato de caja (D-012), congelado
+
+`KM.WEB.RESTAURANT` tenía caja antes y en producción. Este POS empezó la
+suya por su cuenta, y para cuando alguien miró ya divergían en cuatro
+sitios. Divergir aquí no es un detalle de nombres: `KARMA.LIB.CAJA` sale de
+este contrato, y dos verticales que llaman distinto a lo mismo son dos
+librerías.
+
+Cuando hay dos nombres para lo mismo gana el que ya está cobrando dinero de
+verdad, así que el POS adopta los del restaurante:
+
+| Concepto             | Antes en el POS        | Congelado                  |
+| -------------------- | ---------------------- | -------------------------- |
+| Fondo de apertura    | `montoInicial`         | `fondoInicial`             |
+| Conteo de cierre     | `conteoFinal: number`  | `conteo: ConteoMedio[]`    |
+| Diferencia del turno | se recalculaba al leer | `diferencia`, **guardada** |
+| Cierre ciego         | fijo, siempre          | `PoliticaCaja.cierreCiego` |
+| Explicación          | no existía             | `nota`                     |
+
+El cambio con consecuencias es el segundo. El POS contaba **solo el
+efectivo**: eso detecta el cajón descuadrado, que es el descuadre que ya se
+nota. Lo que no detectaba era el total de tarjeta que no cuadra con el
+voucher del POS bancario, ni el de Yape contra el extracto, y ese no lo ve
+nadie hasta fin de mes porque nadie lo está contando.
+
+El cierre ciego ahora destapa lo esperado **fila por fila**, no de golpe:
+teclear el efectivo revelaba lo esperado en todos los demás medios, y
+entonces el ciego solo protegía al primero que se contara.
+
+Lo que el POS **no** adopta, y por qué:
+
+| Del restaurante | Aquí            | Por qué                                                 |
+| --------------- | --------------- | ------------------------------------------------------- |
+| `localId`       | `sucursalId`    | Es el nombre en todo el POS y en el resto de la suite   |
+| ventas → arqueo | `movimientos[]` | El POS no tiene tabla de ventas; lleva su propio diario |
+| `propinas`      | —               | No hay propina en un mostrador                          |
+
+El arqueo es una función pura del núcleo (`arquear`), no un método del
+adaptador: tiene que dar el mismo número aquí, en el restaurante y en la
+librería que salga de los dos.
 
 ### Deuda conocida
 
-| Qué                                        | Por qué importa                                       |
-| ------------------------------------------ | ----------------------------------------------------- |
-| `KARMA.LIB.CAJA` no existe                 | Dos implementaciones del mismo cobro, ya divergiendo  |
-| `ModoIntegracion` / `VinculoErp` sin traer | El enganche con el ERP se resuelve con campos sueltos |
+| Qué                                        | Por qué importa                                                            |
+| ------------------------------------------ | -------------------------------------------------------------------------- |
+| `KARMA.LIB.CAJA` no existe como paquete    | El contrato ya está congelado; falta extraerlo                             |
+| Caja sin permisos ni bitácora              | El restaurante exige `caja.gestionar` y audita; aquí nadie firma el arqueo |
+| `ModoIntegracion` / `VinculoErp` sin traer | El enganche con el ERP se resuelve con campos sueltos                      |

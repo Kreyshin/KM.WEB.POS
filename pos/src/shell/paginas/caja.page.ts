@@ -96,23 +96,29 @@ import { SesionStore } from '../sesion/sesion.store'
           <div class="pv-dato">
             <p class="pv-etiqueta text-tenue">Efectivo esperado</p>
             <p class="pv-dato-cifra">{{ caja.esperado() | moneda }}</p>
-            <p class="text-tenue text-xs">Fondo {{ sesion.montoInicial | moneda: false }}</p>
+            <p class="text-tenue text-xs">Fondo {{ sesion.fondoInicial | moneda: false }}</p>
           </div>
           <div class="pv-dato">
             <p class="pv-etiqueta text-tenue">Ventas del turno</p>
             <p class="pv-dato-cifra">{{ caja.ventas().importe | moneda }}</p>
-            <p class="text-tenue text-xs">{{ caja.ventas().cuantas }} tickets</p>
+            <p class="text-tenue text-xs">
+              {{ caja.ventas().cuantas }} {{ caja.ventas().cuantas === 1 ? 'ticket' : 'tickets' }}
+            </p>
           </div>
-          @if (sesion.estado === 'cerrada' && sesion.conteoFinal !== undefined) {
+          @if (sesion.estado === 'cerrada' && sesion.diferencia !== undefined) {
             <div class="pv-dato">
               <p class="pv-etiqueta text-tenue">Arqueo</p>
-              <p
-                class="pv-dato-cifra"
-                [class.text-error]="diferenciaCierre(sesion.conteoFinal) !== 0"
-              >
-                {{ diferenciaCierre(sesion.conteoFinal) | moneda }}
+              <!-- La diferencia GUARDADA, no recalculada: el número firmado
+                   tiene que ser el que el cajero vio, aunque mañana cambie
+                   la forma de calcularlo. -->
+              <p class="pv-dato-cifra" [class.text-error]="sesion.diferencia !== 0">
+                {{ sesion.diferencia | moneda }}
               </p>
-              <p class="text-tenue text-xs">Contado {{ sesion.conteoFinal | moneda: false }}</p>
+              @if (sesion.nota) {
+                <p class="text-tenue text-xs">{{ sesion.nota }}</p>
+              } @else {
+                <p class="text-tenue text-xs">{{ (sesion.conteo ?? []).length }} medios contados</p>
+              }
             </div>
           }
         </div>
@@ -240,48 +246,102 @@ import { SesionStore } from '../sesion/sesion.store'
           aria-label="Cerrar"
           (click)="arqueando.set(false)"
         ></button>
-        <div class="pv-panel pv-entra relative w-full max-w-sm p-5">
+        <div class="pv-panel pv-entra relative w-full max-w-md p-5">
           <h3 class="pv-titulo-seccion">Arqueo de caja</h3>
           <p class="text-tenue mt-1 text-sm">
-            Cuenta el efectivo del cajón y escríbelo. No mires el esperado antes: si lo copias, el
-            arqueo no sirve para nada.
+            @if (caja.cierreCiego()) {
+              Cuenta cada medio y escríbelo. El esperado aparece después: si lo copias, el arqueo no
+              mide nada.
+            } @else {
+              Cuenta cada medio y escríbelo al lado de lo esperado.
+            }
           </p>
 
-          <label class="mt-4 block">
-            <span class="pv-etiqueta-campo">Efectivo contado</span>
-            <input
-              class="pv-campo pv-cifra mt-1 text-right text-xl font-semibold"
-              type="number"
-              min="0"
-              step="0.10"
-              [(ngModel)]="contado"
-              (ngModelChange)="contadoTocado.set(true)"
-            />
-          </label>
+          <!--
+            TODOS los medios, no solo el efectivo.
 
-          @if (contadoTocado()) {
-            <div class="pv-arqueo" [class.pv-arqueo-cuadra]="diferencia() === 0">
-              <div class="flex justify-between text-sm">
-                <span>Esperado</span>
-                <span class="pv-cifra">{{ caja.esperado() | moneda }}</span>
+            El cierre de solo efectivo detecta el cajón descuadrado, que es
+            el descuadre que ya se nota. Lo que no detectaba era el total de
+            tarjeta que no cuadra con el voucher del POS bancario ni el de
+            Yape contra el extracto, y ese nadie lo ve hasta fin de mes
+            porque nadie lo está contando.
+          -->
+          <div class="pv-arqueo-tabla mt-4">
+            @for (fila of caja.esperadoDeCadaMedio(); track fila.medio) {
+              <div class="pv-arqueo-fila">
+                <span class="min-w-0 flex-1 truncate text-sm font-medium">{{ fila.nombre }}</span>
+
+                <!-- Cada fila revela SU esperado, no el de todas.
+                     Teclear el efectivo destapaba de golpe lo esperado en
+                     tarjeta y en Yape, y entonces el cierre ciego solo
+                     protegía al primer medio que se contara. -->
+                @if (!caja.cierreCiego() || contado()[fila.medio] !== undefined) {
+                  <span class="pv-cifra w-20 text-right text-xs opacity-55">
+                    {{ fila.esperado | moneda: false }}
+                  </span>
+                } @else {
+                  <span class="w-20 text-right text-xs opacity-30" aria-hidden="true">—</span>
+                }
+
+                <input
+                  class="pv-campo pv-cifra pv-arqueo-campo"
+                  type="number"
+                  min="0"
+                  step="0.10"
+                  [attr.aria-label]="'Contado en ' + fila.nombre"
+                  [ngModel]="contado()[fila.medio] ?? null"
+                  (ngModelChange)="contar(fila.medio, $event)"
+                />
+
+                @if (contado()[fila.medio] !== undefined) {
+                  <span
+                    class="pv-cifra w-20 text-right text-xs font-semibold"
+                    [class.text-error]="diferenciaDe(fila.medio) !== 0"
+                    [class.opacity-40]="diferenciaDe(fila.medio) === 0"
+                  >
+                    {{
+                      diferenciaDe(fila.medio) === 0
+                        ? 'cuadra'
+                        : (diferenciaDe(fila.medio) | moneda: false)
+                    }}
+                  </span>
+                } @else {
+                  <span class="w-20" aria-hidden="true"></span>
+                }
               </div>
-              <div class="flex justify-between text-sm">
-                <span>Contado</span>
-                <span class="pv-cifra">{{ contado | moneda }}</span>
-              </div>
-              <div class="mt-1 flex justify-between font-semibold">
+            }
+          </div>
+
+          @if (tocado()) {
+            <div class="pv-arqueo mt-3" [class.pv-arqueo-cuadra]="diferencia() === 0">
+              <div class="flex justify-between font-semibold">
                 <span>{{
-                  diferencia() === 0 ? 'Cuadra' : diferencia() > 0 ? 'Sobra' : 'Falta'
+                  diferencia() === 0 ? 'El turno cuadra' : diferencia() > 0 ? 'Sobra' : 'Falta'
                 }}</span>
                 <span class="pv-cifra">{{ absoluto(diferencia()) | moneda }}</span>
               </div>
             </div>
+
+            <!-- Una diferencia sin explicación es una diferencia que nadie
+                 investiga. No se exige, porque exigirla enseña a escribir
+                 «ok» para poder cerrar y marcharse. -->
+            @if (diferencia() !== 0) {
+              <label class="mt-3 block">
+                <span class="pv-etiqueta-campo">Qué pasó (opcional)</span>
+                <input
+                  class="pv-campo mt-1 text-sm"
+                  type="text"
+                  placeholder="Vuelto de más a un cliente, movilidad sin anotar…"
+                  [(ngModel)]="nota"
+                />
+              </label>
+            }
           }
 
           <button
             class="pv-boton pv-boton-accion mt-4 w-full justify-center"
             type="button"
-            [disabled]="!contadoTocado() || caja.ocupada()"
+            [disabled]="!tocado() || caja.ocupada()"
             (click)="cerrarCaja()"
           >
             Cerrar el turno
@@ -298,16 +358,29 @@ export class CajaPage {
   protected readonly fondosHabituales = [50, 100, 200, 300]
 
   protected fondo = 100
-  protected contado = 0
   protected concepto = ''
+  protected nota = ''
   protected montoMovimiento = 0
 
   protected readonly moviendo = signal(false)
   protected readonly arqueando = signal(false)
   protected readonly signo = signal<1 | -1>(-1)
-  protected readonly contadoTocado = signal(false)
 
-  protected readonly diferencia = computed(() => this.caja.diferencia(this.contado))
+  /** Lo contado, por código de medio. Vacío hasta que alguien teclea. */
+  protected readonly contado = signal<Record<string, number>>({})
+  protected readonly tocado = signal(false)
+
+  protected readonly arqueo = computed(() => this.caja.arqueo(this.contado()))
+  protected readonly diferencia = computed(() => this.caja.diferenciaDe(this.contado()))
+
+  protected contar(medio: string, valor: number | null): void {
+    this.contado.update((actual) => ({ ...actual, [medio]: Number(valor) || 0 }))
+    this.tocado.set(true)
+  }
+
+  protected diferenciaDe(medio: string): number {
+    return this.arqueo().find((fila) => fila.medio === medio)?.diferencia ?? 0
+  }
 
   constructor() {
     const sucursal = this.sesion.sucursal()?.id ?? ''
@@ -344,13 +417,11 @@ export class CajaPage {
   }
 
   protected async cerrarCaja(): Promise<void> {
-    await this.caja.cerrar(this.contado)
+    await this.caja.cerrar(this.contado(), this.nota)
     this.arqueando.set(false)
-    this.contadoTocado.set(false)
-  }
-
-  protected diferenciaCierre(contado: number): number {
-    return this.caja.diferencia(contado)
+    this.tocado.set(false)
+    this.contado.set({})
+    this.nota = ''
   }
 
   protected absoluto(valor: number): number {

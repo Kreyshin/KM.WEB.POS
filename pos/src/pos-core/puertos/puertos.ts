@@ -14,12 +14,14 @@ import type {
   Cliente,
   Cobro,
   ConsultaCatalogo,
+  ConteoMedio,
   ContextoPrecio,
   CuentaPorCobrar,
   Faceta,
   FilaHoja,
   MedioPago,
   MovimientoCaja,
+  PoliticaCaja,
   ProductoRef,
   ResultadoCobro,
   SesionCaja,
@@ -103,10 +105,20 @@ export interface PuertoCaja {
   abrir(
     sucursalId: string,
     usuario: { id: string; nombre: string },
-    monto: number,
+    fondoInicial: number,
   ): Promise<SesionCaja>
   registrar(sesionId: string, movimiento: Omit<MovimientoCaja, 'id' | 'en'>): Promise<SesionCaja>
-  cerrar(sesionId: string, contado: number): Promise<SesionCaja>
+  /**
+   * Cierra contando, medio por medio.
+   *
+   * El conteo llega ya arqueado —`arquear` es una función pura del núcleo—
+   * para que el número que se guarda sea el mismo que el cajero vio en
+   * pantalla. Calcularlo otra vez aquí es cómo se acaba firmando un arqueo
+   * que no coincide con lo que se enseñó.
+   */
+  cerrar(sesionId: string, conteo: readonly ConteoMedio[], nota?: string): Promise<SesionCaja>
+  /** La política de caja de esta sucursal: cierre ciego, caja obligatoria. */
+  politica(sucursalId: string): Promise<PoliticaCaja>
 }
 
 /**

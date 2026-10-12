@@ -1,14 +1,21 @@
 import { computed, inject, Injectable, signal } from '@angular/core'
 import {
+  arquear,
   diferenciaArqueo,
+  diferenciaTotal,
   efectivoEsperado,
+  esperadoPorMedio,
+  politicaCajaPorDefecto,
   resumenVentas,
   totalPorMedio,
   type Cobro,
+  type ConteoMedio,
+  type MedioPago,
   type MovimientoCaja,
+  type PoliticaCaja,
   type SesionCaja,
 } from '@pos-core/index'
-import { PUERTO_CAJA } from '../puertos/tokens'
+import { PUERTO_CAJA, PUERTO_MEDIOS_PAGO } from '../puertos/tokens'
 
 /**
  * La sesión de caja del turno, como señales.
@@ -22,9 +29,26 @@ import { PUERTO_CAJA } from '../puertos/tokens'
 @Injectable({ providedIn: 'root' })
 export class CajaService {
   private readonly puerto = inject(PUERTO_CAJA)
+  private readonly mediosPago = inject(PUERTO_MEDIOS_PAGO)
 
   private readonly estado = signal<SesionCaja | null>(null)
   private readonly cargando = signal(false)
+
+  /*
+   * Los medios se guardan aquí porque el arqueo los necesita: hay que
+   * contar TODOS, no solo los que tuvieron movimiento. Un medio en cero que
+   * no se enseña es un medio que nadie comprueba.
+   */
+  private readonly medios = signal<readonly MedioPago[]>([])
+  private readonly politicaCaja = signal<PoliticaCaja>(politicaCajaPorDefecto)
+
+  readonly mediosDeCaja = this.medios.asReadonly()
+  /** Si quien cuenta ve lo esperado. Lo decide la sucursal, no la pantalla. */
+  readonly cierreCiego = computed(() => this.politicaCaja().cierreCiego)
+  readonly esperadoDeCadaMedio = computed(() => {
+    const sesion = this.estado()
+    return sesion ? esperadoPorMedio(sesion, this.medios()) : []
+  })
 
   readonly sesion = this.estado.asReadonly()
   readonly ocupada = this.cargando.asReadonly()
@@ -56,7 +80,14 @@ export class CajaService {
   async cargar(sucursalId: string, usuarioId: string): Promise<void> {
     this.cargando.set(true)
     try {
-      this.estado.set(await this.puerto.actual(sucursalId, usuarioId))
+      const [sesion, medios, politica] = await Promise.all([
+        this.puerto.actual(sucursalId, usuarioId),
+        this.mediosPago.disponibles(sucursalId),
+        this.puerto.politica(sucursalId),
+      ])
+      this.estado.set(sesion)
+      this.medios.set(medios)
+      this.politicaCaja.set(politica)
     } finally {
       this.cargando.set(false)
     }
@@ -108,15 +139,33 @@ export class CajaService {
     }
   }
 
-  async cerrar(contado: number): Promise<void> {
+  /**
+   * Cierra el turno con lo contado medio por medio.
+   *
+   * El arqueo se hace AQUÍ, con la función pura del núcleo, y lo que viaja
+   * al puerto es el resultado: así el número que se guarda es exactamente
+   * el que el cajero tenía delante al firmar.
+   */
+  async cerrar(contado: Readonly<Record<string, number>>, nota?: string): Promise<void> {
     const sesion = this.estado()
     if (!sesion) return
     this.cargando.set(true)
     try {
-      this.estado.set(await this.puerto.cerrar(sesion.id, contado))
+      const conteo = arquear(sesion, this.medios(), contado)
+      this.estado.set(await this.puerto.cerrar(sesion.id, conteo, nota))
     } finally {
       this.cargando.set(false)
     }
+  }
+
+  /** El arqueo tal y como quedaría ahora mismo, para enseñarlo antes de firmar. */
+  arqueo(contado: Readonly<Record<string, number>>): readonly ConteoMedio[] {
+    const sesion = this.estado()
+    return sesion ? arquear(sesion, this.medios(), contado) : []
+  }
+
+  diferenciaDe(contado: Readonly<Record<string, number>>): number {
+    return diferenciaTotal(this.arqueo(contado))
   }
 
   /** Al cambiar de turno la caja del anterior no puede seguir en memoria. */

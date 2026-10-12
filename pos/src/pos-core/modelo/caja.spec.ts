@@ -1,16 +1,20 @@
 import { describe, expect, it } from 'vitest'
 import {
+  arquear,
   cobroCompleto,
   diferenciaArqueo,
+  diferenciaTotal,
   efectivoEsperado,
+  esperadoPorMedio,
   pendiente,
+  politicaCajaPorDefecto,
   recibido,
   resumenVentas,
   totalPorMedio,
-  vuelto,
   type MedioPago,
   type MovimientoCaja,
   type SesionCaja,
+  vuelto,
 } from './caja'
 
 const EFE: MedioPago = { codigo: 'EFE', nombre: 'Efectivo', daVuelto: true }
@@ -78,14 +82,14 @@ describe('cobro', () => {
   })
 })
 
-function sesionCon(movimientos: MovimientoCaja[], montoInicial = 100): SesionCaja {
+function sesionCon(movimientos: MovimientoCaja[], fondoInicial = 100): SesionCaja {
   return {
     id: 's-1',
     sucursalId: 'suc-1',
     usuarioId: 'u-1',
     usuarioNombre: 'Rosa Quispe',
     abiertaEn: '2026-01-01T08:00:00.000Z',
-    montoInicial,
+    fondoInicial,
     estado: 'abierta',
     movimientos,
   }
@@ -135,5 +139,76 @@ describe('sesión de caja', () => {
     expect(diferenciaArqueo(sesion, 125)).toBe(-5)
     expect(diferenciaArqueo(sesion, 135)).toBe(5)
     expect(diferenciaArqueo(sesion, 130)).toBe(0)
+  })
+})
+
+describe('arqueo por medio (contrato congelado D-012)', () => {
+  const EFE = { codigo: 'EFE', nombre: 'Efectivo', daVuelto: true }
+  const YPE = { codigo: 'YPE', nombre: 'Yape', daVuelto: false, pideReferencia: true }
+  const VIS = { codigo: 'VIS', nombre: 'Visa', daVuelto: false, pideReferencia: true }
+  const medios = [EFE, YPE, VIS]
+
+  function turno(): SesionCaja {
+    return {
+      id: 's-1',
+      sucursalId: 'suc-1',
+      usuarioId: 'u-1',
+      usuarioNombre: 'Elena',
+      abiertaEn: '2026-01-01T08:00:00Z',
+      fondoInicial: 100,
+      estado: 'abierta',
+      movimientos: [
+        mov({ tipo: 'venta', medio: 'EFE', importe: 60 }),
+        mov({ tipo: 'venta', medio: 'YPE', importe: 40 }),
+        mov({ tipo: 'egreso', concepto: 'Compra de bolsas', importe: -15 }),
+      ],
+    }
+  }
+
+  function mov(parcial: Partial<MovimientoCaja>): MovimientoCaja {
+    return {
+      id: 'm-1',
+      en: '2026-01-01T09:00:00Z',
+      tipo: 'venta',
+      concepto: 'Venta',
+      importe: 0,
+      ...parcial,
+    }
+  }
+
+  it('el efectivo esperado es el cajón, no lo vendido', () => {
+    // 100 de fondo + 60 cobrados en efectivo − 15 de la gaveta. Los 40 de
+    // Yape no están en el cajón.
+    expect(efectivoEsperado(turno())).toBe(145)
+  })
+
+  it('cada medio no-efectivo espera lo cobrado por él y nada más', () => {
+    const filas = esperadoPorMedio(turno(), medios)
+    expect(filas.find((f) => f.medio === 'YPE')?.esperado).toBe(40)
+    expect(filas.find((f) => f.medio === 'VIS')?.esperado).toBe(0)
+  })
+
+  it('cuenta los medios que no son efectivo, que es lo que no se hacía', () => {
+    // El cierre viejo solo contaba el cajón. Un total de Yape que no cuadra
+    // con el extracto no lo veía nadie hasta fin de mes.
+    const conteo = arquear(turno(), medios, { EFE: 145, YPE: 35, VIS: 0 })
+    expect(conteo.find((c) => c.medio === 'YPE')?.diferencia).toBe(-5)
+    expect(diferenciaTotal(conteo)).toBe(-5)
+  })
+
+  it('un medio sin contar va a cero: no contarlo no es que cuadre', () => {
+    const conteo = arquear(turno(), medios, { EFE: 145 })
+    expect(conteo.find((c) => c.medio === 'YPE')?.contado).toBe(0)
+    expect(conteo.find((c) => c.medio === 'YPE')?.diferencia).toBe(-40)
+  })
+
+  it('un turno que cuadra da diferencia cero', () => {
+    expect(diferenciaTotal(arquear(turno(), medios, { EFE: 145, YPE: 40, VIS: 0 }))).toBe(0)
+  })
+
+  it('el cierre ciego es el valor por defecto', () => {
+    // El que protege al negocio del que lo configura mal: si quien cuenta ve
+    // lo esperado, escribe ese número y el arqueo deja de medir nada.
+    expect(politicaCajaPorDefecto.cierreCiego).toBe(true)
   })
 })

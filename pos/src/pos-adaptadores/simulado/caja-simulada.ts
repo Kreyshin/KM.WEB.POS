@@ -1,8 +1,11 @@
+import { diferenciaTotal, politicaCajaPorDefecto } from '@pos-core/index'
 import type {
   Cobro,
+  ConteoMedio,
   ComprobanteRef,
   MedioPago,
   MovimientoCaja,
+  PoliticaCaja,
   PuertoCaja,
   PuertoMediosPago,
   PuertoPagos,
@@ -75,7 +78,7 @@ export class CajaSimulada implements PuertoCaja {
   async abrir(
     sucursalId: string,
     usuario: { id: string; nombre: string },
-    monto: number,
+    fondoInicial: number,
   ): Promise<SesionCaja> {
     const abierta = await this.actual(sucursalId, usuario.id)
     if (abierta) return abierta
@@ -87,7 +90,7 @@ export class CajaSimulada implements PuertoCaja {
       usuarioId: usuario.id,
       usuarioNombre: usuario.nombre,
       abiertaEn: ahora,
-      montoInicial: monto,
+      fondoInicial,
       estado: 'abierta',
       movimientos: [
         {
@@ -130,24 +133,47 @@ export class CajaSimulada implements PuertoCaja {
     return sesiones[indice]
   }
 
-  async cerrar(sesionId: string, contado: number): Promise<SesionCaja> {
+  /**
+   * La política de caja de la sucursal.
+   *
+   * Aquí es fija porque no hay parámetros que leer; en producción la trae
+   * el microservicio del vertical. Lo que importa es que la pantalla
+   * PREGUNTE en vez de dar por hecho el cierre ciego, que es lo que hacía.
+   */
+  async politica(_sucursalId: string): Promise<PoliticaCaja> {
+    return politicaCajaPorDefecto
+  }
+
+  async cerrar(
+    sesionId: string,
+    conteo: readonly ConteoMedio[],
+    nota?: string,
+  ): Promise<SesionCaja> {
     const sesiones = leer()
     const indice = sesiones.findIndex((sesion) => sesion.id === sesionId)
     if (indice === -1) throw new Error('La sesión de caja no existe.')
+    if (sesiones[indice].estado === 'cerrada') throw new Error('Esa caja ya está cerrada.')
 
     const ahora = new Date().toISOString()
     sesiones[indice] = {
       ...sesiones[indice],
       estado: 'cerrada',
       cerradaEn: ahora,
-      conteoFinal: contado,
+      conteo,
+      // Se guarda, no se recalcula: el número firmado tiene que ser el que
+      // el cajero vio, aunque mañana cambie la forma de calcularlo.
+      diferencia: diferenciaTotal(conteo),
+      nota: nota?.trim() || undefined,
       movimientos: [
         ...sesiones[indice].movimientos,
         {
           id: identificador('mov'),
           en: ahora,
           tipo: 'cierre',
-          concepto: 'Cierre de caja',
+          concepto:
+            diferenciaTotal(conteo) === 0
+              ? 'Cierre de caja, cuadrado'
+              : `Cierre de caja, diferencia ${diferenciaTotal(conteo).toFixed(2)}`,
           importe: 0,
         },
       ],

@@ -532,6 +532,33 @@ body {
   background-color: color-mix(in srgb, var(--pv-error) 12%, transparent);
 }
 
+/* El arqueo, medio por medio. Cuatro columnas fijas para que los números
+   queden en la misma vertical y la vista baje leyendo, no buscando. */
+.pv-arqueo-tabla {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.pv-arqueo-fila {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Especificidad de dos clases a propósito: `.pv-campo` declara
+   `width: 100%` y se carga después, así que una sola clase perdía y el
+   campo se comía el nombre del medio hasta hacerlo desaparecer. */
+.pv-arqueo-fila .pv-arqueo-campo {
+  flex: 0 0 6rem;
+  width: 6rem;
+  height: 2rem;
+  padding-block: 0;
+  text-align: right;
+  font-size: 13px;
+  font-weight: 600;
+}
+
 .pv-enlace-tenue {
   font-size: 12px;
   font-weight: 600;
