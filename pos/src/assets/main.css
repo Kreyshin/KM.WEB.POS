@@ -1379,11 +1379,21 @@ body {
 
 /* ── C · Comanda ───────────────────────────────────────────────────────── */
 
-/* Cabezal de impresión: la ranura de la que sale el papel. */
+/*
+ * Cabezal de impresión: la ranura de la que sale el papel.
+ *
+ * Se centra con `left: 50%` y traslación, no con `margin: 0 auto`. El
+ * cabezal es a propósito MÁS ANCHO que el papel —una impresora no mide lo
+ * mismo que su comprobante—, y los márgenes automáticos no centran un
+ * bloque que desborda a su contenedor: se resuelven a cero y el elemento
+ * se queda pegado a la izquierda, sobresaliendo solo por la derecha. El
+ * papel parecía salir torcido de la ranura.
+ */
 .pv-impresora {
   position: relative;
-  margin: 0 auto;
   top: 0;
+  left: 50%;
+  translate: -50%;
   width: calc(100% + 2.5rem);
   max-width: 24rem;
   height: 1.5rem;
