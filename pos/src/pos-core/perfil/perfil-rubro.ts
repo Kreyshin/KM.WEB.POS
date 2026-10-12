@@ -82,6 +82,22 @@ export interface FormaEjemplar {
   ayuda?: string
 }
 
+/** Un eje de variante que el rubro propone, con valores de partida. */
+export interface EjeSugerido {
+  /** 'talla', 'color'. Es la clave con la que viaja en `atributos`. */
+  clave: string
+  etiqueta: string
+  /** En el orden en que se enseñan: S, M, L, XL. No alfabético. */
+  sugeridos: readonly string[]
+}
+
+/** Lo que se escribe en gris dentro de los campos vacíos del alta. */
+export interface EjemploProducto {
+  descripcion: string
+  codigoBarras?: string
+  categoria?: string
+}
+
 /** Un dato del rubro en una línea del carrito. */
 export interface DatoLinea {
   etiqueta: string
@@ -154,6 +170,27 @@ export interface PerfilRubro<A = Record<string, unknown>, TPantalla = unknown> {
    * variante, no un número—.
    */
   ejemplaresDeProducto?: FormaEjemplar
+  /**
+   * Los ejes por los que este rubro abre un producto en variantes.
+   *
+   * Ropa es el caso que lo obliga: una camisa son veinte combinaciones de
+   * talla y color, cada una con su stock, y el editor de catálogo no tenía
+   * forma de crearlas. El único rubro con pantalla de venta propia era
+   * también el único que no podía dar de alta su propio producto.
+   *
+   * Los valores SUGERIDOS son eso, sugerencias: el negocio escribe los
+   * suyos. Una tienda que vende tallas de niño no tiene por qué pelearse
+   * con una lista de S a XL que alguien decidió por ella.
+   */
+  ejesDeProducto?: readonly EjeSugerido[]
+  /**
+   * Un producto de ejemplo para los marcadores del formulario de alta.
+   *
+   * «Paracetamol 500 mg» como marcador en una tienda de tecnología no
+   * orienta: desorienta, porque parece que el sistema cree estar en otro
+   * sitio.
+   */
+  ejemploProducto?: EjemploProducto
   /**
    * Marcas del producto en la pantalla de venta: receta, frío, peligroso.
    * Lo que el cajero tiene que ver sin abrir la ficha.

@@ -62,6 +62,12 @@ export const perfilTecnologia: PerfilRubroAngular<AtributosTecnologia> = {
    * Registrarlas aquí es lo que permite que la garantía se pueda tramitar
    * meses después contra el número que figura en el comprobante.
    */
+  ejemploProducto: {
+    descripcion: 'Televisor LED 55" 4K',
+    codigoBarras: '7752000100011',
+    categoria: 'Televisores',
+  },
+
   ejemplaresDeProducto: {
     etiqueta: 'Series en tienda',
     singular: 'Serie o IMEI',

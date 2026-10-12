@@ -50,6 +50,26 @@ export const perfilRopa: PerfilRubroAngular<AtributosRopa> = {
       : linea.descripcion
   },
 
+  /*
+   * Los ejes de una tienda de ropa. Son sugerencias y no una lista
+   * cerrada: quien vende ropa de niño escribe 2, 4, 6, 8 y no tiene por
+   * qué pelearse con una S que alguien decidió por ella.
+   */
+  ejesDeProducto: [
+    { clave: 'talla', etiqueta: 'Talla', sugeridos: ['XS', 'S', 'M', 'L', 'XL', 'XXL'] },
+    {
+      clave: 'color',
+      etiqueta: 'Color',
+      sugeridos: ['Blanco', 'Negro', 'Azul', 'Celeste', 'Verde', 'Vino', 'Beige'],
+    },
+  ],
+
+  ejemploProducto: {
+    descripcion: 'Camisa Oxford manga larga',
+    codigoBarras: '7751000100018',
+    categoria: 'Camisas',
+  },
+
   detalleDeLinea(linea: LineaTicket<AtributosRopa>): readonly DatoLinea[] {
     const datos: DatoLinea[] = []
     if (linea.atributos.talla) datos.push({ etiqueta: 'Talla', valor: linea.atributos.talla })

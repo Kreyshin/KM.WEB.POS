@@ -118,6 +118,12 @@ export const perfilFarmacia: PerfilRubroAngular<AtributosFarmacia> = {
    * lleva cantidad y vencimiento. Es lo que hace posible el orden FEFO y lo
    * que permite rastrear una alerta sanitaria hasta quién se la llevó.
    */
+  ejemploProducto: {
+    descripcion: 'Paracetamol 500 mg',
+    codigoBarras: '7750001000017',
+    categoria: 'Analgésicos',
+  },
+
   ejemplaresDeProducto: {
     etiqueta: 'Lotes en stock',
     singular: 'Lote',

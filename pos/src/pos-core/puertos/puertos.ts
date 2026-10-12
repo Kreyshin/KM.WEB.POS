@@ -162,8 +162,19 @@ export interface PuertoClientes {
 export interface PuertoMantenimientoCatalogo {
   guardar(producto: ProductoRef): Promise<ProductoRef>
   eliminar(productoId: string): Promise<void>
-  /** Ajusta las existencias sin pasar por el formulario completo. */
-  ajustarStock(productoId: string, unidades: number): Promise<void>
+  /**
+   * Suma o resta existencias sin pasar por el formulario completo.
+   *
+   * Recibe el MOVIMIENTO —lo que entra o lo que sale—, no el total, y es
+   * a propósito: dos personas recibiendo mercadería a la vez con el total
+   * se pisan, porque la segunda guarda lo que vio al abrir la pantalla y
+   * borra lo que anotó la primera. Con el movimiento, se suman.
+   *
+   * Lleva la sucursal porque el catálogo es por sucursal: sin ella, en una
+   * tienda de ropa buscaría el producto en el de la botica y no lo
+   * encontraría.
+   */
+  ajustarStock(sucursalId: string, productoId: string, movimiento: number): Promise<void>
 }
 
 /**

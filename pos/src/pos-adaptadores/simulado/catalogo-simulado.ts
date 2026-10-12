@@ -805,10 +805,14 @@ export class MantenimientoCatalogoSimulado implements PuertoMantenimientoCatalog
     olvidarTramos()
   }
 
-  async ajustarStock(productoId: string, unidades: number): Promise<void> {
-    const actual = catalogo().find((producto) => producto.id === productoId)
+  async ajustarStock(sucursalId: string, productoId: string, movimiento: number): Promise<void> {
+    const actual = catalogo(sucursalId).find((producto) => producto.id === productoId)
     if (!actual) return
-    await this.guardar({ ...enriquecer(actual), stock: Math.max(0, unidades) })
+    const enriquecido = enriquecer(actual)
+    // Suma sobre lo que hay, y nunca por debajo de cero: un stock negativo
+    // no existe en un estante, y arrastrarlo ensucia todos los informes.
+    const stock = Math.max(0, (enriquecido.stock ?? 0) + movimiento)
+    await this.guardar({ ...enriquecido, stock })
   }
 }
 

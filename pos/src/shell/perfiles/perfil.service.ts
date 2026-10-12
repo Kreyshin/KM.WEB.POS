@@ -2,6 +2,8 @@ import { computed, inject, Injectable, signal } from '@angular/core'
 import type {
   CampoLinea,
   DatoLinea,
+  EjeSugerido,
+  EjemploProducto,
   FormaEjemplar,
   LineaTicket,
   MarcaProducto,
@@ -74,6 +76,12 @@ export class PerfilService {
   readonly formaEjemplar = computed<FormaEjemplar | null>(
     () => this.cargado()?.ejemplaresDeProducto ?? null,
   )
+
+  /** Los ejes de variante del rubro. Vacío donde no se abre en variantes. */
+  readonly ejes = computed<readonly EjeSugerido[]>(() => this.cargado()?.ejesDeProducto ?? [])
+
+  /** Un producto de ejemplo para los marcadores del alta. */
+  readonly ejemplo = computed<EjemploProducto | null>(() => this.cargado()?.ejemploProducto ?? null)
 
   /** Qué pedir antes de agregar. Vacío es el caso normal. */
   camposDeLinea(producto: ProductoRef, presentacionId: string): readonly CampoLinea[] {

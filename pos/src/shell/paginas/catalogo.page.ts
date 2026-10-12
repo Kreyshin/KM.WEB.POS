@@ -1,11 +1,14 @@
 import {
+  afterNextRender,
   ChangeDetectionStrategy,
   Component,
   computed,
   inject,
+  Injector,
   signal,
   viewChild,
 } from '@angular/core'
+import type { ElementRef } from '@angular/core'
 import { FormsModule } from '@angular/forms'
 import type { ProductoRef } from '@pos-core/index'
 
@@ -122,6 +125,7 @@ import { CargaMasivaComponent } from './carga-masiva.component'
                 <th class="hidden md:table-cell">Laboratorio</th>
                 <th class="hidden lg:table-cell">Categoría</th>
                 <th class="text-right">Stock</th>
+                <th class="w-28"></th>
                 <th class="text-right">Presentaciones</th>
                 <th class="w-20"></th>
               </tr>
@@ -154,6 +158,49 @@ import { CargaMasivaComponent } from './carga-masiva.component'
                       <span class="text-tenue text-[11px]">
                         {{ producto.unidadAlmacen.abreviatura }}
                       </span>
+                    }
+                  </td>
+
+                  <!--
+                    Ajuste rápido del stock, en la fila.
+
+                    Llegan cinco cajas y lo que había era abrir el editor
+                    entero, buscar el campo, sumar de cabeza y guardar. Aquí
+                    se escribe lo que ENTRA o lo que SALE —no el total—,
+                    porque eso es lo que la persona tiene delante: un albarán
+                    de cinco, no el inventario entero.
+                  -->
+                  <td class="w-28">
+                    @if (ajustando() === producto.id) {
+                      <div class="flex items-center gap-1">
+                        <input
+                          #campoAjuste
+                          class="pv-campo pv-cifra h-8 w-16 text-right text-sm"
+                          type="number"
+                          step="1"
+                          placeholder="±0"
+                          [attr.aria-label]="
+                            'Unidades que entran o salen de ' + producto.descripcion
+                          "
+                          [(ngModel)]="movimiento"
+                          (keydown.enter)="aplicarAjuste(producto)"
+                          (keydown.escape)="ajustando.set(null)"
+                        />
+                        <km-boton-icono
+                          icono="check"
+                          etiqueta="Aplicar"
+                          [contexto]="producto.descripcion"
+                          [deshabilitado]="!movimiento"
+                          (pulsar)="aplicarAjuste(producto)"
+                        />
+                      </div>
+                    } @else {
+                      <km-boton-icono
+                        icono="movimiento"
+                        etiqueta="Entrada o salida de stock"
+                        [contexto]="producto.descripcion"
+                        (pulsar)="abrirAjuste(producto)"
+                      />
                     }
                   </td>
                   <td>
@@ -196,7 +243,7 @@ import { CargaMasivaComponent } from './carga-masiva.component'
                 </tr>
               } @empty {
                 <tr>
-                  <td colspan="7" class="text-tenue py-10 text-center text-sm">
+                  <td colspan="8" class="text-tenue py-10 text-center text-sm">
                     Nada que coincida con la búsqueda.
                   </td>
                 </tr>
@@ -226,6 +273,7 @@ import { CargaMasivaComponent } from './carga-masiva.component'
   `,
 })
 export class CatalogoPage {
+  private readonly inyector = inject(Injector)
   private readonly catalogo = inject(PUERTO_CATALOGO)
   private readonly mantenimiento = inject(PUERTO_MANTENIMIENTO_CATALOGO)
   private readonly sesion = inject(SesionStore)
@@ -272,6 +320,12 @@ export class CatalogoPage {
   protected readonly editando = signal(false)
   protected readonly enEdicion = signal<ProductoRef | null>(null)
   protected readonly cargando = signal(false)
+
+  /** El producto cuyo stock se está ajustando desde la fila. */
+  protected readonly ajustando = signal<string | null>(null)
+  protected movimiento: number | null = null
+
+  private readonly campoAjuste = viewChild<ElementRef<HTMLInputElement>>('campoAjuste')
 
   private readonly carga = viewChild<CargaMasivaComponent>('carga')
 
@@ -347,6 +401,34 @@ export class CatalogoPage {
   protected async eliminarProducto(productoId: string): Promise<void> {
     await this.mantenimiento.eliminar(productoId)
     this.editando.set(false)
+    await this.cargar()
+  }
+
+  protected abrirAjuste(producto: ProductoRef): void {
+    this.movimiento = null
+    this.ajustando.set(producto.id)
+    // El foco al campo: quien pulsa el icono viene a teclear un número.
+    afterNextRender(() => this.campoAjuste()?.nativeElement.focus(), {
+      injector: this.inyector,
+    })
+  }
+
+  /**
+   * Aplica la entrada o la salida.
+   *
+   * El puerto recibe el MOVIMIENTO, no el total, y es a propósito: dos
+   * personas recibiendo mercadería a la vez con el total se pisan —la
+   * segunda guarda lo que vio al abrir—, y con el movimiento se suman.
+   */
+  protected async aplicarAjuste(producto: ProductoRef): Promise<void> {
+    const unidades = Number(this.movimiento)
+    if (!Number.isFinite(unidades) || unidades === 0) {
+      this.ajustando.set(null)
+      return
+    }
+    await this.mantenimiento.ajustarStock(this.sesion.sucursal()?.id ?? '', producto.id, unidades)
+    this.ajustando.set(null)
+    this.movimiento = null
     await this.cargar()
   }
 
