@@ -15,9 +15,12 @@ import {
   PUERTO_CATALOGO,
   PUERTO_MANTENIMIENTO_CATALOGO,
   IconoComponent,
+  BotonIconoComponent,
+  PestanasComponent,
 } from '@pos-core-ui/index'
 import { SesionStore } from '../sesion/sesion.store'
 import { FichaProductoComponent } from './ficha-producto.component'
+import type { Pestana } from '@pos-core-ui/index'
 import { EditorProductoComponent } from './editor-producto.component'
 import { CargaMasivaComponent } from './carga-masiva.component'
 
@@ -44,6 +47,8 @@ import { CargaMasivaComponent } from './carga-masiva.component'
     IconoProductoComponent,
     FichaProductoComponent,
     IconoComponent,
+    BotonIconoComponent,
+    PestanasComponent,
     EditorProductoComponent,
     CargaMasivaComponent,
   ],
@@ -54,40 +59,58 @@ import { CargaMasivaComponent } from './carga-masiva.component'
         <div>
           <h2 class="pv-titulo-seccion">Catálogo</h2>
           <p class="text-tenue text-sm">
-            {{ productos().length }} productos · {{ agotados() }} agotados · {{ porReponer() }} por
-            reponer
+            {{ hallados().length }}
+            {{ hallados().length === 1 ? 'producto' : 'productos' }} · {{ agotados() }}
+            {{ agotados() === 1 ? 'agotado' : 'agotados' }} · {{ porReponer() }} por reponer
           </p>
         </div>
-        <div class="flex gap-2">
-          <input
-            class="pv-campo w-56 text-sm"
-            type="search"
-            placeholder="Buscar en el catálogo…"
-            aria-label="Buscar en el catálogo"
-            [ngModel]="texto()"
-            (ngModelChange)="buscar($event)"
+        <!--
+          Lo frecuente con palabra, lo ocasional con icono.
+
+          «Carga masiva» y «Nuevo producto» eran dos botones de dos líneas
+          del mismo tamaño, y no son lo mismo: el alta de uno en uno pasa a
+          diario y la carga de un Excel pasa el día que se abre la tienda.
+          Dar el mismo peso visual a los dos obliga a leer ambos cada vez.
+
+          La carga se queda en icono de hoja de cálculo con su globo —la
+          rejilla dice «esto va en Excel» sin escribirlo—, y el alta se
+          queda con el signo y una palabra.
+        -->
+        <div class="flex items-center gap-2">
+          <div class="pv-campo-icono w-56">
+            <km-icono nombre="buscar" />
+            <input
+              type="search"
+              placeholder="Buscar en el catálogo…"
+              aria-label="Buscar en el catálogo"
+              [ngModel]="texto()"
+              (ngModelChange)="buscar($event)"
+            />
+          </div>
+
+          <km-boton-icono
+            icono="hoja"
+            etiqueta="Carga masiva desde Excel"
+            tamano="md"
+            (pulsar)="cargando.set(true)"
           />
-          <button class="pv-boton pv-boton-tenue" type="button" (click)="cargando.set(true)">
-            Carga masiva
-          </button>
+
           <button class="pv-boton pv-boton-accion" type="button" (click)="nuevo()">
-            Nuevo producto
+            <km-icono nombre="mas" />
+            Nuevo
           </button>
         </div>
       </header>
 
-      <div class="flex shrink-0 flex-wrap gap-1.5">
-        @for (opcion of estados; track opcion.valor) {
-          <button
-            class="pv-chip"
-            type="button"
-            [class.pv-chip-activo]="estado() === opcion.valor"
-            (click)="filtrarEstado(opcion.valor)"
-          >
-            {{ opcion.etiqueta }}
-          </button>
-        }
-      </div>
+      <!-- Pestañas y no pastillas: esto parte el catálogo en secciones, no
+           añade una condición a una búsqueda. Y cada una dice cuántos hay,
+           porque una pestaña con cero no se pulsa. -->
+      <km-pestanas
+        class="shrink-0"
+        etiqueta="Estado del stock"
+        [pestanas]="pestanas()"
+        [(activa)]="estado"
+      />
 
       <div class="pv-panel flex min-h-0 flex-1 flex-col overflow-hidden">
         <div class="min-h-0 flex-1 overflow-auto">
@@ -216,7 +239,35 @@ export class CatalogoPage {
 
   protected readonly texto = signal('')
   protected readonly estado = signal('')
-  protected readonly productos = signal<ProductoRef[]>([])
+
+  /*
+   * Lo hallado por el TEXTO, sin filtrar por estado. El estado se aplica
+   * aquí, en la pantalla, y no en la consulta: así cada pestaña puede
+   * decir cuántos hay sin pedir cuatro búsquedas más al puerto, y las
+   * cuentas no dependen de cuál esté abierta.
+   */
+  protected readonly hallados = signal<ProductoRef[]>([])
+
+  protected readonly productos = computed(() =>
+    this.hallados().filter((producto) => this.enEstado(producto, this.estado())),
+  )
+
+  /** Las mismas secciones, con cuántos productos tiene cada una ahora. */
+  protected readonly pestanas = computed<Pestana[]>(() =>
+    this.estados.map((opcion) => ({
+      ...opcion,
+      cuantos: this.hallados().filter((p) => this.enEstado(p, opcion.valor)).length,
+    })),
+  )
+
+  /** La misma regla que publica el catálogo como faceta de disponibilidad. */
+  private enEstado(producto: ProductoRef, valor: string): boolean {
+    if (!valor) return true
+    const hay = producto.stock ?? 0
+    if (valor === 'agotado') return hay === 0
+    if (valor === 'bajo') return hay > 0 && hay <= 20
+    return hay > 20
+  }
   protected readonly ficha = signal<ProductoRef | null>(null)
   protected readonly editando = signal(false)
   protected readonly enEdicion = signal<ProductoRef | null>(null)
@@ -224,10 +275,12 @@ export class CatalogoPage {
 
   private readonly carga = viewChild<CargaMasivaComponent>('carga')
 
-  protected readonly agotados = computed(() => this.productos().filter((p) => p.stock === 0).length)
+  /* Sobre TODO lo hallado, no sobre la pestaña abierta: el resumen de la
+     cabecera tiene que decir lo mismo esté donde esté el cajero. */
+  protected readonly agotados = computed(() => this.hallados().filter((p) => p.stock === 0).length)
   protected readonly porReponer = computed(
     () =>
-      this.productos().filter((p) => p.stock !== undefined && p.stock > 0 && p.stock <= 20).length,
+      this.hallados().filter((p) => p.stock !== undefined && p.stock > 0 && p.stock <= 20).length,
   )
 
   constructor() {
@@ -236,8 +289,7 @@ export class CatalogoPage {
 
   private async cargar(): Promise<void> {
     const filtros: Record<string, readonly string[]> = {}
-    if (this.estado()) filtros['disponibilidad'] = [this.estado()]
-    this.productos.set(
+    this.hallados.set(
       await this.catalogo.buscar({
         texto: this.texto(),
         sucursalId: this.sesion.sucursal()?.id ?? '',
@@ -296,11 +348,6 @@ export class CatalogoPage {
     await this.mantenimiento.eliminar(productoId)
     this.editando.set(false)
     await this.cargar()
-  }
-
-  protected filtrarEstado(valor: string): void {
-    this.estado.set(valor)
-    void this.cargar()
   }
 
   /** Lee un dato de la ficha sin que la tabla sepa de farmacia. */

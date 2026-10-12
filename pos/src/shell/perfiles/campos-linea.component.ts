@@ -9,6 +9,7 @@ import {
 } from '@angular/core'
 import { FormsModule } from '@angular/forms'
 import type { CampoLinea } from '@pos-core/index'
+import { SelectComponent, type OpcionSelect } from '@pos-core-ui/index'
 
 /**
  * Lo que el perfil pide antes de meter la línea.
@@ -24,7 +25,7 @@ import type { CampoLinea } from '@pos-core/index'
  */
 @Component({
   selector: 'km-campos-linea',
-  imports: [FormsModule],
+  imports: [FormsModule, SelectComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'contents', '(document:keydown)': 'atajo($event)' },
   template: `
@@ -51,17 +52,18 @@ import type { CampoLinea } from '@pos-core/index'
               </label>
 
               @if (campo.tipo === 'opcion') {
-                <select
-                  class="pv-campo"
-                  [id]="'campo-' + campo.clave"
-                  [ngModel]="valores()[campo.clave] ?? ''"
-                  (ngModelChange)="escribir(campo.clave, $event)"
-                >
-                  <option value="">Elige…</option>
-                  @for (opcion of campo.opciones ?? []; track opcion.valor) {
-                    <option [value]="opcion.valor">{{ opcion.etiqueta }}</option>
-                  }
-                </select>
+                <!--
+                  Select con buscador y no el del navegador: una botica con
+                  treinta lotes del mismo producto obligaba a recorrerlos
+                  con la rueda del ratón, y el cliente esperando. Aquí se
+                  escribe el número y aparece.
+                -->
+                <km-select
+                  [opciones]="opcionesDe(campo)"
+                  [valor]="valores()[campo.clave] ?? ''"
+                  (valorChange)="escribir(campo.clave, $event)"
+                  [etiqueta]="campo.etiqueta"
+                />
               } @else {
                 <input
                   class="pv-campo"
@@ -155,6 +157,21 @@ export class CamposLineaComponent {
       .filter((campo) => campo.requerido)
       .every((campo) => (this.valores()[campo.clave] ?? '').trim().length > 0),
   )
+
+  /**
+   * Parte la etiqueta de una opción en nombre y detalle.
+   *
+   * El perfil compone «LT-5540 · vence 11/2026 · sacar este» en una sola
+   * cadena porque el contrato es de texto. El select sabe enseñar dos
+   * líneas, así que lo que va tras el primer punto medio baja a la
+   * segunda: el número queda grande y lo demás acompaña.
+   */
+  protected opcionesDe(campo: CampoLinea): OpcionSelect[] {
+    return (campo.opciones ?? []).map((opcion) => {
+      const [nombre, ...resto] = opcion.etiqueta.split(' · ')
+      return { valor: opcion.valor, etiqueta: nombre, detalle: resto.join(' · ') || undefined }
+    })
+  }
 
   protected escribir(clave: string, valor: string): void {
     this.valores.update((actuales) => ({ ...actuales, [clave]: valor }))

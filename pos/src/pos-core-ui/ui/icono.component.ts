@@ -24,6 +24,8 @@ export type NombreIcono =
   | 'filtro'
   | 'descargar'
   | 'subirArchivo'
+  | 'hoja'
+  | 'plantilla'
   | 'ver'
   | 'anular'
   | 'separar'
@@ -60,6 +62,11 @@ const TRAZOS: Record<NombreIcono, readonly string[]> = {
   buscar: ['M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16z', 'M21 21l-4.3-4.3'],
   filtro: ['M3 5h18', 'M7 12h10', 'M10 19h4'],
   descargar: ['M12 4v11', 'M8 11l4 4 4-4', 'M5 20h14'],
+  /* Hoja de cálculo: la rejilla ES el icono. Una hoja con renglones sería
+     un documento cualquiera; las celdas dicen «esto va en Excel». */
+  hoja: ['M4 4h16v16H4z', 'M4 9h16M4 14.5h16', 'M9.5 4v16M15 4v16'],
+  /* La misma rejilla con una flecha abajo: lo que se descarga para llenar. */
+  plantilla: ['M4 3h16v13H4z', 'M4 7.5h16', 'M9.5 3v13M15 3v13', 'M12 18v4M9 19.5l3 2.5 3-2.5'],
   subirArchivo: ['M12 20V9', 'M8 13l4-4 4 4', 'M5 5h14'],
   ver: ['M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z', 'M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z'],
   anular: ['M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18z', 'M5.6 5.6l12.8 12.8'],

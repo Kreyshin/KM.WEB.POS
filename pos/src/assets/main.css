@@ -790,6 +790,176 @@ body {
   grid-template-columns: minmax(0, 1fr) 2rem;
 }
 
+/* El globo del botón de icono. Posición fija y calculada, no absoluta:
+   dentro de una tabla con desbordamiento, un globo absoluto lo recorta el
+   contenedor o le genera barra de desplazamiento. */
+.pv-globo {
+  position: fixed;
+  z-index: 70;
+  transform: translate(-50%, -100%);
+  pointer-events: none;
+  border-radius: 7px;
+  background-color: var(--pv-rail);
+  color: var(--pv-rail-text);
+  padding: 0.1875rem 0.5rem;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+  box-shadow: var(--pv-sombra-flotante);
+}
+
+.pv-globo-debajo {
+  transform: translate(-50%, 0);
+}
+
+.pv-boton-icono-marcado {
+  border-color: var(--pv-marca-500);
+  background-color: color-mix(in srgb, var(--pv-marca-500) 14%, transparent);
+  color: var(--pv-primary-texto);
+}
+
+/* ── Pestañas ─────────────────────────────────────────────────────────────
+ *
+ * Subrayado, no pastilla rellena: esto NAVEGA, y las pastillas rellenas
+ * de esta misma pantalla FILTRAN. Dos controles con la misma forma y
+ * distinto significado es cómo se aprende a desconfiar de una interfaz.
+ */
+.pv-pestanas {
+  display: flex;
+  gap: 0.25rem;
+  overflow-x: auto;
+  border-bottom: 1px solid var(--pv-border);
+}
+
+.pv-pestana {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: -1px;
+  border-bottom: 2px solid transparent;
+  padding: 0.5rem 0.75rem 0.625rem;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--pv-muted);
+  transition:
+    color var(--km-mov-rapido) var(--km-curva),
+    border-color var(--km-mov-rapido) var(--km-curva);
+}
+
+.pv-pestana:hover {
+  color: var(--pv-text);
+}
+
+.pv-pestana-activa {
+  border-bottom-color: var(--pv-marca-500);
+  color: var(--pv-text);
+  font-weight: 600;
+}
+
+.pv-pestana-cuenta {
+  border-radius: 999px;
+  background-color: var(--pv-surface-3);
+  padding: 0.0625rem 0.375rem;
+  font-size: 11px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--pv-muted);
+}
+
+.pv-pestana-activa .pv-pestana-cuenta {
+  background-color: color-mix(in srgb, var(--pv-marca-500) 16%, transparent);
+  color: var(--pv-primary-texto);
+}
+
+/* ── Select con buscador ──────────────────────────────────────────────── */
+
+.pv-select {
+  position: relative;
+}
+
+.pv-select-mando {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  text-align: left;
+}
+
+.pv-select-detalle {
+  flex-shrink: 0;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--pv-muted);
+}
+
+.pv-select-lista {
+  position: absolute;
+  z-index: 60;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  min-width: 14rem;
+  overflow: hidden;
+  border-radius: var(--pv-radio-card);
+  border: 1px solid var(--pv-border);
+  background-color: var(--pv-surface);
+  box-shadow: var(--pv-sombra-flotante);
+}
+
+.pv-select-busca {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  border-bottom: 1px solid var(--pv-border);
+  padding: 0.5rem 0.625rem;
+  color: var(--pv-muted);
+}
+
+.pv-select-busca input {
+  width: 100%;
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  color: var(--pv-text);
+  font-size: 13px;
+  outline: none;
+}
+
+/* Tope de alto: una lista que llega al borde de la pantalla no deja ver
+   cuántas opciones quedan debajo. */
+.pv-select-opciones {
+  max-height: 16rem;
+  overflow-y: auto;
+  padding: 0.25rem;
+}
+
+.pv-select-opcion {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 0.5rem;
+  border-radius: 8px;
+  padding: 0.375rem 0.5rem;
+  font-size: 13px;
+  text-align: left;
+  color: var(--pv-text);
+}
+
+.pv-select-opcion:hover:not(:disabled) {
+  background-color: var(--pv-surface-3);
+}
+
+.pv-select-opcion:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.pv-select-elegida {
+  background-color: color-mix(in srgb, var(--pv-marca-500) 12%, transparent);
+  color: var(--pv-primary-texto);
+  font-weight: 600;
+}
+
 /* Un enlace que no grita. Para lo que casi nunca se usa pero tiene que
    estar: el descuento del ticket. */
 .pv-quitar-linea {
