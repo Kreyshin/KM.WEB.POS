@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core'
 import type { ProductoRef, VarianteProducto } from '@pos-core/index'
-import { varianteDe } from '@pos-core/index'
+import { quedanLasUltimas, varianteDe } from '@pos-core/index'
 
 /** Lo que la matriz devuelve cuando se elige una celda con stock. */
 export interface EleccionVariante {
@@ -57,9 +57,7 @@ export interface EleccionVariante {
                       class="pv-celda"
                       type="button"
                       [class.pv-celda-agotada]="(variante.stock ?? 0) === 0"
-                      [class.pv-celda-poca]="
-                        (variante.stock ?? 0) > 0 && (variante.stock ?? 0) <= 2
-                      "
+                      [class.pv-celda-poca]="quedanPocas(variante.stock)"
                       [disabled]="(variante.stock ?? 0) === 0"
                       [attr.aria-label]="
                         ejes()[0].etiqueta +
@@ -119,6 +117,11 @@ export class MatrizVariantesComponent {
   readonly elegida = output<EleccionVariante>()
 
   protected readonly ejes = computed(() => this.producto().ejes ?? [])
+
+  /** El umbral de «quedan las últimas» lo fija el núcleo, no esta tabla. */
+  protected quedanPocas(stock: number | undefined): boolean {
+    return quedanLasUltimas(stock)
+  }
 
   protected celda(columna: string, fila: string): VarianteProducto | null {
     const [ejeColumna, ejeFila] = this.ejes()

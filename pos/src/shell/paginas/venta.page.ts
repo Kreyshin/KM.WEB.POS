@@ -8,7 +8,7 @@ import {
 } from '@angular/core'
 import { FormsModule } from '@angular/forms'
 import type { ElementRef } from '@angular/core'
-import { cuantosFiltros } from '@pos-core/index'
+import { cuantosFiltros, nivelDeStock, type NivelStock } from '@pos-core/index'
 import type {
   CampoLinea,
   Faceta,
@@ -184,7 +184,7 @@ import { CamposLineaComponent } from '../perfiles/campos-linea.component'
                 class="pv-tarjeta"
                 role="option"
                 [class.pv-tarjeta-activa]="i === fila()"
-                [class.pv-tarjeta-agotada]="producto.stock === 0"
+                [class.pv-tarjeta-agotada]="nivel(producto) === 'agotado'"
                 [attr.aria-selected]="i === fila()"
                 (mouseenter)="fila.set(i)"
               >
@@ -208,10 +208,13 @@ import { CamposLineaComponent } from '../perfiles/campos-linea.component'
                       {{ marca.texto }}
                     </span>
                   }
-                  @if (producto.stock === 0) {
-                    <span class="pv-marca-agotado">agotado</span>
-                  } @else if (producto.stock !== undefined && producto.stock <= 20) {
-                    <span class="pv-marca-bajo">quedan {{ producto.stock }}</span>
+                  @switch (nivel(producto)) {
+                    @case ('agotado') {
+                      <span class="pv-marca-agotado">agotado</span>
+                    }
+                    @case ('bajo') {
+                      <span class="pv-marca-bajo">quedan {{ producto.stock }}</span>
+                    }
                   }
                 </div>
 
@@ -322,6 +325,11 @@ export class VentaPage {
   protected readonly presentacion = signal(0)
 
   protected readonly cuantos = computed(() => cuantosFiltros(this.filtros()))
+
+  /** La regla del núcleo, no un «<= 20» escrito aquí otra vez. */
+  protected nivel(producto: ProductoRef): NivelStock {
+    return nivelDeStock(producto.stock)
+  }
   private readonly activo = computed(() => this.resultados()[this.fila()] ?? null)
 
   /** Marca la búsqueda en curso: si llega tarde, su respuesta se descarta. */

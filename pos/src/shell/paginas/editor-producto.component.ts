@@ -9,7 +9,9 @@ import {
 } from '@angular/core'
 import { FormsModule } from '@angular/forms'
 import {
+  combinacionesDe,
   IGV_GENERAL,
+  problemaDelProducto,
   type CampoFicha,
   type EjemplarProducto,
   type PresentacionVenta,
@@ -587,43 +589,17 @@ export class EditorProductoComponent {
   /* Valores que el negocio añadió a mano, además de los sugeridos. */
   protected readonly propios = signal<Record<string, string[]>>({})
   protected readonly nuevoValor = signal<Record<string, string>>({})
-  protected readonly variantes = signal<VarianteProducto[]>([])
+  protected readonly variantes = signal<readonly VarianteProducto[]>([])
 
-  /**
-   * El producto cartesiano de lo marcado, conservando lo ya tecleado.
-   *
-   * Se recalcula al marcar o desmarcar un valor, y una combinación que
-   * sigue existiendo conserva su stock y su precio: desmarcar «XL» por
-   * error y volver a marcarlo no puede borrar las cuentas de las demás.
-   */
-  protected readonly combinaciones = computed<VarianteProducto[]>(() => {
-    const ejes = this.ejes().filter((eje) => (this.elegidos()[eje.clave] ?? []).length > 0)
-    if (ejes.length === 0) return []
-
-    let filas: Record<string, string>[] = [{}]
-    for (const eje of ejes) {
-      const valores = this.elegidos()[eje.clave] ?? []
-      filas = filas.flatMap((fila) => valores.map((valor) => ({ ...fila, [eje.clave]: valor })))
-    }
-
-    const previas = new Map(this.variantes().map((v) => [this.claveDe(v.atributos), v]))
-    return filas.map((atributos) => {
-      const clave = this.claveDe(atributos)
-      const previa = previas.get(clave)
-      return { id: previa?.id ?? clave, atributos, stock: previa?.stock, precio: previa?.precio }
-    })
-  })
+  /* El producto cartesiano lo calcula el NÚCLEO: es una regla —conservar
+     lo tecleado al desmarcar y volver a marcar— y se prueba sin navegador. */
+  protected readonly combinaciones = computed(() =>
+    combinacionesDe(this.ejes(), this.elegidos(), this.variantes()),
+  )
 
   protected readonly unidadesEnVariantes = computed(() =>
     this.combinaciones().reduce((suma, v) => suma + (v.stock ?? 0), 0),
   )
-
-  /** Una combinación se identifica por sus valores, en orden de eje. */
-  private claveDe(atributos: Readonly<Record<string, string>>): string {
-    return this.ejes()
-      .map((eje) => atributos[eje.clave] ?? '')
-      .join('|')
-  }
 
   protected readonly unidadesEnEjemplares = computed(() =>
     this.ejemplares().reduce((suma, ej) => suma + (ej.cantidad || 0), 0),
@@ -679,26 +655,15 @@ export class EditorProductoComponent {
    */
   protected readonly problema = computed<string | null>(() => {
     this.cambios()
-    if (this.descripcion.trim().length < 3) return 'Falta la descripción.'
-    const presentaciones = this.presentaciones()
-    if (presentaciones.length === 0) return 'Añade al menos una forma de venta.'
-    if (presentaciones.some((pres) => pres.precio <= 0)) {
-      return 'Toda forma de venta necesita un precio mayor que cero.'
-    }
-    if (presentaciones.some((pres) => pres.factorAlmacen <= 0)) {
-      return 'La equivalencia con el almacén tiene que ser mayor que cero.'
-    }
-    if (this.ficha().some((campo) => campo.etiqueta.trim() && !campo.valor.trim())) {
-      return 'Hay un dato de la ficha con etiqueta y sin valor.'
-    }
-    const codigos = this.ejemplares()
-      .map((ej) => ej.codigo.trim())
-      .filter(Boolean)
-    if (new Set(codigos).size !== codigos.length) {
-      const nombre = this.forma()?.singular ?? 'ejemplar'
-      return `Hay un ${nombre.toLowerCase()} repetido: dos iguales son uno contado dos veces.`
-    }
-    return null
+    return problemaDelProducto(
+      {
+        descripcion: this.descripcion,
+        presentaciones: this.presentaciones(),
+        ficha: this.ficha(),
+        ejemplares: this.ejemplares(),
+      },
+      this.forma()?.singular ?? 'ejemplar',
+    )
   })
 
   protected anadirPresentacion(): void {

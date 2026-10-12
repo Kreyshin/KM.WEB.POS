@@ -6,7 +6,12 @@ import type {
   ProductoRef,
   Validacion,
 } from '@pos-core/index'
-import { ejemplaresDisponibles, validacionFalla, validacionOk } from '@pos-core/index'
+import {
+  ejemplaresDisponibles,
+  quedanLasUltimas,
+  validacionFalla,
+  validacionOk,
+} from '@pos-core/index'
 import type { PerfilRubroAngular } from '@pos-core-ui/index'
 
 /**
@@ -93,7 +98,7 @@ export const perfilTecnologia: PerfilRubroAngular<AtributosTecnologia> = {
     // Con dos o menos, ofrecer el de exhibición deja de ser una opción y
     // pasa a ser la venta. El vendedor tiene que saberlo antes de
     // prometer uno nuevo en caja.
-    if (producto.stock !== undefined && producto.stock > 0 && producto.stock <= 2) {
+    if (quedanLasUltimas(producto.stock)) {
       marcas.push({
         texto: `últimas ${producto.stock}`,
         tono: 'aviso',

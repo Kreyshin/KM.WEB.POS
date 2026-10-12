@@ -5,6 +5,7 @@ import {
   cumpleFiltros,
   ejemplaresDisponibles,
   IGV_GENERAL,
+  nivelDeStock,
   tramoDe,
   tramosDePrecio,
   type CampoFicha,
@@ -465,9 +466,10 @@ function valoresDe(producto: ProductoRef, clave: string, sucursalId = ''): reado
     }
 
     case 'disponibilidad': {
-      const hay = producto.stock ?? existencias[producto.id] ?? 0
-      if (hay === 0) return ['agotado']
-      return hay <= 20 ? ['bajo'] : ['ok']
+      // La MISMA regla que pinta la insignia en la tabla del catálogo. Si
+      // no, la cuenta de la faceta y el color de la fila discrepan.
+      const nivel = nivelDeStock(producto.stock ?? existencias[producto.id] ?? 0)
+      return nivel === 'sincontrol' ? [] : [nivel]
     }
 
     case 'afectacion':

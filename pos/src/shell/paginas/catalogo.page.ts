@@ -10,7 +10,7 @@ import {
 } from '@angular/core'
 import type { ElementRef } from '@angular/core'
 import { FormsModule } from '@angular/forms'
-import type { ProductoRef } from '@pos-core/index'
+import { nivelDeStock, type NivelStock, type ProductoRef } from '@pos-core/index'
 
 import {
   IconoProductoComponent,
@@ -132,7 +132,7 @@ import { CargaMasivaComponent } from './carga-masiva.component'
             </thead>
             <tbody>
               @for (producto of productos(); track producto.id) {
-                <tr [class.pv-fila-agotada]="producto.stock === 0">
+                <tr [class.pv-fila-agotada]="nivel(producto) === 'agotado'">
                   <td><km-icono-producto [clave]="producto.icono" [tamano]="30" /></td>
                   <td>
                     <p class="truncate text-sm font-semibold">{{ producto.descripcion }}</p>
@@ -150,8 +150,8 @@ import { CargaMasivaComponent } from './carga-masiva.component'
                     } @else {
                       <span
                         class="pv-cifra text-sm font-semibold"
-                        [class.text-error]="producto.stock === 0"
-                        [class.text-aviso]="producto.stock > 0 && producto.stock <= 20"
+                        [class.text-error]="nivel(producto) === 'agotado'"
+                        [class.text-aviso]="nivel(producto) === 'bajo'"
                       >
                         {{ producto.stock }}
                       </span>
@@ -310,11 +310,11 @@ export class CatalogoPage {
 
   /** La misma regla que publica el catálogo como faceta de disponibilidad. */
   private enEstado(producto: ProductoRef, valor: string): boolean {
-    if (!valor) return true
-    const hay = producto.stock ?? 0
-    if (valor === 'agotado') return hay === 0
-    if (valor === 'bajo') return hay > 0 && hay <= 20
-    return hay > 20
+    return !valor || nivelDeStock(producto.stock) === valor
+  }
+
+  protected nivel(producto: ProductoRef): NivelStock {
+    return nivelDeStock(producto.stock)
   }
   protected readonly ficha = signal<ProductoRef | null>(null)
   protected readonly editando = signal(false)
@@ -331,11 +331,12 @@ export class CatalogoPage {
 
   /* Sobre TODO lo hallado, no sobre la pestaña abierta: el resumen de la
      cabecera tiene que decir lo mismo esté donde esté el cajero. */
-  protected readonly agotados = computed(() => this.hallados().filter((p) => p.stock === 0).length)
-  protected readonly porReponer = computed(
-    () =>
-      this.hallados().filter((p) => p.stock !== undefined && p.stock > 0 && p.stock <= 20).length,
-  )
+  protected readonly agotados = computed(() => this.cuantosEn('agotado'))
+  protected readonly porReponer = computed(() => this.cuantosEn('bajo'))
+
+  private cuantosEn(nivel: NivelStock): number {
+    return this.hallados().filter((p) => nivelDeStock(p.stock) === nivel).length
+  }
 
   constructor() {
     void this.cargar()

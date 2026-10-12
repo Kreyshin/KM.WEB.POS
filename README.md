@@ -413,8 +413,9 @@ librería que salga de los dos.
 
 ### Deuda conocida
 
-| Qué                                        | Por qué importa                                                            |
-| ------------------------------------------ | -------------------------------------------------------------------------- |
-| `KARMA.LIB.CAJA` no existe como paquete    | El contrato ya está congelado; falta extraerlo                             |
-| Caja sin permisos ni bitácora              | El restaurante exige `caja.gestionar` y audita; aquí nadie firma el arqueo |
-| `ModoIntegracion` / `VinculoErp` sin traer | El enganche con el ERP se resuelve con campos sueltos                      |
+| Qué                                        | Por qué importa                                                                                            |
+| ------------------------------------------ | ---------------------------------------------------------------------------------------------------------- |
+| `KARMA.LIB.CAJA` no existe como paquete    | El contrato ya está congelado; falta extraerlo                                                             |
+| Caja sin permisos ni bitácora              | El restaurante exige `caja.gestionar` y audita; aquí nadie firma el arqueo                                 |
+| El punto de reposición es un número fijo   | 20 unidades vale en una botica y no en una tienda de televisores; debería ser por producto y salir del ERP |
+| `ModoIntegracion` / `VinculoErp` sin traer | El enganche con el ERP se resuelve con campos sueltos                                                      |

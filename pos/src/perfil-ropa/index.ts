@@ -5,7 +5,7 @@ import type {
   ProductoRef,
   Validacion,
 } from '@pos-core/index'
-import { validacionFalla, validacionOk } from '@pos-core/index'
+import { ULTIMAS_UNIDADES, validacionFalla, validacionOk } from '@pos-core/index'
 import type { PerfilRubroAngular } from '@pos-core-ui/index'
 import { VentaRopaPage } from './venta-ropa.page'
 
@@ -85,7 +85,7 @@ export const perfilRopa: PerfilRubroAngular<AtributosRopa> = {
     // Avisar cuando quedan una o dos combinaciones no es adorno: es la
     // señal para ofrecerla ya o para pedir reposición, y en ropa una
     // talla suelta se queda meses si nadie la ve.
-    if (quedan <= 2) {
+    if (quedan > 0 && quedan <= ULTIMAS_UNIDADES) {
       return [
         {
           texto: `quedan ${quedan}`,

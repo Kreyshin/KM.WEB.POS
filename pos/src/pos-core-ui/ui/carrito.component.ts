@@ -8,7 +8,13 @@ import {
   signal,
 } from '@angular/core'
 import { FormsModule } from '@angular/forms'
-import { consumoAlmacen, type DatoLinea, type LineaTicket } from '@pos-core/index'
+import {
+  brutoLinea,
+  consumoAlmacen,
+  totalLinea,
+  type DatoLinea,
+  type LineaTicket,
+} from '@pos-core/index'
 import { TicketService } from '../estado/ticket.service'
 import { MonedaPipe } from './moneda.pipe'
 import { IconoProductoComponent } from './icono-producto.component'
@@ -261,8 +267,16 @@ export class CarritoComponent {
     return consumoAlmacen(linea)
   }
 
+  /*
+   * `totalLinea` y `brutoLinea` del núcleo, no la cuenta otra vez aquí.
+   *
+   * La versión de esta pantalla olvidaba redondear a céntimos, así que una
+   * línea podía enseñar 4.199999999999999 mientras el total de abajo decía
+   * 4.20. Dos cifras distintas para lo mismo en la misma pantalla es cómo
+   * se pierde la confianza en una caja.
+   */
   protected importe(linea: LineaTicket): number {
-    return Math.max(0, linea.cantidad * linea.precioUnitario - linea.descuento)
+    return totalLinea(linea)
   }
 
   /**
@@ -287,12 +301,12 @@ export class CarritoComponent {
     if (!Number.isFinite(importe)) return
     // Topado al importe de la línea: un descuento mayor que lo que cuesta
     // sería pagarle al cliente por llevárselo.
-    const bruto = linea.cantidad * linea.precioUnitario
+    const bruto = brutoLinea(linea)
     this.ticket.aplicarDescuento(Math.min(Math.max(0, importe), bruto), linea.id)
   }
 
   protected descontarPorcentaje(linea: LineaTicket, parte: number): void {
-    const bruto = linea.cantidad * linea.precioUnitario
+    const bruto = brutoLinea(linea)
     this.ticket.aplicarDescuento(Math.round(bruto * parte) / 100, linea.id)
   }
 }
