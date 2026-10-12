@@ -11,14 +11,55 @@ más, sin tocar el núcleo**.
 - **Stack:** Angular 20 (componentes standalone, señales, carga diferida por
   rutas), Tailwind 4, Vitest.
 
-## Alcance
+## Alcance: qué entra aquí y qué no
 
-| Le corresponde a este repo                                   | No le corresponde                                                           |
-| ------------------------------------------------------------ | --------------------------------------------------------------------------- |
-| Shell: sesión, sucursal y carga del perfil activo            | Panel de cobro y sesión de caja: van en `KARMA.LIB.CAJA`                    |
-| `pos-core`: ticket, contrato del perfil y pedidos por cobrar | Reglas de rubro del lado servidor: van en el microservicio de cada vertical |
-| Perfiles de rubro: ropa y farmacia en la primera etapa       | Inventario, facturación y contabilidad: son del ERP                         |
-| Puertos hacia el back, con simulaciones mientras no exista   | Pantallas de gestión de un vertical, como la recepción del hotel            |
+Esta es la norma que mantiene el POS pequeño, y existe para poder decir que
+no. Un punto de venta que crece sin línea acaba siendo un ERP malo con una
+pantalla de cobro.
+
+**Lo único que el POS tiene que saber:** quién atiende, qué se lleva el
+cliente, cuánto es, cómo paga, qué papel se entrega y qué hay en la gaveta al
+cerrar. Todo lo demás lo pide por un puerto.
+
+### La prueba de los tres filtros
+
+Ante cualquier función nueva, en este orden:
+
+1. **¿Ocurre con el cliente delante?** Si no, no es del POS. Un informe
+   mensual, una orden de compra o un cuadre contable se miran sentado, y eso
+   es backoffice.
+2. **¿Es igual en todos los rubros?** Si cambia por rubro, va en un perfil o
+   en el microservicio del vertical, no en el núcleo.
+3. **¿Lo custodia otro sistema?** El stock real, el correlativo oficial y la
+   identidad de los usuarios tienen un dueño. El POS los consulta; no los
+   inventa ni los guarda como fuente de verdad.
+
+### Dónde vive cada cosa
+
+| Va en **KM.WEB.POS**                                    | Va en el **ERP**                                   | Va en el **MS del vertical**                          | Va en **otro producto**                |
+| ------------------------------------------------------- | -------------------------------------------------- | ----------------------------------------------------- | -------------------------------------- |
+| Shell: sesión, sucursal y carga del perfil activo       | Inventario de verdad: kardex, almacenes, traslados | Validar la regla del rubro contra el registro oficial | Mesas, comandas y cocina → RESTAURANT  |
+| `pos-core`: ticket, totales, caja y contrato del perfil | Compras, proveedores, órdenes                      | Precios por lista, promociones y convenios            | Reservas y habitaciones → HOTEL        |
+| Perfiles de rubro: farmacia, ropa, tecnología           | Contabilidad y el envío real a SUNAT               | Numeración oficial de comprobantes                    | Órdenes de trabajo → TALLER            |
+| Puertos hacia el back, simulados mientras no exista     | Planillas, asistencia, usuarios corporativos       | Fidelización y puntos                                 | Cobro y arqueo compartidos → LIB.CAJA  |
+| Lo que se toca de pie, en el mostrador                  | Lo que se mira sentado, al cierre del mes          | Lo que cambia por rubro del lado servidor             | Lo que es la operación de otro negocio |
+
+### Autenticación: no vive aquí
+
+La identidad de los usuarios es de **Karma.Systems**, que es el núcleo de la
+suite y la autenticación de TODOS los sistemas. El POS no guarda contraseñas
+ni decide quién es quién: consume. Lo que sí es suyo es el turno —quién está
+en el puesto ahora mismo— porque eso es operación de mostrador y no identidad.
+
+### Dudas que ya se resolvieron así
+
+| Pregunta                                      | Respuesta                                                       |
+| --------------------------------------------- | --------------------------------------------------------------- |
+| ¿El POS descuenta stock?                      | Anota el consumo; quien lleva la cuenta es el ERP               |
+| ¿El POS numera la boleta?                     | Pide el correlativo; quien lo custodia es el microservicio      |
+| ¿El POS valida una receta contra el registro? | Avisa en pantalla; quien valida de verdad es el MS del vertical |
+| ¿El POS calcula el punto de reposición?       | Lo enseña; quien lo calcula es el ERP, que sabe la rotación     |
+| ¿El POS da de alta un usuario?                | No. Karma.Systems                                               |
 
 ## Empezar
 
@@ -198,6 +239,11 @@ bloque desglosa mal el impuesto.
 - El cobro siempre pasa por `PuertoCobro`; el POS no registra pagos por su
   cuenta.
 - No se abstrae nada que no usen al menos dos perfiles.
+- Lo que es una REGLA baja a `pos-core` con sus pruebas. Si un número del
+  negocio está escrito en dos sitios, ya no es una regla: son dos que hoy
+  coinciden.
+- El POS nunca es la fuente de verdad de algo que custodia otro sistema. Lo
+  consulta, lo enseña y lo vuelve a pedir.
 
 ## Diseño
 
