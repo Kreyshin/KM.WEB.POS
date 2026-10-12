@@ -52,11 +52,19 @@ import { LogoKarmaComponent, LogoPosComponent } from '../../marca/marca'
           </div>
 
           <!--
-          La escena apoya abajo y se sale por los lados en vez de flotar
-          centrada: así tiene suelo y escala, y el panel deja de leerse como
-          un hueco con un dibujo pequeño en medio.
+          La escena OCUPA su fila entera y apoya abajo dentro de ella.
+
+          Antes se apoyaba al final de su fila, así que la fila crecía con
+          la ventana pero el dibujo se quedaba de su tamaño: en una pantalla
+          de 1080 quedaba un palmo de vacío entre la marca de arriba y el
+          mostrador, y la mitad izquierda se leía como un hueco con una
+          pegatina. Ahora el dibujo crece con el hueco y las dos mitades
+          vuelven a pesar lo mismo.
+
+          Y se sale por los lados a propósito: recortada tiene suelo y
+          escala. Centrada y entera parecía un adhesivo sobre el fondo.
         -->
-          <div class="pv-escena-suelo relative z-10 self-end">
+          <div class="pv-escena-suelo relative z-10 min-h-0 self-stretch">
             <img
               class="pv-escena-img block w-full max-w-none select-none"
               [style.--pv-px]="px()"

@@ -234,39 +234,46 @@ De ahí salen tres reglas:
 
 ### El color
 
-**Latón sobre tinta azul.** Sale del logotipo del propio POS —el cajón en
-azul pizarra, el metal del bronce, el papel marfil del comprobante— y no de
-la plataforma.
+**Violeta azulado sobre acero.** Sale del logotipo del propio POS —la
+impresora de comprobantes en acero, el violeta del papel que sale, el
+índigo profundo de la ranura— y no de la plataforma.
 
-Eso último importa porque **el POS se vende suelto**. No todo el que lo
-compra compra la plataforma, y un producto que solo se explica como «el
-módulo morado de otra cosa» no tiene nada que enseñar cuando se presenta
-solo. La plataforma es morada —`#8a2be2`, el mismo en hotel, restaurante y
-taller—, así que el POS en morado no era parte de la suite: era un cuarto
-clon.
+Es violeta como la plataforma, pero ni el mismo violeta ni repartido igual.
+
+El **tono** difiere: la plataforma es `#8a2be2`, un violeta que tira a rojo
+y que declaran igual hotel, restaurante y taller; el del logotipo del POS es
+`#7c4df0`, que tira a azul.
+
+El **reparto** es lo que de verdad separa. En las hermanas el morado viste
+el cromo —navegación, cabeceras, fondo—. Aquí el cromo es acero e índigo, de
+lo que está hecha la impresora del logotipo, y el violeta se retira a una
+sola cosa: el dinero. El total y «Cobrar» son lo único violeta de la
+pantalla, igual que en el logotipo lo único violeta es el comprobante que
+sale.
+
+Eso importa porque **el POS se vende suelto**. No todo el que lo compra
+compra la plataforma, y un producto que solo se explica como «el módulo
+morado de otra cosa» no tiene nada que enseñar cuando se presenta solo.
 
 Lo que se comparte con la suite no es el tono, es el sistema: la misma
 geometría, el mismo movimiento (`--km-mov-*`), la misma postura táctil y la
 misma forma de nombrar. Dos productos de la misma casa se reconocen por cómo
 se comportan antes que por el color.
 
-Y el latón no lo tiene nadie: hospedaje tira a azul cielo, taller a azul
-acero, restaurante al naranja del fuego, la plataforma al violeta; el verde
-queda reservado para la vertical agrícola.
+El verde queda reservado para la vertical agrícola.
 
 Lo propio de esta vertical es **dónde** se reparte. Las hermanas visten el
 cromo; aquí el bronce se retira de la navegación y se concentra en el dinero:
 
-| Zona               | Color                                                    |
-| ------------------ | -------------------------------------------------------- |
-| Navegación         | tinta azul en **ambos** temas: es el cromo, no el acento |
-| Zona de venta      | superficie limpia, sin lavados                           |
-| Columna del ticket | tinta azul en **ambos** temas: es el ancla               |
-| Total y «Cobrar»   | latón, y son lo único de marca en pantalla               |
+| Zona               | Color                                                |
+| ------------------ | ---------------------------------------------------- |
+| Navegación         | índigo en **ambos** temas: es el cromo, no el acento |
+| Zona de venta      | superficie limpia, sin lavados                       |
+| Columna del ticket | tinta azul en **ambos** temas: es el ancla           |
+| Total y «Cobrar»   | latón, y son lo único de marca en pantalla           |
 
-El latón y la tinta **no se mezclan en el mismo plano**: son casi
-complementarios y al 20 % dan un gris neutro exacto. Van uno sobre otro
-—cifra cálida sobre fondo frío—, que es el contraste del propio logotipo.
+El violeta nunca viste el cromo. Si lo hiciera, el POS volvería a parecer
+una pantalla más de la plataforma, que es justo lo que no es.
 
 La regla operativa: **si algo se pinta de bronce y no es el total ni el botón
 de cobrar, está mal.** Un POS en el que el botón de cobrar compite con la

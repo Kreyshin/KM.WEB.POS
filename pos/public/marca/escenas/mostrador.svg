@@ -1,23 +1,23 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 720" width="800" height="720" role="img" aria-label="Un mostrador con su caja, el comprobante saliendo, una planta y una lámpara">
   <defs>
-    <linearGradient id="s-losa" x1="140" y1="420" x2="660" y2="456" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#cdd9e6"/><stop offset=".45" stop-color="#8ba1b8"/><stop offset="1" stop-color="#44607f"/></linearGradient>
-    <linearGradient id="s-faldon" x1="160" y1="452" x2="520" y2="580" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#132337"/><stop offset="1" stop-color="#0a1220"/></linearGradient>
+    <linearGradient id="s-losa" x1="140" y1="420" x2="660" y2="456" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#d3dbea"/><stop offset=".45" stop-color="#95a3c2"/><stop offset="1" stop-color="#4a5a8c"/></linearGradient>
+    <linearGradient id="s-faldon" x1="160" y1="452" x2="520" y2="580" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#1a2450"/><stop offset="1" stop-color="#0d1430"/></linearGradient>
     <linearGradient id="s-acero" x1="0" y1="0" x2="1" y2="1">
       <stop offset="0" stop-color="#eef1f6"/><stop offset=".55" stop-color="#cbd2dd"/><stop offset="1" stop-color="#a8b0be"/>
     </linearGradient>
     <linearGradient id="s-acero-osc" x1="0" y1="0" x2="1" y2="1">
       <stop offset="0" stop-color="#949eae"/><stop offset="1" stop-color="#55606f"/>
     </linearGradient>
-    <linearGradient id="s-bronce" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#dcb673"/><stop offset="1" stop-color="#916325"/></linearGradient>
+    <linearGradient id="s-bronce" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#b9a2fb"/><stop offset="1" stop-color="#6835df"/></linearGradient>
     <linearGradient id="s-papel" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#fffdf8"/><stop offset="1" stop-color="#e8e2d6"/>
+      <stop offset="0" stop-color="#fbfcff"/><stop offset="1" stop-color="#dfe3ef"/>
     </linearGradient>
     <linearGradient id="s-hoja" x1="0" y1="1" x2="1" y2="0">
-      <stop offset="0" stop-color="#744f1f"/><stop offset="1" stop-color="#c89a4a"/>
+      <stop offset="0" stop-color="#5628b8"/><stop offset="1" stop-color="#9b7bf6"/>
     </linearGradient>
-    <radialGradient id="s-escenario" cx=".5" cy=".46" r=".54"><stop offset="0" stop-color="#1e3147" stop-opacity=".34"/><stop offset=".6" stop-color="#152439" stop-opacity=".16"/><stop offset="1" stop-color="#0f1b2c" stop-opacity="0"/></radialGradient>
-    <radialGradient id="s-nicho" cx=".5" cy=".9" r=".75"><stop offset="0" stop-color="#5f7fa3" stop-opacity=".20"/><stop offset="1" stop-color="#5f7fa3" stop-opacity="0"/></radialGradient>
-    <linearGradient id="s-cono" x1="258" y1="150" x2="258" y2="440" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#ecd3a6" stop-opacity=".26"/><stop offset="1" stop-color="#ecd3a6" stop-opacity="0"/></linearGradient>
+    <radialGradient id="s-escenario" cx=".5" cy=".46" r=".54"><stop offset="0" stop-color="#26336b" stop-opacity=".34"/><stop offset=".6" stop-color="#1c2759" stop-opacity=".16"/><stop offset="1" stop-color="#141d45" stop-opacity="0"/></radialGradient>
+    <radialGradient id="s-nicho" cx=".5" cy=".9" r=".75"><stop offset="0" stop-color="#6a79a8" stop-opacity=".20"/><stop offset="1" stop-color="#6a79a8" stop-opacity="0"/></radialGradient>
+    <linearGradient id="s-cono" x1="258" y1="150" x2="258" y2="440" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#d5c7ff" stop-opacity=".26"/><stop offset="1" stop-color="#d5c7ff" stop-opacity="0"/></linearGradient>
     <radialGradient id="s-suelo" cx=".5" cy=".5" r=".5">
       <stop offset="0" stop-color="#000000" stop-opacity=".6"/><stop offset="1" stop-color="#000000" stop-opacity="0"/>
     </radialGradient>
@@ -46,10 +46,10 @@
 
     <!-- Lámpara: casquete redondo y cono de luz. -->
     <g>
-      <path d="M258 96v62" stroke="#916325" stroke-width="3" stroke-linecap="round"/>
+      <path d="M258 96v62" stroke="#6835df" stroke-width="3" stroke-linecap="round"/>
       <path d="M212 196a46 38 0 0 1 92 0z" fill="url(#s-bronce)"/>
-      <ellipse cx="258" cy="196" rx="46" ry="8" fill="#152439"/>
-      <circle cx="258" cy="194" r="9" fill="#fffdf8" opacity=".92"/>
+      <ellipse cx="258" cy="196" rx="46" ry="8" fill="#1c2759"/>
+      <circle cx="258" cy="194" r="9" fill="#fbfcff" opacity=".92"/>
       <path d="M222 202 176 436h164l-46-234z" fill="url(#s-cono)"/>
     </g>
 
@@ -57,7 +57,7 @@
     <g>
       <path d="M452 250q78-22 156 0" fill="none" stroke="#2e3346" stroke-width="9" stroke-linecap="round"/>
       <path d="M470 206a16 16 0 0 1 32 0v40h-32z" fill="url(#s-acero)" opacity=".5"/>
-      <rect x="512" y="216" width="28" height="30" rx="14" fill="#c89a4a" opacity=".55"/>
+      <rect x="512" y="216" width="28" height="30" rx="14" fill="#9b7bf6" opacity=".55"/>
       <path d="M552 214a17 17 0 0 1 34 0v32h-34z" fill="url(#s-acero)" opacity=".4"/>
     </g>
 
@@ -68,7 +68,7 @@
     <g>
       <path d="M166 452h468q16 0 14 16l-20 86q-4 24-28 24H200q-24 0-28-24l-20-86q-2-16 14-16z" fill="url(#s-faldon)"/>
       <rect x="138" y="422" width="524" height="32" rx="16" fill="url(#s-losa)"/>
-      <rect x="138" y="422" width="524" height="11" rx="5.5" fill="#fcf7ee" opacity=".42"/>
+      <rect x="138" y="422" width="524" height="11" rx="5.5" fill="#f5f2ff" opacity=".42"/>
       <path d="M232 492h146q12 0 11 12l-7 42q-1 10-13 10H244q-12 0-13-10l-10-42q-1-12 11-12z" fill="#ffffff" opacity=".04"/>
       <path d="M422 492h146q12 0 11 12l-10 42q-1 10-13 10H435q-12 0-13-10l-7-42q-1-12 11-12z" fill="#ffffff" opacity=".04"/>
     </g>
@@ -82,12 +82,12 @@
         <circle cx="344" cy="378" r="5"/><circle cx="364" cy="378" r="5"/><circle cx="384" cy="378" r="5"/>
         <circle cx="344" cy="396" r="5"/><circle cx="364" cy="396" r="5"/><circle cx="384" cy="396" r="5"/>
       </g>
-      <rect x="406" y="370" width="60" height="34" rx="12" fill="#c89a4a" opacity=".75"/>
+      <rect x="406" y="370" width="60" height="34" rx="12" fill="#9b7bf6" opacity=".75"/>
       <!-- cuello y pantalla alzada -->
       <rect x="378" y="320" width="44" height="30" rx="10" fill="#55606f"/>
       <g transform="rotate(-5 400 300)">
         <rect x="336" y="268" width="128" height="58" rx="18" fill="#1d2838"/>
-        <rect x="350" y="280" width="100" height="34" rx="12" fill="#c89a4a" opacity=".22"/>
+        <rect x="350" y="280" width="100" height="34" rx="12" fill="#9b7bf6" opacity=".22"/>
       </g>
       <!-- cajón entreabierto, más angosto que el cuerpo -->
       <path d="M332 416h136q14 0 14 12v8q0 12-14 12H332q-14 0-14-12v-8q0-12 14-12z" fill="url(#s-acero)" opacity=".72"/>
@@ -97,16 +97,16 @@
     <!-- Comprobante con el borde inferior ondulado. -->
     <g transform="translate(54 -6) rotate(6 430 222)">
       <path d="M400 162h70v114q-9 9-18 2t-18 0-18 2-16-4z" fill="url(#s-papel)"/>
-      <path d="M470 162q24-7 29 9t-13 22-16 2z" fill="#916325"/>
-      <rect x="412" y="186" width="46" height="8" rx="4" fill="#c89a4a" opacity=".85"/>
-      <rect x="412" y="204" width="38" height="8" rx="4" fill="#c89a4a" opacity=".65"/>
-      <rect x="412" y="222" width="26" height="8" rx="4" fill="#c89a4a" opacity=".48"/>
+      <path d="M470 162q24-7 29 9t-13 22-16 2z" fill="#6835df"/>
+      <rect x="412" y="186" width="46" height="8" rx="4" fill="#9b7bf6" opacity=".85"/>
+      <rect x="412" y="204" width="38" height="8" rx="4" fill="#9b7bf6" opacity=".65"/>
+      <rect x="412" y="222" width="26" height="8" rx="4" fill="#9b7bf6" opacity=".48"/>
     </g>
 
     <!-- Planta: maceta redonda y hojas curvas. -->
     <g>
       <!-- tallos -->
-      <g fill="none" stroke="#744f1f" stroke-width="3.5" stroke-linecap="round" opacity=".9">
+      <g fill="none" stroke="#5628b8" stroke-width="3.5" stroke-linecap="round" opacity=".9">
         <path d="M630 372q-4-44-26-64"/>
         <path d="M630 372q2-46 26-62"/>
         <path d="M630 372q-10-30-34-36"/>
@@ -118,7 +118,7 @@
       <path d="M634 326q6-34 32-42 6 28-14 44t-18-2z" fill="url(#s-hoja)" opacity=".6"/>
       <!-- maceta -->
       <path d="M602 368h56q10 0 9 10l-7 36q-2 12-14 12h-32q-12 0-14-12l-7-36q-1-10 9-10z" fill="url(#s-bronce)"/>
-      <rect x="596" y="360" width="68" height="14" rx="7" fill="#ecd3a6" opacity=".6"/>
+      <rect x="596" y="360" width="68" height="14" rx="7" fill="#d5c7ff" opacity=".6"/>
     </g>
 
     <!-- Terminal de pago, inclinado sobre su pie redondo. -->
@@ -126,26 +126,26 @@
       <ellipse cx="236" cy="420" rx="30" ry="7" fill="#232839"/>
       <g transform="rotate(-12 236 372)">
         <rect x="210" y="332" width="52" height="80" rx="18" fill="url(#s-acero-osc)"/>
-        <rect x="220" y="342" width="32" height="24" rx="9" fill="#c89a4a" opacity=".3"/>
+        <rect x="220" y="342" width="32" height="24" rx="9" fill="#9b7bf6" opacity=".3"/>
         <circle cx="226" cy="382" r="4.5" fill="#cbd2dd" opacity=".85"/>
         <circle cx="240" cy="382" r="4.5" fill="#cbd2dd" opacity=".85"/>
         <circle cx="254" cy="382" r="4.5" fill="#cbd2dd" opacity=".85"/>
         <circle cx="226" cy="396" r="4.5" fill="#cbd2dd" opacity=".85"/>
         <circle cx="240" cy="396" r="4.5" fill="#cbd2dd" opacity=".85"/>
-        <circle cx="254" cy="396" r="4.5" fill="#c89a4a"/>
+        <circle cx="254" cy="396" r="4.5" fill="#9b7bf6"/>
       </g>
     </g>
 
     <!-- Monedas. -->
     <g>
-      <ellipse cx="548" cy="416" rx="17" ry="6" fill="#916325"/>
-      <ellipse cx="548" cy="409" rx="17" ry="6" fill="#c89a4a"/>
-      <ellipse cx="548" cy="402" rx="17" ry="6" fill="#ecd3a6"/>
-      <ellipse cx="578" cy="418" rx="14" ry="5" fill="#ae7f30"/>
+      <ellipse cx="548" cy="416" rx="17" ry="6" fill="#6835df"/>
+      <ellipse cx="548" cy="409" rx="17" ry="6" fill="#9b7bf6"/>
+      <ellipse cx="548" cy="402" rx="17" ry="6" fill="#d5c7ff"/>
+      <ellipse cx="578" cy="418" rx="14" ry="5" fill="#7c4df0"/>
     </g>
 
     <!-- Burbujas de luz: redondas y de tamaños distintos, para quitar rigidez. -->
-    <g fill="#ecd3a6">
+    <g fill="#d5c7ff">
       <circle cx="146" cy="190" r="7" opacity=".26"/>
       <circle cx="668" cy="152" r="10" opacity=".2"/>
       <circle cx="700" cy="470" r="6" opacity=".22"/>

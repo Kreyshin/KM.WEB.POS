@@ -5,33 +5,32 @@
 /* =============================================================================
  * Karma Novum · Punto de venta — sistema de diseño
  *
- * Identidad: LATÓN sobre tinta azul. Sale del logotipo del propio POS —el
- * cajón de caja en azul pizarra con el bronce del metal y el papel marfil
- * del comprobante—, y no de la plataforma.
+ * Identidad: VIOLETA AZULADO sobre acero. Sale del logotipo del propio
+ * POS —la impresora de comprobantes en acero, el violeta del papel que
+ * sale y el índigo profundo de la ranura—, y no de la plataforma.
  *
- * Es un cambio sobre la versión anterior, que era índigo copiado de Karma
- * Novum, y hay dos razones.
+ * Es violeta, como la plataforma, pero NO el mismo violeta ni repartido
+ * igual, y hay dos razones.
  *
- * LA PRIMERA es que el POS se vende suelto. No todo el que lo compra
+ * LA PRIMERA es el TONO. El de la plataforma es `#8a2be2`, un violeta que
+ * tira a rojo; el del logotipo del POS es `#7c4df0`, que tira a azul. Uno
+ * al lado del otro no se confunden, y en la misma pantalla nunca están.
+ *
+ * LA SEGUNDA, y la que de verdad separa, es el REPARTO. En las hermanas el
+ * morado viste el cromo —la navegación, las cabeceras, el fondo—. Aquí el
+ * cromo es ACERO, que es de lo que está hecha la impresora del logotipo, y
+ * el violeta se retira a una sola cosa: el dinero. El total y «Cobrar» son
+ * lo único violeta de la pantalla, igual que en el logotipo lo único
+ * violeta es el comprobante que sale.
+ *
+ * Eso importa porque el POS se vende suelto. No todo el que lo compra
  * compra la plataforma, y un producto que solo se explica como «el módulo
  * morado de otra cosa» no tiene nada que enseñar cuando se presenta solo.
- * La plataforma es morada —`#8a2be2`, el mismo en hotel, restaurante y
- * taller—, así que el POS en morado no era parte de la suite: era un
- * cuarto clon.
- *
- * LA SEGUNDA es que el índigo no tenía nada que ver con el logotipo, y el
- * logotipo es lo que va en la factura, en el cartel y en la pantalla de
- * acceso. Una marca cuyo color no está en su propio símbolo obliga a
- * elegir cuál de los dos está mal.
  *
  * Lo que SÍ se comparte con la suite no es el tono, es el sistema: la misma
  * geometría, el mismo movimiento (`--km-mov-*`), la misma postura táctil y
  * la misma forma de nombrar. Dos productos de la misma casa se reconocen
  * por cómo se comportan antes que por el color.
- *
- * Y el latón no lo tiene nadie más: hotel tira a azul cielo, taller a azul
- * acero, restaurante a naranja, y el verde está reservado para la vertical
- * agrícola que vendrá.
  *
  * CLARO POR DEFECTO. Es un cambio sobre la versión anterior y es deliberado:
  * un sistema de gestión se usa mayormente con luz, se proyecta en reuniones y
@@ -54,36 +53,35 @@
 @custom-variant dark ([data-theme='dark'] &);
 
 :root {
-  /* ── Latón: la acción, la selección y el foco ──────────────────────────
+  /* ── Violeta: la acción, la selección y el foco ────────────────────────
    *
-   * El metal del cajón, no un naranja. La diferencia está en la saturación:
-   * un naranja de aviso grita y compite con los avisos de verdad; un latón
-   * se queda quieto y aun así se distingue de cualquier gris.
+   * El del comprobante que sale de la impresora del logotipo. Azulado, no
+   * el `#8a2be2` rojizo de la plataforma.
    *
-   * El 600 es el de acción y aguanta texto blanco (5.6:1). El 700 es el de
-   * texto sobre fondo claro (7.0:1). Por debajo del 500 ya no hay contraste
-   * para texto y solo sirven de fondo. */
-  --pv-marca-50: #fcf7ee;
-  --pv-marca-100: #f6ead3;
-  --pv-marca-200: #ecd3a6;
-  --pv-marca-300: #dcb673;
-  --pv-marca-400: #c89a4a;
-  --pv-marca-500: #ae7f30;
-  --pv-marca-600: #916325;
-  --pv-marca-700: #744f1f;
-  --pv-marca-800: #5c3e1c;
-  --pv-marca-900: #493219;
+   * El 600 es el de acción y aguanta texto blanco (6.6:1). El 700 es el de
+   * texto sobre fondo claro. Por debajo del 400 ya no hay contraste para
+   * texto y solo sirven de fondo. */
+  --pv-marca-50: #f4f0ff;
+  --pv-marca-100: #e9e2ff;
+  --pv-marca-200: #d5c7ff;
+  --pv-marca-300: #b9a2fb;
+  --pv-marca-400: #9b7bf6;
+  --pv-marca-500: #7c4df0;
+  --pv-marca-600: #6835df;
+  --pv-marca-700: #5628b8;
+  --pv-marca-800: #452194;
+  --pv-marca-900: #371c74;
 
-  /* ── Tinta: el azul profundo del logotipo. Es el cromo, no el acento.
+  /* ── Tinta: el índigo profundo de la ranura del logotipo. Es el CROMO,
+   *    no el acento, y esa es la diferencia con las verticales hermanas.
    *
    * Va en la barra lateral y en el bloque del total, que son las dos zonas
-   * oscuras permanentes. Antes eran pizarra neutra y el conjunto se leía
-   * como una herramienta gris con un botón de color; con la tinta azul el
-   * sistema entero tiene temperatura. */
-  --pv-tinta-700: #1e3147;
-  --pv-tinta-800: #152439;
-  --pv-tinta-900: #0f1b2c;
-  --pv-tinta-950: #0a1220;
+   * oscuras permanentes. El violeta nunca viste el cromo: si lo hiciera,
+   * el POS volvería a parecer una pantalla más de la plataforma. */
+  --pv-tinta-700: #26336b;
+  --pv-tinta-800: #1c2759;
+  --pv-tinta-900: #141d45;
+  --pv-tinta-950: #0d1430;
 
   /* ── Pizarra: todo lo demás. Neutro real, sin tinte. ───────────────────── */
   --pv-pizarra-25: #fafbfd;
@@ -130,8 +128,8 @@
    */
   --pv-rail: var(--pv-tinta-900);
   --pv-rail-2: var(--pv-tinta-800);
-  --pv-rail-text: #e6ecf3;
-  --pv-rail-muted: #8698ab;
+  --pv-rail-text: #e7eaf4;
+  --pv-rail-muted: #8b94b4;
 
   /* Geometría. Más suelta que antes: un sistema de gestión respira. */
   --pv-radio-control: 10px;
@@ -210,8 +208,8 @@
 /*
  * Tema oscuro. Pizarra neutra, no carbón teñido: el anterior tiraba a marrón
  * y a las ocho horas eso cansa y ensucia cualquier color que se le ponga
- * encima. Aquí el gris es gris —justo porque el acento ya es cálido— y el
- * latón sube de tono para mantener el contraste sobre fondo oscuro.
+ * encima. Aquí el gris es gris, con un punto de acero del logotipo, y el
+ * violeta sube de tono para mantener el contraste sobre fondo oscuro.
  */
 [data-theme='dark'] {
   --pv-bg: var(--pv-pizarra-950);
@@ -221,9 +219,9 @@
   --pv-text: var(--pv-pizarra-100);
   --pv-muted: var(--pv-pizarra-400);
   --pv-border: #2a2f3a;
-  --pv-selection: #3a2f1c;
+  --pv-selection: #2a2456;
 
-  /* Sobre oscuro el latón sube de tono: el 600 sobre carbón es barro. */
+  /* Sobre oscuro el violeta sube de tono: el 600 sobre carbón se apaga. */
   --pv-primary: var(--pv-marca-400);
   --pv-primary-texto: var(--pv-marca-300);
   --pv-accion: var(--pv-marca-600);
@@ -232,8 +230,8 @@
   /* La barra se hunde un escalón más que el lienzo para seguir separándose. */
   --pv-rail: var(--pv-tinta-950);
   --pv-rail-2: var(--pv-tinta-800);
-  --pv-rail-text: #e6ecf3;
-  --pv-rail-muted: #8698ab;
+  --pv-rail-text: #e7eaf4;
+  --pv-rail-muted: #8b94b4;
 
   --pv-exito: #34b183;
   --pv-aviso: #d79a2b;
@@ -412,7 +410,7 @@ body {
  *   navegación  -> neutra, una barra fina y callada
  *   zona de venta -> superficie limpia, sin lavados de color
  *   columna del ticket -> CARBÓN en ambos temas, es el ancla de la pantalla
- *   total y «cobrar» -> LATÓN, y son lo único de marca que hay a la vista
+ *   total y «cobrar» -> VIOLETA, y son lo único de marca que hay a la vista
  *
  * La regla operativa que se sigue de esto: si algo se pinta del color de acción y no es
  * el total ni el botón de cobrar, está mal. Un POS en el que el botón de
@@ -631,23 +629,22 @@ body {
 }
 
 /*
- * Bloque del total. La única tinta azul grande de la pantalla.
+ * Bloque del total. La única tinta grande de la pantalla.
  *
  * El importe va en 40px y tabular: tiene que leerse de pie, a un metro, y con
  * el cliente mirando.
  */
 /*
- * El bloque del total: tinta azul con la cifra en marfil.
+ * El bloque del total: tinta índigo con la cifra en violeta claro.
  *
- * NO se mezcla el latón con el azul. Son casi complementarios, y la mezcla
- * al 20 % daba exactamente #29292b: un gris neutro. Dos colores con
- * carácter mezclados en el mismo plano se cancelan; puestos uno sobre otro
- * —cifra cálida sobre fondo frío— es el contraste del propio logotipo, el
- * comprobante de papel saliendo del cajón.
+ * Es el gesto del logotipo: el comprobante violeta saliendo de la ranura
+ * oscura. El violeta de acción y la tinta sí comparten familia, así que
+ * aquí sí se pueden tocar sin ensuciarse —no como el latón anterior, que
+ * mezclado con el azul daba un gris neutro exacto—.
  */
 .pv-total {
   background-color: var(--pv-tinta-800);
-  border-top: 1px solid color-mix(in srgb, var(--pv-marca-400) 45%, transparent);
+  border-top: 1px solid color-mix(in srgb, var(--pv-marca-400) 50%, transparent);
 }
 
 .pv-total-cifra {
@@ -1268,7 +1265,7 @@ body {
  * columna del ticket lleva carbón en los dos temas.
  */
 .pv-acceso-lienzo {
-  background-color: #0a1220;
+  background-color: #0d1430;
   background-image:
     radial-gradient(
       62rem 42rem at 26% 46%,
@@ -1430,8 +1427,8 @@ body {
   --pv-text: #15161c;
   --pv-muted: #62646f;
   --pv-border: #dcdbd5;
-  --pv-selection: #f0e2c6;
-  --pv-primary-texto: #744f1f;
+  --pv-selection: #ddd2ff;
+  --pv-primary-texto: #5628b8;
 
   -webkit-mask:
     conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg) bottom /
@@ -1451,7 +1448,7 @@ body {
   font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.22em;
-  color: #744f1f;
+  color: #5628b8;
 }
 
 .pv-comanda-regla {
@@ -1706,7 +1703,7 @@ body {
 }
 
 /*
- * El activo se marca con fondo de latón, no con un filo. En una barra vertical
+ * El activo se marca con fondo violeta, no con un filo. En una barra vertical
  * de siete elementos el filo se pierde; aquí sí conviene el bloque, porque
  * la selección cambia pocas veces al día y no parpadea.
  */
@@ -1908,7 +1905,13 @@ body {
  */
 .pv-acceso-marco {
   width: 100%;
-  max-width: 100rem;
+  /*
+   * 120rem y no 100rem. El tope existe para el 3440, donde sin él cada
+   * mitad se iba a un extremo; a 100rem también mordía en un 1920 normal y
+   * dejaba dos bandas muertas a los lados que descolocaban la comanda
+   * respecto del panel. Ahora empieza a actuar por encima de 1920.
+   */
+  max-width: 120rem;
   margin-inline: auto;
 }
 
@@ -1982,7 +1985,7 @@ body {
 }
 
 .pv-ficha-dato {
-  background-color: color-mix(in srgb, #0a1220 72%, transparent);
+  background-color: color-mix(in srgb, #0d1430 72%, transparent);
   padding: 0.75rem 1rem 0.875rem;
 }
 
@@ -2032,8 +2035,18 @@ body {
 
 /* La columna del acceso se separa del panel con una línea de luz, no con un
  * borde duro: el papel ya aporta el contraste. */
+/*
+ * La columna del acceso respira igual que el panel de al lado.
+ *
+ * Mismo aire arriba y abajo que la marca y la ficha del puesto —2.5rem—,
+ * para que las dos mitades compartan la misma banda vertical. Con
+ * paddings distintos la comanda flotaba a una altura que no correspondía
+ * a nada de la izquierda, y por eso las dos mitades se leían como dos
+ * cosas sueltas en vez de una pantalla.
+ */
 .pv-acceso-columna {
   box-shadow: inset 1px 0 0 color-mix(in srgb, #ffffff 7%, transparent);
+  padding-block: 2.5rem;
 }
 
 /* Ticket en espera: el hueco entre la cabecera y los totales. */
